@@ -102,6 +102,18 @@ body.admin .viewer-only{display:none!important}
 .modal-bg.show{display:flex}
 .modal{background:#fff;border-radius:12px;max-width:860px;width:100%;padding:20px}
 .modal h3{margin:0 0 14px}
+table.tacc{font-size:12.5px}table.tacc th,table.tacc td{padding:6px 7px}
+table.tacc td.w{white-space:normal;min-width:90px;max-width:220px;line-height:1.3}
+table.tacc td.acts{white-space:nowrap;text-align:right}table.tacc td.acts .btn{margin-left:4px}
+tr.acc-row{cursor:pointer}tr.acc-row:hover td{background:#FFF6F0}
+.ad-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border-bottom:3px solid var(--brand);padding-bottom:10px;margin-bottom:6px}
+.ad-id{font-size:11px;color:var(--muted);letter-spacing:.05em}
+.ad-sec{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand-d);margin:14px 0 6px}
+.ad-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.af{background:#F6F7F9;border-radius:8px;padding:7px 10px;display:flex;flex-direction:column;gap:2px}
+.af span{font-size:11px;color:var(--ink2)}.af b{font-size:13.5px;font-weight:600}.af i.muted{color:#A0A5AB;font-weight:400}
+.ad-desc{background:#FAFAFA;border-left:3px solid var(--brand);padding:10px 12px;border-radius:6px;font-size:13.5px;line-height:1.5;margin-top:8px;white-space:pre-wrap}
+@media screen and (max-width:760px){.ad-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .fgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .fgrid .full{grid-column:1/-1}
 .welcome{max-width:640px;margin:40px auto;text-align:center}
@@ -171,7 +183,7 @@ body.gated .app{filter:blur(3px);pointer-events:none}
 .ult-t{font-weight:700;font-size:9.5pt;color:#1F2328;border-left:1.2mm solid #E75300;padding-left:2mm}
 .ult-r{display:grid;grid-template-columns:11mm 12mm 1fr;gap:2.5mm;align-items:center;background:#fff;border-radius:1.5mm;padding:1mm 2.5mm}
 .ult-d{text-align:center;line-height:1}.ult-d b{display:block;font-size:14pt;font-weight:800;color:#E75300}.ult-d span{font-size:7pt;text-transform:uppercase;color:#5F6368}
-.ult-x{display:flex;flex-direction:column;font-size:8pt;line-height:1.25}.ult-x b{font-weight:600}.ult-x span{color:#5F6368;font-size:7.3pt}
+.ult-x{display:flex;flex-direction:column;font-size:8pt;line-height:1.25}.ult-x b{font-weight:600}.ult-x span{color:#5F6368;font-size:7.3pt}.ult-x .ult-e{color:#1F2328;font-weight:600}
 .ult-w{font-size:7.8pt;color:#4A5260;margin-top:auto}
 .rcom.big{min-height:60mm}
 .rp{display:inline-block;border-radius:10mm;padding:.8mm 3mm;font-size:7.5pt;font-weight:600}
@@ -529,14 +541,14 @@ async function encryptJSON(obj,pw){const salt=crypto.getRandomValues(new Uint8Ar
   const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},await aesKey(pw,salt,it),new TextEncoder().encode(JSON.stringify(obj))));
   return{v:1,enc:true,it,salt:b64e(salt),iv:b64e(iv),ct:b64e(ct)}}
 async function decryptJSON(p,pw){const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64d(p.iv)},await aesKey(pw,b64d(p.salt),p.it),b64d(p.ct));return JSON.parse(new TextDecoder().decode(pt))}
-function buildPublic(inclEmp){
+function buildPublic(inclEmp,inclAcc){
   const P0=DB.params;
   return{v:1,generado:new Date().toISOString(),
     db:{params:{'Division':P0['Division'],'Año en curso':P0['Año en curso'],'Meta TF':P0['Meta TF'],'Meta TG':P0['Meta TG'],'Meta TFT':P0['Meta TFT']},
       ceco:DB.ceco.map(c=>({ceco:c.ceco,nombre:c.nombre,gerencia:c.gerencia,orden:c.orden,area:c.area,activo:c.activo,obs:''})),
       prop:DB.prop.map(r=>({y:r.y,m:r.m,ceco:r.ceco,dotH:r.dotH,dotM:r.dotM,hhH:r.hhH,hhM:r.hhM,fuente:''})),
       eecc:DB.eecc.map(r=>({y:r.y,m:r.m,empresa:inclEmp?r.empresa:'',rut:'',contrato:inclEmp?r.contrato:'',nomContrato:inclEmp?r.nomContrato:'',ceco:r.ceco,dotH:r.dotH,hhH:r.hhH,dotM:r.dotM,hhM:r.hhM,fuente:''})),
-      acc:DB.acc.map(a=>({id:a.id,fecha:a.fecha,hora:'',turno:'',cls:a.cls,tipo:a.tipo,empresa:'',contrato:'',ceco:a.ceco,cargo:'',lugar:'',tacc:a.tacc,lesion:'',cuerpo:a.cuerpo,rc:'',desc:'',ini:a.ini,alta:a.alta,rep:a.rep,dpm:a.dpm,dc:a.dc,obs:''})),
+      acc:DB.acc.map(a=>({id:a.id,fecha:a.fecha,hora:inclAcc?a.hora:'',turno:inclAcc?a.turno:'',cls:a.cls,tipo:a.tipo,empresa:inclAcc?a.empresa:'',contrato:inclAcc?a.contrato:'',ceco:a.ceco,cargo:inclAcc?a.cargo:'',lugar:inclAcc?a.lugar:'',tacc:a.tacc,lesion:inclAcc?a.lesion:'',cuerpo:a.cuerpo,rc:inclAcc?a.rc:'',desc:inclAcc?a.desc:'',ini:a.ini,alta:a.alta,rep:a.rep,dpm:a.dpm,dc:a.dc,obs:''})),
       hist:DB.hist,ref:DB.ref||[],leeme:null}};
 }
 
@@ -680,8 +692,24 @@ function tablaDotGer(f,lk){
 }
 function tablaAcc(list,withTipo=true,editable=false){
   if(!list.length)return '<p class="small">Sin accidentes registrados en el periodo.</p>';
-  const cd=dn(CUT),ad=ADMIN,ed=editable&&ADMIN;
-  return `<div class="tw"><table><thead><tr><th class="l">Fecha</th><th class="l">Clasif.</th>${withTipo?'<th class="l">Tipo</th>':''}${ad?'<th class="l">Empresa</th>':''}<th class="l">CECO</th><th class="l">Gerencia</th><th class="l">Tipo de accidente</th><th>DP a la fecha</th><th class="l">Estado</th>${ad?'<th class="l">Descripción</th>':''}${ed?'<th></th>':''}</tr></thead><tbody>${list.map(a=>`<tr><td class="l">${fdate(a.fecha)}</td><td class="l"><span class="pill ${a.cls==='STP'?'neu':'bad'}">${esc(a.cls)}</span></td>${withTipo?`<td class="l">${a.tipo==='Propio'?'Codelco':'EECC'}</td>`:''}${ad?`<td class="l">${esc(a.empresa)}</td>`:''}<td class="l">${esc(a.ceco)}</td><td class="l">${esc(a.g)}</td><td class="l">${esc(a.tacc||'—')}</td><td>${N0(accDPTotal(a,cd))}</td><td class="l">${a.rep==='SI'?'<span class="pill warn">En reposo</span>':a.alta?'Alta '+fdate(a.alta):''}${ad&&/confirmar/i.test(a.obs)?' <span class="pill warn" title="'+esc(a.obs)+'">Revisar</span>':''}</td>${ad?`<td class="wrap">${esc(String(a.desc).slice(0,160))}</td>`:''}${ed?`<td><button class="btn sm" onclick="editAcc('${esc(a.id)}')">Editar</button></td>`:''}</tr>`).join('')}</tbody></table></div>`;
+  const cd=dn(CUT),ed=editable&&ADMIN,showEmp=list.some(a=>a.empresa&&a.tipo==='EECC');
+  const cut=(s,n)=>{s=String(s||'');return s.length>n?esc(s.slice(0,n-1))+'…':esc(s)};
+  return `<div class="tw"><table class="tacc"><thead><tr><th class="l">Fecha</th><th class="l">Clasif.</th>${withTipo?'<th class="l">Personal</th>':''}${showEmp?'<th class="l">Empresa</th>':''}<th class="l">Gerencia / Superint.</th><th class="l">Riesgo crítico</th><th class="l">Tipo de accidente</th><th>DP</th><th class="l">Estado</th><th></th></tr></thead><tbody>${list.map(a=>`<tr class="acc-row" onclick="showAcc('${esc(a.id)}')" title="Ver detalle del accidente"><td class="l">${fdate(a.fecha)}</td><td class="l"><span class="pill ${a.cls==='STP'?'neu':'bad'}">${esc(a.cls)}</span></td>${withTipo?`<td class="l">${a.tipo==='Propio'?'Codelco':'EECC'}</td>`:''}${showEmp?`<td class="l w">${cut(a.tipo==='Propio'?'Codelco':a.empresa,28)}</td>`:''}<td class="l w">${cut(gShort(a.g),30)}</td><td class="l w">${cut(a.rc||'—',30)}</td><td class="l w">${cut(a.tacc||'—',34)}</td><td>${N0(accDPTotal(a,cd))}</td><td class="l">${a.rep==='SI'?'<span class="pill warn">En reposo</span>':a.alta?'Alta '+fdate(a.alta):''}${ADMIN&&/confirmar/i.test(a.obs)?' <span class="pill warn" title="'+esc(a.obs)+'">Revisar</span>':''}</td><td class="acts"><button class="btn sm" onclick="event.stopPropagation();showAcc('${esc(a.id)}')">Ver</button>${ed?`<button class="btn sm" onclick="event.stopPropagation();editAcc('${esc(a.id)}')">Editar</button>`:''}</td></tr>`).join('')}</tbody></table></div><p class="small">Haz clic en un accidente para ver su detalle completo.</p>`;
+}
+const DIAS_S=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+function showAcc(id){
+  const a=DB.acc.find(x=>x.id===id);if(!a)return;const x=M.acc.find(y=>y.id===id)||a;const cd=dn(CUT);
+  const info=M.info(a.ceco||'');const dp=accDPTotal(x,cd);
+  const f=(l,v,cls='')=>`<div class="af ${cls}"><span>${l}</span><b>${v==null||v===''?'<i class="muted">—</i>':v}</b></div>`;
+  const e=v=>v==null||v===''?'':esc(v);
+  openModal(`<div class="ad-head"><div><div class="ad-id">${esc(a.id)}</div><h3 style="margin:0">${esc(a.tacc||'Accidente')}</h3><div class="small">${DIAS_S[a.fecha.getDay()]} ${fdate(a.fecha)}${a.hora?' · '+esc(a.hora)+' h':''}</div></div><span class="pill ${a.cls==='STP'?'neu':'bad'}" style="font-size:13px;padding:4px 12px">${esc(a.cls)}</span></div>
+  <div class="ad-sec">Cuándo</div><div class="ad-grid">${f('Calificación',e(a.cls))}${f('Fecha',fdate(a.fecha))}${f('Año',a.fecha.getFullYear())}${f('Mes',MESES[a.fecha.getMonth()])}${f('Día',DIAS_S[a.fecha.getDay()])}${f('Hora',e(a.hora))}${f('Turno',e(a.turno))}</div>
+  <div class="ad-sec">Quién y dónde</div><div class="ad-grid">${f('Personal',a.tipo==='Propio'?'Codelco (propio)':'Empresa contratista')}${f('Empresa',a.tipo==='Propio'?'Codelco':e(a.empresa))}${f('N° contrato',e(a.contrato))}${f('Cargo',e(a.cargo))}${f('CECO',e(a.ceco)+(info.nombre&&a.ceco?' · '+esc(info.nombre):''))}${f('Gerencia / Dirección / Superint.',e(x.g||info.gerencia))}${f('Área de instalación',e(x.a||info.area))}${f('Lugar / proceso',e(a.lugar))}</div>
+  <div class="ad-sec">Qué pasó</div><div class="ad-grid">${f('Tipo de accidente',e(a.tacc))}${f('Riesgo crítico',e(a.rc))}${f('Tipo de lesión',e(a.lesion))}${f('Parte del cuerpo',e(a.cuerpo))}</div>
+  ${a.desc?`<div class="ad-desc">${esc(a.desc)}</div>`:''}
+  <div class="ad-sec">Consecuencias</div><div class="ad-grid">${f('Días perdidos a la fecha',N0(dp))}${f('Estado',a.rep==='SI'?'En reposo':a.alta?'Con alta':'—')}${f('Inicio reposo',a.ini?fdate(a.ini):'')}${f('Fecha de alta',a.alta?fdate(a.alta):'')}${f('Días cargo',a.dc?N0(a.dc):'0')}</div>
+  ${ADMIN&&a.obs?`<div class="ad-sec">Observación (solo administrador)</div><div class="ad-desc">${esc(a.obs)}</div>`:''}
+  <div class="row" style="justify-content:flex-end;margin-top:16px">${ADMIN?`<button class="btn" onclick="editAcc('${esc(a.id)}')">Editar</button>`:''}<button class="btn pri" onclick="closeModal()">Cerrar</button></div>`);
 }
 
 /* ================= EECC ================= */
@@ -823,15 +851,16 @@ function fillContratos(){const e=document.querySelector('#accForm [name=empresa]
 const ACC_FIELDS=[['fecha','Fecha accidente','date'],['hora','Hora','text'],['turno','Turno','text'],['cls','Clasificación','sel:CTP,STP,FATAL,NAT'],['tipo','Tipo personal','sel:Propio,EECC'],['empresa','Empresa','emp'],['contrato','N° Contrato','con'],['ceco','CECO','ceco'],['cargo','Cargo','text'],['lugar','Lugar / Proceso','text'],['tacc','Tipo accidente','list'],['lesion','Tipo lesión','list'],['cuerpo','Parte del cuerpo','list'],['rc','Riesgo crítico','text'],['ini','Fecha inicio reposo','date'],['alta','Fecha alta','date'],['rep','En reposo','sel:NO,SI'],['dpm','DP total (manual)','number'],['dc','Días cargo','number'],['desc','Descripción','area'],['obs','Observación','area']];
 function editAcc(id){
   const a=id?DB.acc.find(x=>x.id===id):{fecha:today(),cls:'STP',tipo:'EECC',rep:'NO',dc:0};
-  const inp=([k,l,t])=>{const v=a[k];
+  const PH=/^\((por confirmar|por completar|sin información)\)$/i;
+  const inp=([k,l,t])=>{const v0=a[k],ph=typeof v0==='string'&&PH.test(v0.trim())?v0.trim():'',v=ph?'':v0;
     if(t==='date')return `<label class="fld">${l}<input type="date" name="${k}" value="${v?iso(v):''}"></label>`;
     if(t.startsWith('sel:'))return `<label class="fld">${l}<select name="${k}">${t.slice(4).split(',').map(o=>`<option ${v===o?'selected':''}>${o}</option>`).join('')}</select></label>`;
     if(t==='list'){const L=LISTAS[k];const extra=v&&!L.includes(v);return `<label class="fld">${l}<select name="${k}"><option value="">— Seleccionar —</option>${L.map(o=>`<option ${v===o?'selected':''}>${esc(o)}</option>`).join('')}${extra?`<option selected value="${esc(v)}">${esc(String(v).slice(0,60))} (valor anterior)</option>`:''}</select></label>`}
-    if(t==='emp')return `<label class="fld">${l}<input name="${k}" list="dlEmp" value="${esc(v||'')}" placeholder="Escribe para buscar…" autocomplete="off" oninput="fillContratos()" onchange="fillContratos()"></label>`;
+    if(t==='emp')return `<label class="fld">${l}<input name="${k}" list="dlEmp" value="${esc(v||'')}" placeholder="${esc(ph?ph+' · escribe para buscar':'Escribe para buscar…')}" autocomplete="off" oninput="fillContratos()" onchange="fillContratos()"></label>`;
     if(t==='con')return `<label class="fld">${l}<input name="${k}" list="dlCon" value="${esc(v||'')}" autocomplete="off"></label>`;
     if(t==='ceco')return `<label class="fld">${l}<input name="${k}" list="dlCeco" value="${esc(v||'')}"></label>`;
-    if(t==='area')return `<label class="fld full">${l}<textarea name="${k}" rows="3">${esc(v||'')}</textarea></label>`;
-    return `<label class="fld">${l}<input type="${t}" name="${k}" value="${esc(v??'')}"></label>`};
+    if(t==='area')return `<label class="fld full">${l}<textarea name="${k}" rows="3" placeholder="${esc(ph)}">${esc(v||'')}</textarea></label>`;
+    return `<label class="fld">${l}<input type="${t}" name="${k}" value="${esc(v??'')}" placeholder="${esc(ph)}"></label>`};
   openModal(`<h3>${id?'Editar accidente '+esc(id):'Registrar accidente'}</h3><form id="accForm"><div class="fgrid">${ACC_FIELDS.map(inp).join('')}</div>
   <datalist id="dlEmp"><option value="Codelco">Personal propio</option>${empresasList().map(e=>`<option value="${esc(e)}">`).join('')}</datalist><datalist id="dlCon"></datalist>
   <datalist id="dlCeco">${DB.ceco.map(c=>`<option value="${c.ceco}">${esc(c.nombre)}</option>`).join('')}</datalist>
@@ -853,7 +882,7 @@ function editAcc(id){
 function delAcc(id){if(!confirm('¿Eliminar este accidente del registro?'))return;DB.acc=DB.acc.filter(x=>x.id!==id);markDirty('Accidente eliminado');closeModal()}
 function openModal(h){$('modalBox').innerHTML=h;$('modal').classList.add('show')}
 function closeModal(){$('modal').classList.remove('show')}
-$('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+let _mdTarget=null;$('modal').addEventListener('mousedown',e=>{_mdTarget=e.target});$('modal').addEventListener('click',e=>{if(e.target.id==='modal'&&_mdTarget&&_mdTarget.id==='modal')closeModal();_mdTarget=null});
 
 /* ================= PROYECCIONES ================= */
 function proyModel(){
@@ -959,7 +988,7 @@ function renderInforme(){
   const extraC=X.maxC!=null?X.maxC-(Y.ctp+Y.fat):null;
   const rec=streakRecord(null);
   const finAnio=dn(mkD(p.y,12,31)),diasDic=sa?sa.dias+(finAnio-p.cd):null,hhDic=sa?sa.hh+X.hhRem:null;
-  const accRows=l=>l.map(a=>`<tr><td>${fdate(a.fecha)}</td><td><span class="rp ${a.cls==='STP'?'neu':'bad'}">${a.cls}</span></td><td>${a.tipo==='Propio'?'Codelco':'Colab.'}</td><td>${esc(gShort(a.g))}</td><td class="w">${esc(a.tacc||'—')}</td><td class="w">${esc(a.cuerpo&&a.cuerpo.length<25?a.cuerpo:'—')}</td><td class="n">${N0(accDPTotal(a,p.cd))}</td></tr>`).join('');
+  const accRows=l=>l.map(a=>`<tr><td>${fdate(a.fecha)}</td><td><span class="rp ${a.cls==='STP'?'neu':'bad'}">${a.cls}</span></td><td class="w">${a.tipo==='Propio'?'Codelco':esc(a.empresa&&!/confirmar|completar/i.test(a.empresa)?a.empresa:'Contratista')}</td><td>${esc(gShort(a.g))}</td><td class="w">${esc(a.tacc||'—')}</td><td class="w">${esc(a.cuerpo&&a.cuerpo.length<25?a.cuerpo:'—')}</td><td class="n">${N0(accDPTotal(a,p.cd))}</td></tr>`).join('');
   const perT=(()=>{const cols=[['Semana',p.week],['Mes',p.month],['Año',p.year]];const tp=[['Codelco','Propio'],['Colab.','EECC'],['Total',null]];const R={};cols.forEach(([n,r])=>tp.forEach(([t,x])=>R[n+t]=indic(r[0],r[1],{tipo:x})));
     const rows=[...(DIV?[]:[['HH','hh',N0]]),['CTP','ctp',N0],['STP','stp',N0],['Fatales','fat',N0],['Días perdidos','dp',N0],['TF','tf',N2],['TG','tg',N1],['TFT','tft',N2]];
     return `<table class="rtab"><thead><tr><th></th>${cols.map(([n,r])=>`<th colspan="3">${n}<small>${fdate(fromDn(r[0])).slice(0,5)} – ${fdate(fromDn(r[1])).slice(0,5)}</small></th>`).join('')}</tr><tr><th></th>${cols.map(()=>tp.map(t=>`<th>${t[0]}</th>`).join('')).join('')}</tr></thead><tbody>${rows.map(([l,k,f])=>`<tr><td>${l}</td>${cols.map(([n])=>tp.map(([t])=>`<td class="n ${t==='Total'?'b':''}">${f(R[n+t][k])}</td>`).join('')).join('')}</tr>`).join('')}</tbody></table>`})();
@@ -968,7 +997,7 @@ function renderInforme(){
     return `<table class="rtab"><thead><tr><th>Gerencia / Superintendencia</th>${hc}<th>CTP</th><th>STP</th><th>DP</th><th>TF</th><th>TG</th><th>TFT</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.g)}</td>${hv(r.x)}<td class="n">${r.x.ctp+r.x.fat}</td><td class="n">${r.x.stp}</td><td class="n">${N0(r.x.dp)}</td><td class="n">${N2(r.x.tf)}</td><td class="n">${N1(r.x.tg)}</td><td class="n">${N2(r.x.tft)}</td></tr>`).join('')}<tr class="t"><td>División Ventanas</td>${hv(Y)}<td class="n">${Y.ctp+Y.fat}</td><td class="n">${Y.stp}</td><td class="n">${N0(Y.dp)}</td><td class="n">${N2(Y.tf)}</td><td class="n">${N1(Y.tg)}</td><td class="n">${N2(Y.tft)}</td></tr></tbody></table>`})();
   // últimos 3 accidentes (primera página): sin nombres, empresas ni descripciones
   const last3=accY.slice().reverse().slice(0,3);
-  const ult=`<div class="ult"><div class="ult-t">Últimos accidentes ${p.y}</div>${last3.length?last3.map(a=>`<div class="ult-r"><div class="ult-d"><b>${pad(a.fecha.getDate())}</b><span>${MES3[a.fecha.getMonth()]}</span></div><span class="rp ${a.cls==='STP'?'neu':'bad'}">${a.cls}</span><div class="ult-x"><b>${esc(a.tacc||'Tipo de accidente por informar')}</b><span>${a.tipo==='Propio'?'Codelco':'Colaborador'} · ${esc(gShort(a.g))}${a.cuerpo&&a.cuerpo.length<25?' · '+esc(a.cuerpo):''}</span></div></div>`).join(''):'<div class="small">Sin accidentes en el año</div>'}
+  const ult=`<div class="ult"><div class="ult-t">Últimos accidentes ${p.y}</div>${last3.length?last3.map(a=>`<div class="ult-r"><div class="ult-d"><b>${pad(a.fecha.getDate())}</b><span>${MES3[a.fecha.getMonth()]}</span></div><span class="rp ${a.cls==='STP'?'neu':'bad'}">${a.cls}</span><div class="ult-x"><b>${esc(a.tacc||'Tipo de accidente por informar')}</b><span><b class="ult-e">${a.tipo==='Propio'?'Codelco':esc(a.empresa&&!/confirmar|completar/i.test(a.empresa)?a.empresa:'Empresa contratista')}</b> · ${esc(gShort(a.g))}${a.cuerpo&&a.cuerpo.length<25?' · '+esc(a.cuerpo):''}</span></div></div>`).join(''):'<div class="small">Sin accidentes en el año</div>'}
     <div class="ult-w">Semana ${semTxt}: <b>${W.ctp+W.fat} CTP</b> · <b>${W.stp} STP</b></div></div>`;
   const pct=v=>Math.round(v*100);
   const showHHsin=!DIV||REP_OPT.hhSin;
@@ -1007,7 +1036,7 @@ function renderInforme(){
     <div class="col" style="grid-column:1/-1"><div class="st">Indicadores por periodo · Codelco y Colaboradores (EECC)</div>${perT}</div>
     <div class="col"><div class="st">Indicadores ${p.y} por Gerencia / Superintendencia</div>${gerT}${DIV?'':`<div class="st">Comentarios</div><textarea class="rcom" placeholder="Escribe aquí los comentarios del informe…" oninput="store.set('dven_coment_${REP_OPT.mode}',this.value)">${esc(com)}</textarea>`}</div>
     <div class="col">${DIV?`<div class="st">Comentarios</div><textarea class="rcom big" placeholder="Escribe aquí los comentarios del informe…" oninput="store.set('dven_coment_${REP_OPT.mode}',this.value)">${esc(com)}</textarea>`:`<div class="st">Accidentes ${p.y}${accY.length>8?' (últimos 8)':''}</div>
-      <table class="rtab"><thead><tr><th>Fecha</th><th>Clasif.</th><th>Personal</th><th>Gerencia</th><th>Tipo de accidente</th><th>Parte del cuerpo</th><th>DP</th></tr></thead><tbody>${accRows(accY.slice().reverse().slice(0,8))||'<tr><td colspan="7">Sin accidentes</td></tr>'}</tbody></table>`}
+      <table class="rtab"><thead><tr><th>Fecha</th><th>Clasif.</th><th>Empresa</th><th>Gerencia</th><th>Tipo de accidente</th><th>Parte del cuerpo</th><th>DP</th></tr></thead><tbody>${accRows(accY.slice().reverse().slice(0,8))||'<tr><td colspan="7">Sin accidentes</td></tr>'}</tbody></table>`}
     </div>
    </div>${foot(pg)}</section>`}
   if(REP_OPT.proy){pg++;h+=`<section class="slide">${head('Proyección de accidentabilidad','Escenarios al cierre de '+p.y+(DIV?'':' · '+N0(X.hhRem)+' HH restantes del año'))}
@@ -1218,9 +1247,10 @@ function renderBase(){
    <label class="fld">Meta TFT (opcional)<input id="prTFT" type="number" step="0.01" value="${esc(P('Meta TFT',''))}"></label>
   </div><div class="row mt"><button class="btn pri" onclick="saveParams()">Guardar parámetros</button><span class="small">El informe usa semana de lunes a domingo.</span></div></div>
   </div>
-  <div class="card mt"><h3>Publicación web</h3><p class="sub">El sitio publicado <b>no usa el Excel</b>: lee <code>${PUB_PATH}</code>, un archivo que se genera aquí <b>sin datos sensibles</b> (sin nombres, empresas de accidentes, descripciones, cargos, lugares ni observaciones). Con clave de lectura, el archivo queda cifrado y solo se puede ver ingresando esa clave.</p>
+  <div class="card mt"><h3>Publicación web</h3><p class="sub">El sitio publicado <b>no usa el Excel</b>: lee <code>${PUB_PATH}</code>, un archivo que se genera aquí <b>sin datos sensibles</b>: nunca incluye nombres, RUT, contraseña ni observaciones internas; la ficha de accidentes es opcional. Con clave de lectura, el archivo queda cifrado y solo se puede ver ingresando esa clave.</p>
    <div class="fgrid"><label class="fld">Clave de lectura (opcional)<input type="password" id="pubPw" autocomplete="new-password" placeholder="Sin clave = sitio abierto"></label><label class="fld">Repetir clave<input type="password" id="pubPw2" autocomplete="new-password"></label>
-   <label class="fld" style="justify-content:flex-end"><span><input type="checkbox" id="pubEmp" checked> Incluir detalle EECC por empresa y contrato (HH y dotación)</span></label></div>
+   <label class="fld" style="justify-content:flex-end"><span><input type="checkbox" id="pubEmp" checked> Incluir detalle EECC por empresa y contrato (HH y dotación)</span></label>
+   <label class="fld full"><span><input type="checkbox" id="pubAcc" checked> Incluir ficha completa de accidentes (empresa, contrato, cargo, hora, turno, lugar, riesgo crítico, lesión y descripción). Nunca se publican nombres, RUT ni observaciones internas.</span></label></div>
    <div class="row mt"><button class="btn pri" onclick="downloadPublic()">⬇ Generar publico.json</button>${ghCfg().token?'<button class="btn" onclick="saveGitHub()">⬆ Publicar en GitHub</button>':''}<span class="small">Usa siempre la misma clave de lectura; si la cambias, comparte la nueva.</span></div><div id="pubMsg"></div><div id="ghMsg"></div></div>
   <div class="card mt"><h3>Contraseña de administrador</h3><p class="sub">Se guarda cifrada (hash PBKDF2) en la hoja Parametros de la base. Después de cambiarla, guarda la base.</p>
    <div class="fgrid"><label class="fld">Contraseña actual<input type="password" id="pw0" autocomplete="current-password"></label><label class="fld">Nueva contraseña<input type="password" id="pw1" autocomplete="new-password"></label><label class="fld">Repetir nueva<input type="password" id="pw2" autocomplete="new-password"></label></div>
@@ -1399,7 +1429,7 @@ async function makePublicBuf(){
   const pw=$('pubPw').value,pw2=$('pubPw2').value;
   if(pw!==pw2)throw new Error('Las claves de lectura no coinciden');
   if(pw&&pw.length<8)throw new Error('La clave de lectura debe tener al menos 8 caracteres');
-  const obj=buildPublic($('pubEmp').checked);
+  const obj=buildPublic($('pubEmp').checked,$('pubAcc').checked);
   const out=pw?Object.assign({generado:obj.generado},await encryptJSON(obj,pw)):obj;
   return new TextEncoder().encode(JSON.stringify(out));
 }
