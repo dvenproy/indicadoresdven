@@ -223,6 +223,69 @@ body.gated .app{filter:blur(3px);pointer-events:none}
   .g2,.g3,.g4,.g5,.g6,.fgrid{grid-template-columns:1fr}.rep-kpis{grid-template-columns:repeat(2,1fr)}
   .top{padding:10px 16px}
 }
+/* ---- mapa ---- */
+.maplay{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
+.mapwrap{position:relative;width:100%;border-radius:10px;overflow:hidden;background:#2A2E33;user-select:none;-webkit-user-select:none;line-height:0}
+.mapwrap img{display:block;width:100%;height:auto}
+.mapwrap svg{position:absolute;inset:0;width:100%;height:100%}
+.mapwrap .mz{stroke:#fff;stroke-width:1.5;vector-effect:non-scaling-stroke;cursor:pointer;transition:fill-opacity .15s}
+.mapwrap .mz:hover{stroke-width:3;fill-opacity:.75}
+.mapwrap .mz.sel{stroke:#1F2328;stroke-width:3.5}
+.mapwrap .mz.ez{stroke:#E75300;stroke-width:3}
+.mapwrap .mz.thin{stroke-width:1;cursor:inherit;pointer-events:none}
+.mapwrap .mdraw{fill:rgba(231,83,0,.18);stroke:#E75300;stroke-width:2.5;vector-effect:non-scaling-stroke;stroke-dasharray:6 4}
+.mapwrap.drawing,.mapwrap.drawing .mz{cursor:crosshair}
+.mz-lab{position:absolute;transform:translate(-50%,-50%);font-size:11px;font-weight:600;line-height:1.2;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.95),0 0 2px rgba(0,0,0,.9);pointer-events:none;text-align:center;max-width:140px}
+.mz-lab.sm{font-size:10px;opacity:.9}.mz-lab b{display:block;font-size:15px;font-weight:800}
+.mdot{position:absolute;width:12px;height:12px;border-radius:50%;transform:translate(-50%,-50%);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.6);cursor:pointer;z-index:2}
+.mdot::after{content:"";position:absolute;inset:-7px;border-radius:50%}
+.mdot.ctp{background:#E0181B}.mdot.stp{background:#0099A8}.mdot.fatal{background:#000;width:16px;height:16px;border-color:#E75300}
+.mdot.big{width:16px;height:16px}
+.mleg-dot .mdot::after{display:none}.mleg-dot{display:inline-flex;align-items:center;gap:6px;margin-left:10px}.mleg-dot .mdot{position:relative;transform:none;pointer-events:none;display:inline-block;cursor:default;box-shadow:0 0 0 1px #BFC4CA}
+.mh{position:absolute;width:13px;height:13px;border-radius:50%;background:#fff;border:2px solid #E75300;transform:translate(-50%,-50%);cursor:grab;touch-action:none;z-index:3;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+.mh.first{background:#E75300;border-color:#fff;width:15px;height:15px}
+.mh.mid{width:9px;height:9px;background:#E75300;border:1.5px solid #fff;opacity:.9}
+.maptip{position:absolute;pointer-events:none;background:#1F2328;color:#fff;padding:7px 10px;border-radius:7px;font-size:12px;line-height:1.4;display:none;z-index:4;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.map-miss{padding:40px 20px;color:#fff;text-align:center;line-height:1.5;font-size:13px}
+.mlegend{align-items:center;gap:8px;margin-top:8px}.mlegend>i{display:inline-block;width:140px;height:10px;border-radius:5px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}.seg button{border:0;background:#fff;padding:8px 14px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--ink2)}.seg button.on{background:var(--ink);color:#fff}
+.mside{max-height:none}
+.zr{display:grid;grid-template-columns:minmax(0,1fr) 90px 34px;gap:8px;align-items:center;padding:7px 6px;border-bottom:1px solid var(--line);cursor:pointer;font-size:13px}
+.zr:hover{background:#FAFAFA}.zr.nohov{cursor:default}.zr .w{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.zr b{text-align:right}
+.zr .bar{display:block;height:8px;border-radius:4px;background:#E75300;min-width:0}
+.mkpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.mkpis div{background:#FAFAFA;border-radius:8px;padding:8px 10px}.mkpis b{display:block;font-size:22px;font-weight:800}.mkpis span{font-size:11px;color:var(--muted)}
+.zacc{display:flex;gap:10px;align-items:flex-start;padding:8px 4px;border-bottom:1px solid var(--line);cursor:pointer;font-size:13px}.zacc:hover{background:#FAFAFA}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips label{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:14px;padding:3px 9px;font-size:12px;cursor:pointer;color:var(--ink)}
+.mapwrap.mini{margin-top:6px}
+@media screen and (max-width:1100px){.maplay{grid-template-columns:1fr}}
+.mapz{position:relative;transform-origin:0 0;--zs:1}
+.mapwrap .mdot,.mapwrap .mh,.mapwrap .mz-lab{transform:translate(-50%,-50%) scale(var(--zs,1))}
+.mapwrap.zoomed{cursor:grab}.mapwrap.panning,.mapwrap.panning *{cursor:grabbing!important}
+.mzbtns{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:4px;z-index:5;line-height:1;align-items:center}
+.mzbtns button{width:32px;height:32px;border-radius:7px;border:1px solid rgba(0,0,0,.15);background:#fff;font-size:18px;font-weight:700;cursor:pointer;color:#1F2328;box-shadow:0 1px 4px rgba(0,0,0,.3);font-family:inherit;padding:0}
+.mzbtns button:hover{background:#FDEEE5}
+.zlev{font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000}
+.mz-pin{position:absolute;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid #1F2328;transform:translate(-50%,-50%) scale(var(--zs,1));cursor:pointer;z-index:1;box-shadow:0 1px 3px rgba(0,0,0,.6)}
+.mz-pin::after{content:"";position:absolute;inset:-8px;border-radius:50%}
+.mz-pin.on{background:#E75300;border-color:#fff;width:12px;height:12px}
+.mz-pin.sel{width:14px;height:14px;background:#1F2328;border:3px solid #fff}
+.mz-call{position:absolute;transform-origin:0 0;transform:scale(var(--zs,1)) translate(-50%,calc(-100% - 12px));background:#1F2328;color:#fff;border-radius:8px;padding:6px 11px;font-size:12px;line-height:1.35;white-space:nowrap;z-index:4;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.4);text-align:center}
+.mz-call b{display:block;font-size:13px}.mz-call span{color:#F9B383;font-weight:600}
+.mz-call::after{content:"";position:absolute;left:50%;top:100%;margin-left:-6px;border:6px solid transparent;border-top-color:#1F2328}
+.mz-call.below{transform:scale(var(--zs,1)) translate(-50%,14px)}.mz-call.below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:#1F2328}
+.mz-pin{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;line-height:1}
+.mz-pin.on{width:auto;min-width:22px;height:22px;padding:0 5px;border-radius:11px;background:#E75300;border:2px solid #fff;font-size:12px}
+.mz-pin.on.sel{background:#1F2328;border-color:#fff;min-width:24px;height:24px}
+.mapwrap .mz.hl{stroke:#E75300;stroke-width:2.5}
+#pickW .mz.thin{pointer-events:auto;cursor:pointer}#pickW .mz.thin:hover{fill-opacity:.35}
+.mz-pin.on,.mz-pin.on.sel{min-width:0;width:10px;height:10px;padding:0;border-radius:50%;background:#fff;border:2px solid #1F2328;font-size:0}
+.mz-pin.sel,.mz-pin.on.sel{width:14px;height:14px;background:#1F2328;border:3px solid #fff}
+.mapwrap .mz.zero{stroke-opacity:0}.mapwrap .mz.zero:hover,.mapwrap .mz.zero.sel{stroke-opacity:1;fill-opacity:.12}
+.mapwrap .mz.acc{stroke-opacity:.85}
+.zscroll{max-height:380px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.zscroll .zr:last-child{border-bottom:0}
+.zsearch{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;font-family:inherit}
+.zr.hide{display:none}
 @media print{
   @page{size:A4 landscape;margin:0}
   .deck{overflow:visible;padding:0}
@@ -265,6 +328,7 @@ body.gated .app{filter:blur(3px);pointer-events:none}
       <a data-p="propios"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Personal propio</a>
       <a data-p="eecc"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V4h8v3"/></svg>Empresas contratistas</a>
       <a data-p="accidentes"><svg viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg>Accidentes</a>
+      <a data-p="mapa"><svg viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>Mapa de accidentes</a>
       <a data-p="proyecciones"><svg viewBox="0 0 24 24"><path d="M3 20l6-7 4 4 8-10"/><path d="M15 7h6v6"/></svg>Proyecciones</a>
       <a data-p="informe"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg>Informe semanal</a>
       <div class="sec admin-only">Datos · administrador</div>
@@ -274,7 +338,7 @@ body.gated .app{filter:blur(3px);pointer-events:none}
       <a id="navLogin" class="viewer-only" onclick="openLogin()"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Acceso administrador</a>
       <a id="navLogout" class="admin-only" onclick="logout()"><svg viewBox="0 0 24 24"><path d="M15 12H3M7 8l-4 4 4 4"/><path d="M13 4h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/></svg>Cerrar sesión admin</a>
     </nav>
-    <div class="foot" id="dbStatus"><span class="dot"></span>Sin base cargada</div>
+    <div class="foot admin-only" id="dbStatus"><span class="dot"></span>Sin base cargada</div>
   </aside>
   <div class="main">
     <header class="top">
@@ -282,6 +346,7 @@ body.gated .app{filter:blur(3px);pointer-events:none}
       <h1 id="pageTitle">Consolidado divisional</h1>
       <div class="persel" id="perSel">
         <label>Periodo <select id="perMode"><option value="year">Acumulado del año</option><option value="month">Mes</option><option value="range">Desde – hasta</option></select></label>
+        <select id="perYear" class="hidden" title="Año"></select>
         <input type="month" id="perMonth" class="hidden">
         <span id="perRange" class="hidden"><input type="date" id="perFrom"> a <input type="date" id="perTo"></span>
       </div>
@@ -300,6 +365,7 @@ body.gated .app{filter:blur(3px);pointer-events:none}
       <section id="p-propios" class="page"></section>
       <section id="p-eecc" class="page"></section>
       <section id="p-accidentes" class="page"></section>
+      <section id="p-mapa" class="page"></section>
       <section id="p-proyecciones" class="page"></section>
       <section id="p-informe" class="page"></section>
       <section id="p-carga-propios" class="page"></section>
@@ -376,9 +442,10 @@ function readBase(buf){
   db.ceco=rows('CECO').filter(r=>g(r,'CECO')).map(r=>({ceco:String(g(r,'CECO')).trim().toUpperCase(),nombre:g(r,'Nombre CECO')||'',gerencia:(g(r,'Gerencia')||'Sin asignar').trim(),orden:num(g(r,'Orden Gerencia'))||99,area:(g(r,'Área Instalación')||'Sin asignar').trim(),activo:g(r,'Activo')||'SI',obs:g(r,'Observación')||''}));
   db.prop=rows('HH_Propios').filter(r=>g(r,'CECO')&&g(r,'Año')).map(r=>({y:+g(r,'Año'),m:+g(r,'Mes'),ceco:normCeco(g(r,'CECO')),dotH:num(g(r,'Dot H')),dotM:num(g(r,'Dot M')),hhH:num(g(r,'HH H')),hhM:num(g(r,'HH M')),fuente:g(r,'Fuente')||''}));
   db.eecc=rows('HH_EECC').filter(r=>g(r,'CECO')&&g(r,'Año')).map(r=>({y:+g(r,'Año'),m:+g(r,'Mes'),empresa:String(g(r,'Empresa')||'').trim(),rut:g(r,'RUT')||'',contrato:String(g(r,'N° Contrato')??''),nomContrato:g(r,'Nombre Contrato')||'',ceco:normCeco(g(r,'CECO')),dotH:num(g(r,'Dot H')),hhH:num(g(r,'HH H')),dotM:num(g(r,'Dot M')),hhM:num(g(r,'HH M')),fuente:g(r,'Fuente')||''}));
-  db.acc=rows('Accidentes').filter(r=>g(r,'Fecha')!=null).map(r=>({id:g(r,'ID')||'',fecha:pDate(g(r,'Fecha')),hora:g(r,'Hora')||'',turno:g(r,'Turno')||'',cls:String(g(r,'Clasificación')||'').trim().toUpperCase(),tipo:/prop|codelco/i.test(g(r,'Tipo Personal')||'')?'Propio':'EECC',empresa:g(r,'Empresa')||'',contrato:String(g(r,'N° Contrato')??''),ceco:normCeco(g(r,'CECO')),cargo:g(r,'Cargo')||'',lugar:g(r,'Lugar / Proceso')||'',tacc:g(r,'Tipo Accidente')||'',lesion:g(r,'Tipo Lesión')||'',cuerpo:g(r,'Parte Cuerpo')||'',rc:g(r,'Riesgo Crítico')||'',desc:g(r,'Descripción')||'',ini:pDate(g(r,'Fecha Inicio Reposo')),alta:pDate(g(r,'Fecha Alta')),rep:/^s/i.test(g(r,'En Reposo')||'')?'SI':'NO',dpm:numOrNull(g(r,'DP Total (manual)')),dc:num(g(r,'Días Cargo')),obs:g(r,'Observación')||''})).filter(a=>a.fecha);
+  db.acc=rows('Accidentes').filter(r=>g(r,'Fecha')!=null).map(r=>({id:g(r,'ID')||'',fecha:pDate(g(r,'Fecha')),hora:g(r,'Hora')||'',turno:g(r,'Turno')||'',cls:String(g(r,'Clasificación')||'').trim().toUpperCase(),tipo:/prop|codelco/i.test(g(r,'Tipo Personal')||'')?'Propio':'EECC',empresa:g(r,'Empresa')||'',contrato:String(g(r,'N° Contrato')??''),ceco:normCeco(g(r,'CECO')),cargo:g(r,'Cargo')||'',lugar:g(r,'Lugar / Proceso')||'',tacc:g(r,'Tipo Accidente')||'',lesion:g(r,'Tipo Lesión')||'',cuerpo:g(r,'Parte Cuerpo')||'',rc:g(r,'Riesgo Crítico')||'',desc:g(r,'Descripción')||'',ini:pDate(g(r,'Fecha Inicio Reposo')),alta:pDate(g(r,'Fecha Alta')),rep:/^s/i.test(g(r,'En Reposo')||'')?'SI':'NO',dpm:numOrNull(g(r,'DP Total (manual)')),dc:num(g(r,'Días Cargo')),obs:g(r,'Observación')||'',zona:String(g(r,'Zona Mapa')||'').trim(),mx:numOrNull(g(r,'Mapa X %')),my:numOrNull(g(r,'Mapa Y %'))})).filter(a=>a.fecha);
   db.hist=rows('HH_Historico').filter(r=>g(r,'Año')).map(r=>{const p=numOrNull(g(r,'HH Propios')),e=numOrNull(g(r,'HH EECC'));let t=numOrNull(g(r,'HH Total'));if(t==null&&p!=null&&e!=null)t=p+e;return {y:+g(r,'Año'),m:+g(r,'Mes'),p,e,t,fuente:g(r,'Fuente')||''}});
   db.ref=rows('Referencia_Anual').filter(r=>g(r,'Año')&&g(r,'Mes')).map(r=>({y:+g(r,'Año'),m:+g(r,'Mes'),tf:numOrNull(g(r,'TF Acumulada')),tg:numOrNull(g(r,'TG Acumulada')),tft:numOrNull(g(r,'TFT Acumulada')),fuente:g(r,'Fuente')||''}));
+  db.zonas=rows('Zonas').filter(r=>g(r,'Zona')).map((r,i)=>({id:String(g(r,'ID')||'Z'+String(i+1).padStart(2,'0')),nombre:String(g(r,'Zona')).trim(),pts:String(g(r,'Polígono')||'').split(';').map(p=>p.split(',').map(Number)).filter(p=>p.length===2&&p.every(v=>!isNaN(v))),areas:g(r,'Áreas asociadas')||'',cecos:g(r,'CECO asociados')||'',obs:g(r,'Observación')||''}));
   if(wb.Sheets['LEEME'])db.leeme=XLSX.utils.sheet_to_json(wb.Sheets['LEEME'],{header:1,defval:''});
   return db;
 }
@@ -505,14 +572,15 @@ function lastLoaded(tipo){const k=tipo==='Propio'?M.pKeys:M.eKeys;return k.lengt
 const keyLabel=k=>k?`${MESES[k%100-1]} ${Math.floor(k/100)}`:'—';
 
 /* ===== periodo seleccionado (Acumulado año / Mes / Desde–hasta) para los módulos ===== */
-let SEL={mode:'year',y:null,m:null,from:null,to:null};
+let SEL={mode:'year',y:null,m:null,from:null,to:null,yy:null};
+const YEAR_PAGES=['accidentes','mapa'];
 function monthsOf(s,e){const out=[];if(e<s)return out;let d=fromDn(s),y=d.getFullYear(),m=d.getMonth()+1;
   while(true){const ms=dn(mkD(y,m,1)),me=dn(mkD(y,m,dim(y,m)));if(ms>e)break;out.push({y,m,s:Math.max(ms,s),e:Math.min(me,e),full:ms>=s&&me<=e});m++;if(m>12){m=1;y++}}return out}
 function selRange(){
   const cd=dn(CUT),y=CUT.getFullYear();let s,e,label,short;
   if(SEL.mode==='month'&&SEL.y&&SEL.m){s=dn(mkD(SEL.y,SEL.m,1));e=Math.min(dn(mkD(SEL.y,SEL.m,dim(SEL.y,SEL.m))),cd);label=`${MESES[SEL.m-1]} ${SEL.y}`+(e<dn(mkD(SEL.y,SEL.m,dim(SEL.y,SEL.m)))&&e>=s?` (al ${fdate(fromDn(e))})`:'');short=`${MES3[SEL.m-1]} ${SEL.y}`}
   else if(SEL.mode==='range'&&SEL.from&&SEL.to){s=dn(SEL.from);e=Math.min(dn(SEL.to),cd);if(e<s)[s,e]=[Math.min(s,e),Math.max(s,e)];label=`${fdate(fromDn(s))} al ${fdate(fromDn(e))}`;short=label}
-  else{s=dn(mkD(y,1,1));e=cd;label=`Acumulado ${y} al ${fdate(CUT)}`;short=String(y)}
+  else{const yy=SEL.yy&&YEAR_PAGES.includes(PAGE)&&SEL.yy<y?SEL.yy:y;s=dn(mkD(yy,1,1));e=Math.min(cd,dn(mkD(yy,12,31)));label=yy<y?`Año ${yy} completo`:`Acumulado ${y} al ${fdate(CUT)}`;short=String(yy)}
   const months=monthsOf(s,e);const multiY=months.length&&months[0].y!==months[months.length-1].y;
   months.forEach(x=>x.lab=MES3[x.m-1]+(multiY?' '+String(x.y).slice(2):''));
   return{s,e,label,short,months,mode:SEL.mode};
@@ -548,7 +616,8 @@ function buildPublic(inclEmp,inclAcc){
       ceco:DB.ceco.map(c=>({ceco:c.ceco,nombre:c.nombre,gerencia:c.gerencia,orden:c.orden,area:c.area,activo:c.activo,obs:''})),
       prop:DB.prop.map(r=>({y:r.y,m:r.m,ceco:r.ceco,dotH:r.dotH,dotM:r.dotM,hhH:r.hhH,hhM:r.hhM,fuente:''})),
       eecc:DB.eecc.map(r=>({y:r.y,m:r.m,empresa:inclEmp?r.empresa:'',rut:'',contrato:inclEmp?r.contrato:'',nomContrato:inclEmp?r.nomContrato:'',ceco:r.ceco,dotH:r.dotH,hhH:r.hhH,dotM:r.dotM,hhM:r.hhM,fuente:''})),
-      acc:DB.acc.map(a=>({id:a.id,fecha:a.fecha,hora:inclAcc?a.hora:'',turno:inclAcc?a.turno:'',cls:a.cls,tipo:a.tipo,empresa:inclAcc?a.empresa:'',contrato:inclAcc?a.contrato:'',ceco:a.ceco,cargo:inclAcc?a.cargo:'',lugar:inclAcc?a.lugar:'',tacc:a.tacc,lesion:inclAcc?a.lesion:'',cuerpo:a.cuerpo,rc:inclAcc?a.rc:'',desc:inclAcc?a.desc:'',ini:a.ini,alta:a.alta,rep:a.rep,dpm:a.dpm,dc:a.dc,obs:''})),
+      acc:DB.acc.map(a=>({id:a.id,fecha:a.fecha,hora:inclAcc?a.hora:'',turno:inclAcc?a.turno:'',cls:a.cls,tipo:a.tipo,empresa:inclAcc?a.empresa:'',contrato:inclAcc?a.contrato:'',ceco:a.ceco,cargo:inclAcc?a.cargo:'',lugar:inclAcc?a.lugar:'',tacc:a.tacc,lesion:inclAcc?a.lesion:'',cuerpo:a.cuerpo,rc:inclAcc?a.rc:'',desc:inclAcc?a.desc:'',ini:a.ini,alta:a.alta,rep:a.rep,dpm:a.dpm,dc:a.dc,obs:'',zona:a.zona||'',mx:a.mx??null,my:a.my??null})),
+      zonas:(DB.zonas||[]).map(z=>({id:z.id,nombre:z.nombre,pts:z.pts,areas:'',cecos:'',obs:''})),
       hist:DB.hist,ref:DB.ref||[],leeme:null}};
 }
 
@@ -704,7 +773,8 @@ function showAcc(id){
   const e=v=>v==null||v===''?'':esc(v);
   openModal(`<div class="ad-head"><div><div class="ad-id">${esc(a.id)}</div><h3 style="margin:0">${esc(a.tacc||'Accidente')}</h3><div class="small">${DIAS_S[a.fecha.getDay()]} ${fdate(a.fecha)}${a.hora?' · '+esc(a.hora)+' h':''}</div></div><span class="pill ${a.cls==='STP'?'neu':'bad'}" style="font-size:13px;padding:4px 12px">${esc(a.cls)}</span></div>
   <div class="ad-sec">Cuándo</div><div class="ad-grid">${f('Calificación',e(a.cls))}${f('Fecha',fdate(a.fecha))}${f('Año',a.fecha.getFullYear())}${f('Mes',MESES[a.fecha.getMonth()])}${f('Día',DIAS_S[a.fecha.getDay()])}${f('Hora',e(a.hora))}${f('Turno',e(a.turno))}</div>
-  <div class="ad-sec">Quién y dónde</div><div class="ad-grid">${f('Personal',a.tipo==='Propio'?'Codelco (propio)':'Empresa contratista')}${f('Empresa',a.tipo==='Propio'?'Codelco':e(a.empresa))}${f('N° contrato',e(a.contrato))}${f('Cargo',e(a.cargo))}${f('CECO',e(a.ceco)+(info.nombre&&a.ceco?' · '+esc(info.nombre):''))}${f('Gerencia / Dirección / Superint.',e(x.g||info.gerencia))}${f('Área de instalación',e(x.a||info.area))}${f('Lugar / proceso',e(a.lugar))}</div>
+  <div class="ad-sec">Quién y dónde</div><div class="ad-grid">${f('Personal',a.tipo==='Propio'?'Codelco (propio)':'Empresa contratista')}${f('Empresa',a.tipo==='Propio'?'Codelco':e(a.empresa))}${f('N° contrato',e(a.contrato))}${f('Cargo',e(a.cargo))}${f('CECO',e(a.ceco)+(info.nombre&&a.ceco?' · '+esc(info.nombre):''))}${f('Gerencia / Dirección / Superint.',e(x.g||info.gerencia))}${f('Área de instalación',e(x.a||info.area))}${f('Lugar / proceso',e(a.lugar))}${f('Instalación (mapa)',e(a.zona))}</div>
+  ${a.zona&&zByName(a.zona)?`<div style="max-width:520px">${miniMap(a.zona)}</div>`:''}
   <div class="ad-sec">Qué pasó</div><div class="ad-grid">${f('Tipo de accidente',e(a.tacc))}${f('Riesgo crítico',e(a.rc))}${f('Tipo de lesión',e(a.lesion))}${f('Parte del cuerpo',e(a.cuerpo))}</div>
   ${a.desc?`<div class="ad-desc">${esc(a.desc)}</div>`:''}
   <div class="ad-sec">Consecuencias</div><div class="ad-grid">${f('Días perdidos a la fecha',N0(dp))}${f('Estado',a.rep==='SI'?'En reposo':a.alta?'Con alta':'—')}${f('Inicio reposo',a.ini?fdate(a.ini):'')}${f('Fecha de alta',a.alta?fdate(a.alta):'')}${f('Días cargo',a.dc?N0(a.dc):'0')}</div>
@@ -795,9 +865,9 @@ function renderAcc(){
   const Ys=[];for(let y=Math.min(...M.acc.map(a=>a.y));y<=p.y;y++)Ys.push(y);
   const cnt=(y,c,t)=>M.acc.filter(a=>a.y===y&&a.cls===c&&a.tipo===t&&a.dn<=p.cd).length;
   let h=`<div class="grid g4">
-   ${kpi('Accidentes '+p.y,N0(M.acc.filter(a=>a.y===p.y&&a.dn<=p.cd&&COUNTED(a.cls)).length),'CTP + STP + Fatales','hero')}
+   ${kpi('Accidentes '+S0.short,N0(M.acc.filter(a=>a.dn>=S0.s&&a.dn<=S0.e&&COUNTED(a.cls)).length),'CTP + STP + Fatales · '+esc(S0.label),'hero')}
    ${kpi('En reposo hoy',N0(rep.length),rep.map(a=>`${fdate(a.fecha)} · ${ADMIN?esc(a.empresa):(a.tipo==='Propio'?'Codelco':'EECC')}`).join('<br>')||'Ninguno')}
-   ${ADMIN?kpi('Registros por revisar',N0(rev.length),rev.length?'Marcados "confirmar" en Observación':'Todo al día'):kpi('Accidentes CTP '+p.y,N0(M.acc.filter(a=>a.y===p.y&&a.dn<=p.cd&&(a.cls==='CTP'||a.cls==='FATAL')).length),'CTP + Fatales del año')}
+   ${ADMIN?kpi('Registros por revisar',N0(rev.length),rev.length?'Marcados "confirmar" en Observación':'Todo al día'):kpi('Accidentes CTP '+S0.short,N0(M.acc.filter(a=>a.dn>=S0.s&&a.dn<=S0.e&&(a.cls==='CTP'||a.cls==='FATAL')).length),'CTP + Fatales del periodo')}
    ${kpi('Registro histórico',N0(M.acc.length),`Desde ${M.acc.length?M.acc[0].y:'—'}`)}
   </div>
   <div class="grid g2 mt">
@@ -848,14 +918,16 @@ function contratosDe(emp){
   return [...m.entries()];
 }
 function fillContratos(){const e=document.querySelector('#accForm [name=empresa]');const dl=$('dlCon');if(!e||!dl)return;dl.innerHTML=contratosDe(e.value).map(([c,n])=>`<option value="${esc(c)}">${esc(n)}</option>`).join('')}
-const ACC_FIELDS=[['fecha','Fecha accidente','date'],['hora','Hora','text'],['turno','Turno','text'],['cls','Clasificación','sel:CTP,STP,FATAL,NAT'],['tipo','Tipo personal','sel:Propio,EECC'],['empresa','Empresa','emp'],['contrato','N° Contrato','con'],['ceco','CECO','ceco'],['cargo','Cargo','text'],['lugar','Lugar / Proceso','text'],['tacc','Tipo accidente','list'],['lesion','Tipo lesión','list'],['cuerpo','Parte del cuerpo','list'],['rc','Riesgo crítico','text'],['ini','Fecha inicio reposo','date'],['alta','Fecha alta','date'],['rep','En reposo','sel:NO,SI'],['dpm','DP total (manual)','number'],['dc','Días cargo','number'],['desc','Descripción','area'],['obs','Observación','area']];
+const ACC_FIELDS=[['fecha','Fecha accidente','date'],['hora','Hora','text'],['turno','Turno','text'],['cls','Clasificación','sel:CTP,STP,FATAL,NAT'],['tipo','Tipo personal','sel:Propio,EECC'],['empresa','Empresa','emp'],['contrato','N° Contrato','con'],['ceco','CECO','ceco'],['cargo','Cargo','text'],['lugar','Lugar / Proceso','text'],['zona','Zona del mapa','zona'],['tacc','Tipo accidente','list'],['lesion','Tipo lesión','list'],['cuerpo','Parte del cuerpo','list'],['rc','Riesgo crítico','text'],['ini','Fecha inicio reposo','date'],['alta','Fecha alta','date'],['rep','En reposo','sel:NO,SI'],['dpm','DP total (manual)','number'],['dc','Días cargo','number'],['desc','Descripción','area'],['obs','Observación','area']];
 function editAcc(id){
+  if(needWorkBase())return;
   const a=id?DB.acc.find(x=>x.id===id):{fecha:today(),cls:'STP',tipo:'EECC',rep:'NO',dc:0};
   const PH=/^\((por confirmar|por completar|sin información)\)$/i;
   const inp=([k,l,t])=>{const v0=a[k],ph=typeof v0==='string'&&PH.test(v0.trim())?v0.trim():'',v=ph?'':v0;
     if(t==='date')return `<label class="fld">${l}<input type="date" name="${k}" value="${v?iso(v):''}"></label>`;
     if(t.startsWith('sel:'))return `<label class="fld">${l}<select name="${k}">${t.slice(4).split(',').map(o=>`<option ${v===o?'selected':''}>${o}</option>`).join('')}</select></label>`;
     if(t==='list'){const L=LISTAS[k];const extra=v&&!L.includes(v);return `<label class="fld">${l}<select name="${k}"><option value="">— Seleccionar —</option>${L.map(o=>`<option ${v===o?'selected':''}>${esc(o)}</option>`).join('')}${extra?`<option selected value="${esc(v)}">${esc(String(v).slice(0,60))} (valor anterior)</option>`:''}</select></label>`}
+    if(t==='zona')return zonaField(a);
     if(t==='emp')return `<label class="fld">${l}<input name="${k}" list="dlEmp" value="${esc(v||'')}" placeholder="${esc(ph?ph+' · escribe para buscar':'Escribe para buscar…')}" autocomplete="off" oninput="fillContratos()" onchange="fillContratos()"></label>`;
     if(t==='con')return `<label class="fld">${l}<input name="${k}" list="dlCon" value="${esc(v||'')}" autocomplete="off"></label>`;
     if(t==='ceco')return `<label class="fld">${l}<input name="${k}" list="dlCeco" value="${esc(v||'')}"></label>`;
@@ -871,7 +943,7 @@ function editAcc(id){
   const tp=document.querySelector('#accForm [name=tipo]'),em=document.querySelector('#accForm [name=empresa]');
   tp.addEventListener('change',()=>{if(tp.value==='Propio'){em.value='Codelco';fillContratos()}else if(em.value==='Codelco'){em.value=''}});
   $('accForm').onsubmit=ev=>{ev.preventDefault();const fd=new FormData(ev.target);const o=id?a:{};
-    ACC_FIELDS.forEach(([k,,t])=>{let v=fd.get(k);if(t==='date')v=pDate(v);else if(t==='number')v=k==='dc'?num(v):numOrNull(v);else v=String(v??'').trim();o[k]=v});
+    ACC_FIELDS.forEach(([k,,t])=>{let v=fd.get(k);if(t==='zona'){o.mx=numOrNull(fd.get('mx'));o.my=numOrNull(fd.get('my'))}if(t==='date')v=pDate(v);else if(t==='number')v=k==='dc'?num(v):numOrNull(v);else v=String(v??'').trim();o[k]=v});
     if(fd.get('revisado'))o.obs=`Revisado ${fdate(today())}. `+String(o.obs||'').replace(/fecha y detalle por confirmar:?/gi,'').replace(/\s*[–-]\s*confirmar\b/gi,'').replace(/(por )?confirmar/gi,'verificado').trim();
     o.ceco=normCeco(o.ceco);
     if(!o.fecha){alert('Falta la fecha del accidente');return}
@@ -1083,6 +1155,257 @@ function tablaGerMini(){
   const T=indic(s,e,null);
   return `<div class="tw"><table><thead><tr><th class="l">Gerencia</th><th>HH Propios</th><th>HH EECC</th><th>CTP+F</th><th>STP</th><th>DP</th><th>TF</th><th>TG</th><th>TFT</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="l">${esc(r.g)}</td><td>${N0(r.pp.hh)}</td><td>${N0(r.ee.hh)}</td><td>${N0(r.t.ctp+r.t.fat)}</td><td>${N0(r.t.stp)}</td><td>${N0(r.t.dp)}</td><td>${N2(r.t.tf)}</td><td>${N1(r.t.tg)}</td><td>${N2(r.t.tft)}</td></tr>`).join('')}<tr class="tot"><td class="l">División</td><td>${N0(indic(s,e,{tipo:'Propio'}).hh)}</td><td>${N0(indic(s,e,{tipo:'EECC'}).hh)}</td><td>${N0(T.ctp+T.fat)}</td><td>${N0(T.stp)}</td><td>${N0(T.dp)}</td><td>${N2(T.tf)}</td><td>${N1(T.tg)}</td><td>${N2(T.tft)}</td></tr></tbody></table></div>`;
 }
+
+/* ================= MAPA DE ACCIDENTES Y EDITOR DE ZONAS =================
+   Imágenes en img/ (junto a index.html). Las instalaciones se guardan en la hoja "Zonas"
+   como polígonos en % del ancho y alto de la imagen: si se reemplaza la imagen por
+   otra con el mismo encuadre, las instalaciones se mantienen. */
+const MAP_IMG={plano:'img/mapa_plano',aerea:'img/mapa_aerea'};
+let MAPST={view:'plano',tipo:'',cls:'CTPSTP',metric:'n',sel:null,labels:false,edit:false,draw:null,ez:null,zoom:{plano:{k:1,x:0,y:0},aerea:{k:1,x:0,y:0}}};
+const MRAMP=['#FCE3D2','#F6B07F','#EE7F3A','#E75300','#A83C00','#6B2600'];
+const hex2=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+function rampColor(t){t=Math.max(0,Math.min(1,t));const p=t*(MRAMP.length-1),i=Math.min(Math.floor(p),MRAMP.length-2),f=p-i;const a=hex2(MRAMP[i]),b=hex2(MRAMP[i+1]);return '#'+a.map((v,k)=>Math.round(v+(b[k]-v)*f).toString(16).padStart(2,'0')).join('')}
+const zonas=()=>DB.zonas||(DB.zonas=[]);
+const zByName=n=>zonas().find(z=>norm(z.nombre)===norm(n));
+function pip(x,y,pts){let c=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const [xi,yi]=pts[i],[xj,yj]=pts[j];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)c=!c}return c}
+function zoneAt(x,y){const hit=zonas().filter(z=>z.pts.length>2&&pip(x,y,z.pts));if(!hit.length)return null;hit.sort((a,b)=>polyArea(a.pts)-polyArea(b.pts));return hit[0]}
+function polyArea(p){let s=0;for(let i=0,j=p.length-1;i<p.length;j=i++)s+=p[j][0]*p[i][1]-p[i][0]*p[j][1];return Math.abs(s/2)}
+function centroid(p){let a=0,cx=0,cy=0;for(let i=0,j=p.length-1;i<p.length;j=i++){const f=p[j][0]*p[i][1]-p[i][0]*p[j][1];a+=f;cx+=(p[j][0]+p[i][0])*f;cy+=(p[j][1]+p[i][1])*f}
+  if(Math.abs(a)<1e-9){const n=p.length||1;return[p.reduce((s,q)=>s+q[0],0)/n,p.reduce((s,q)=>s+q[1],0)/n]}return[cx/(3*a),cy/(3*a)]}
+const ptsStr=p=>p.map(q=>q[0]+','+q[1]).join(' ');
+const r2=v=>Math.round(v*100)/100;
+function relPos(wrap,e){const r=(wrap.querySelector('.mapz')||wrap).getBoundingClientRect();return[r2(Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100))),r2(Math.max(0,Math.min(100,(e.clientY-r.top)/r.height*100)))]}
+function mapImg(view){const b=MAP_IMG[view];return `<img src="${b}.jpg" alt="" draggable="false" onerror="mapImgErr(this,'${b}')">`}
+function mapImgErr(im,b){if(!im.dataset.f){im.dataset.f='1';im.src=b+'.png';return}
+  im.replaceWith(Object.assign(document.createElement('div'),{className:'map-miss',innerHTML:`No encontré la imagen <b>${esc(b)}.jpg</b>.<br>Debe estar en la carpeta <code>img/</code> junto a index.html (en tu computador y en el repositorio).`}))}
+const clsKey=c=>c==='STP'?'stp':c==='FATAL'?'fatal':'ctp';
+function mapFilterOk(a){if(MAPST.tipo&&a.tipo!==MAPST.tipo)return false;
+  if(MAPST.cls==='CTPSTP')return COUNTED(a.cls);if(MAPST.cls==='CTP')return a.cls==='CTP'||a.cls==='FATAL';return a.cls===MAPST.cls}
+function mapStats(){
+  const S=selRange(),cd=dn(CUT);
+  const list=M.acc.filter(a=>a.dn>=S.s&&a.dn<=S.e&&a.dn<=cd&&mapFilterOk(a));
+  const by=new Map();zonas().forEach(z=>by.set(z.id,{z,list:[],n:0,ctp:0,stp:0,dp:0}));
+  const sin=[];
+  list.forEach(a=>{const z=a.zona?zByName(a.zona):null;const s=z&&by.get(z.id);if(!s){sin.push(a);return}s.list.push(a);s.n++;if(a.cls==='STP')s.stp++;else s.ctp++;s.dp+=accDPTotal(a,cd)});
+  return{S,list,by,sin,cd};
+}
+const mval=s=>MAPST.metric==='dp'?s.dp:s.n;
+
+function renderMapa(){
+  const st=mapStats();const E=MAPST.edit&&ADMIN&&SRC.kind!=='pub';if(!E)MAPST.edit=false;
+  const mx=Math.max(0,...[...st.by.values()].map(mval));
+  if(MAPST.sel&&!st.by.has(MAPST.sel))MAPST.sel=null;
+  const view=E?'plano':MAPST.view;
+  let h=`<div class="card"><div class="row" style="justify-content:space-between;gap:10px">
+   <div class="seg">${E?'<button class="on">Editor de instalaciones</button>':`<button class="${view==='plano'?'on':''}" onclick="MAPST.view='plano';renderMapa()">Plano de instalaciones</button><button class="${view==='aerea'?'on':''}" onclick="MAPST.view='aerea';renderMapa()">Vista aérea</button>`}</div>
+   ${E?`<button class="btn pri" onclick="MAPST.edit=false;MAPST.draw=null;MAPST.ez=null;renderMapa()">✓ Terminar edición</button>`:`<div class="row" style="gap:8px">
+    <label class="fld">Personal<select onchange="MAPST.tipo=this.value;renderMapa()"><option value="">Todos</option><option value="Propio" ${MAPST.tipo==='Propio'?'selected':''}>Codelco</option><option value="EECC" ${MAPST.tipo==='EECC'?'selected':''}>EECC</option></select></label>
+    <label class="fld">Clasificación<select onchange="MAPST.cls=this.value;renderMapa()">${[['CTPSTP','CTP + STP + Fatal'],['CTP','CTP + Fatal'],['STP','STP']].map(([v,l])=>`<option value="${v}" ${MAPST.cls===v?'selected':''}>${l}</option>`).join('')}</select></label>
+    <label class="fld">Color de instalaciones<select onchange="MAPST.metric=this.value;renderMapa()"><option value="n">N° de accidentes</option><option value="dp" ${MAPST.metric==='dp'?'selected':''}>Días perdidos</option></select></label>
+    <button class="btn admin-only" style="align-self:flex-end" onclick="mapEdit()">✏ Editar instalaciones</button></div>`}
+  </div>
+  <p class="sub" style="margin:8px 0 0">${E?'Dibuja y ajusta las instalaciones sobre el plano. Los cambios quedan en la hoja "Zonas" de la base al guardarla.':`${esc(st.S.label)} · ${N0(st.list.length)} accidentes · ${N0(st.list.length-st.sin.length)} con instalación asignada `}</p>
+  <div class="maplay mt"><div>
+   <div class="mapwrap${E&&MAPST.draw?' drawing':''}" id="mapW"><div class="mapz">${mapImg(view)}${view==='plano'?mapLayer(st,mx,E):''}</div>${ZBTNS}<div class="maptip" id="mapTip"></div></div>
+   ${view==='plano'&&!E?`<div class="row mlegend"><span class="small">${MAPST.metric==='dp'?'Días perdidos':'Accidentes'} por instalación</span><span class="small">0</span><i style="background:linear-gradient(90deg,${MRAMP.join(',')})"></i><span class="small">${N0(mx)}</span>
+     <span class="small" style="margin-left:14px"><label><input type="checkbox" ${MAPST.labels?'checked':''} onchange="MAPST.labels=this.checked;renderMapa()"> Todos los nombres</label></span>
+     <span class="small" style="margin-left:10px">Pasa el mouse sobre una instalación para ver sus datos · clic para el detalle</span></div>`:''}
+   ${view==='aerea'?'<p class="small">Vista aérea de referencia. Las instalaciones y los accidentes se muestran en el plano.</p>':''}
+  </div><div class="card mside">${E?mapEditPanel():mapSidePanel(st,mx)}</div></div></div>`;
+  $('p-mapa').innerHTML=h;
+  bindZoom($('mapW'),MAPST.zoom[view]);
+  if(view==='plano')(E?bindEdit:bindMap)(st);
+}
+function mapLayer(st,mx,E){
+  let svg=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" id="mapSvg">`;let over='';
+  zonas().forEach(z=>{if(z.pts.length<3)return;const s=st.by.get(z.id);
+    if(E){const on=MAPST.ez===z.id;svg+=`<polygon data-z="${z.id}" id="mp-${z.id}" points="${ptsStr(z.pts)}" class="mz ${on?'ez':''}" fill="${on?'#E75300':'#FFFFFF'}" fill-opacity="${on?.35:.22}"/>`}
+    else{const v=mval(s);svg+=`<polygon data-z="${z.id}" points="${ptsStr(z.pts)}" class="mz ${v>0?'acc':'zero'} ${MAPST.sel===z.id?'sel':''}" fill="${v>0?rampColor(mx?v/mx:0):'#FFFFFF'}" fill-opacity="${v>0?.42:0}"/>`}
+    const c=centroid(z.pts),on=E?MAPST.ez===z.id:MAPST.sel===z.id,v=E?0:mval(s);
+    if(!E&&MAPST.labels&&!on)over+=`<div class="mz-lab" style="left:${c[0]}%;top:${c[1]}%">${esc(z.nombre)}<b>${N0(v)}</b></div>`;
+    else over+=`<div class="mz-pin ${v>0?'on':''} ${on?'sel':''}" data-zp="${z.id}" style="left:${c[0]}%;top:${c[1]}%"></div>`;
+    if(on)over+=`<div class="mz-call ${c[1]<14?'below':''}" style="left:${c[0]}%;top:${c[1]}%"><b>${esc(z.nombre)}</b>${E?'':`<span>${N0(v)} ${MAPST.metric==='dp'?'días perdidos':v===1?'accidente':'accidentes'}</span>`}</div>`});
+  if(E&&MAPST.draw){const p=MAPST.draw.pts;if(p.length)svg+=`<polyline points="${ptsStr(p)}" class="mdraw"/>`;
+    p.forEach((q,i)=>over+=`<div class="mh ${i===0?'first':''}" data-dh="${i}" style="left:${q[0]}%;top:${q[1]}%" title="${i===0&&p.length>2?'Clic aquí para cerrar la instalación':''}"></div>`)}
+  else if(E&&MAPST.ez){const z=zonas().find(x=>x.id===MAPST.ez);if(z){z.pts.forEach((q,i)=>{const n=z.pts[(i+1)%z.pts.length];over+=`<div class="mh mid" data-mid="${i}" style="left:${(q[0]+n[0])/2}%;top:${(q[1]+n[1])/2}%" title="Arrastra para agregar un vértice"></div>`});
+    z.pts.forEach((q,i)=>over+=`<div class="mh" data-vh="${i}" style="left:${q[0]}%;top:${q[1]}%" title="Arrastra para mover · doble clic para eliminar"></div>`)}}
+  return svg+'</svg>'+over;
+}
+function mapTipAt(w,e,html){const t=w&&w.querySelector('.maptip');if(!t)return;if(!html){t.style.display='none';return}t.innerHTML=html;t.style.display='block';const r=w.getBoundingClientRect();let x=e.clientX-r.left+14,y=e.clientY-r.top+14;if(x+t.offsetWidth>r.width)x=e.clientX-r.left-t.offsetWidth-10;if(y+t.offsetHeight>r.height)y=e.clientY-r.top-t.offsetHeight-10;t.style.left=x+'px';t.style.top=y+'px'}
+function bindMap(st){
+  const w=$('mapW');if(!w)return;
+  w.querySelectorAll('polygon[data-z]').forEach(p=>{const s=st.by.get(p.dataset.z);
+    p.addEventListener('mousemove',e=>mapTipAt(w,e,`<b>${esc(s.z.nombre)}</b><br>${N0(s.n)} accidente${s.n===1?'':'s'} · CTP ${s.ctp} · STP ${s.stp}<br>${N0(s.dp)} días perdidos`));
+    p.addEventListener('mouseleave',()=>mapTipAt(w));
+    p.addEventListener('click',e=>{e.stopPropagation();MAPST.sel=MAPST.sel===s.z.id?null:s.z.id;renderMapa()})});
+  w.querySelectorAll('.mz-pin[data-zp]').forEach(d=>{const s=st.by.get(d.dataset.zp);if(!s)return;
+    d.addEventListener('mousemove',e=>mapTipAt(w,e,`<b>${esc(s.z.nombre)}</b><br>${N0(s.n)} accidente${s.n===1?'':'s'} · CTP ${s.ctp} · STP ${s.stp}`));d.addEventListener('mouseleave',()=>mapTipAt(w));
+    d.addEventListener('click',e=>{e.stopPropagation();MAPST.sel=MAPST.sel===s.z.id?null:s.z.id;renderMapa()})});
+  w.querySelectorAll('.mdot[data-a]').forEach(d=>{const a=M.acc.find(x=>x.id===d.dataset.a);if(!a)return;
+    d.addEventListener('mousemove',e=>mapTipAt(w,e,`<b>${fdate(a.fecha)} · ${esc(a.cls)}</b><br>${esc(a.tacc||'Accidente')}${a.zona?'<br>'+esc(a.zona):''}`));
+    d.addEventListener('mouseleave',()=>mapTipAt(w));d.addEventListener('click',e=>{e.stopPropagation();showAcc(a.id)})});
+  w.addEventListener('click',()=>{if(MAPST.sel){MAPST.sel=null;renderMapa()}});
+}
+function mapSidePanel(st,mx){
+  if(!zonas().length)return `<h3>Instalaciones</h3><p class="sub">El mapa aún no tiene instalaciones definidas.</p>${ADMIN?'<p class="small">Entra a <b>✏ Editar instalaciones</b> para dibujar las áreas sobre el plano.</p>':''}`;
+  const s=MAPST.sel&&st.by.get(MAPST.sel);
+  if(s){const cd=st.cd;const all=M.acc.filter(a=>a.dn<=cd&&COUNTED(a.cls)&&(!MAPST.tipo||a.tipo===MAPST.tipo)&&a.zona&&norm(a.zona)===norm(s.z.nombre));
+    const last=all.length?all[all.length-1]:null,lastC=all.filter(a=>a.cls!=='STP').pop();
+    const tt=new Map();s.list.forEach(a=>{const k=a.tacc||'Sin tipo';tt.set(k,(tt.get(k)||0)+1)});const top=[...tt.entries()].sort((a,b)=>b[1]-a[1]).slice(0,4);
+    const pr=s.list.filter(a=>a.tipo==='Propio').length;
+    return `<div class="row" style="justify-content:space-between;align-items:flex-start"><div><div class="small">Instalación</div><h3 style="margin:0">${esc(s.z.nombre)}</h3></div><div class="row" style="gap:6px"><button class="btn sm" onclick="zoomZone('${s.z.id}')" title="Acercar el mapa a esta zona">🔍 Acercar</button><button class="btn sm" onclick="MAPST.sel=null;renderMapa()">✕</button></div></div>
+    <p class="small" style="margin:4px 0 10px">${esc(st.S.label)}</p>
+    <div class="mkpis"><div><b>${N0(s.n)}</b><span>Accidentes</span></div><div><b>${N0(s.ctp)}</b><span>CTP + Fatal</span></div><div><b>${N0(s.stp)}</b><span>STP</span></div><div><b>${N0(s.dp)}</b><span>Días perdidos</span></div></div>
+    <p class="small" style="margin:10px 0">${s.n?`Codelco ${pr} · EECC ${s.n-pr}<br>`:''}Último accidente en la instalación: <b>${last?fdate(last.fecha)+' ('+N0(cd-last.dn)+' días)':'sin registro'}</b><br>Último CTP en la instalación: <b>${lastC?fdate(lastC.fecha)+' ('+N0(cd-lastC.dn)+' días)':'sin registro'}</b></p>
+    ${top.length?`<div class="ad-sec">Tipos de accidente</div>${top.map(([k,v])=>`<div class="zr nohov"><span class="w">${esc(k)}</span><i class="bar" style="width:${v/top[0][1]*100}%"></i><b>${v}</b></div>`).join('')}`:''}
+    <div class="ad-sec">Accidentes del periodo</div>${s.list.length?s.list.slice().reverse().map(a=>`<div class="zacc" onclick="showAcc('${esc(a.id)}')"><span class="pill ${a.cls==='STP'?'neu':'bad'}">${esc(a.cls)}</span><div><b>${fdate(a.fecha)}</b> · ${a.tipo==='Propio'?'Codelco':esc(a.empresa||'EECC')}<br><span class="small">${esc(a.tacc||'—')}</span></div></div>`).join(''):'<p class="small">Sin accidentes en el periodo.</p>'}`;
+  }
+  const rows=[...st.by.values()].sort((a,b)=>mval(b)-mval(a)||a.z.nombre.localeCompare(b.z.nombre,'es'));
+  const conAcc=rows.filter(s=>mval(s)>0),TOP=8;
+  const row=s=>{const v=mval(s);return `<div class="zr" data-q="${esc(norm(s.z.nombre))}" onclick="MAPST.view='plano';MAPST.sel='${s.z.id}';renderMapa()"><span class="w">${esc(s.z.nombre)}</span><i class="bar" style="width:${mx?v/mx*100:0}%;background:${v?rampColor(mx?v/mx:0):'transparent'}"></i><b>${v?N0(v):'<span class="muted">0</span>'}</b></div>`};
+  const lbl=MAPST.metric==='dp'?'días perdidos':'accidentes';
+  return `<h3>Instalaciones con más ${lbl}</h3><p class="small" style="margin:2px 0 8px">${conAcc.length} de ${rows.length} instalaciones con ${lbl} en el periodo. Haz clic en una para ver su detalle.</p>
+  ${MAPST.all?`<input class="zsearch" placeholder="Buscar instalación…" oninput="zFilter(this,'zAll')"><div class="zscroll" id="zAll">${rows.map(row).join('')}</div>
+    <button class="btn sm mt" onclick="MAPST.all=false;renderMapa()">Mostrar solo las principales</button>`
+   :`${conAcc.length?conAcc.slice(0,TOP).map(row).join(''):'<p class="small">Sin accidentes asignados a instalaciones en el periodo.</p>'}
+    <button class="btn sm mt" onclick="MAPST.all=true;renderMapa()">Ver todas las instalaciones (${rows.length})</button>${conAcc.length>TOP?`<span class="small" style="margin-left:8px">+${conAcc.length-TOP} con ${lbl}</span>`:''}`}
+  ${st.sin.length?`<div class="msg warn mt">${N0(st.sin.length)} accidente${st.sin.length===1?'':'s'} del periodo sin instalación asignada.${ADMIN?' Asígnalos editando cada accidente o con "Asignar instalaciones" en el editor.':''}</div>`:''}`;
+}
+/* ---------- editor ---------- */
+function mapEdit(){if(!ADMIN){openLogin('mapa');return}if(needWorkBase())return;MAPST.edit=true;MAPST.view='plano';MAPST.sel=null;renderMapa()}
+function mapEditPanel(){
+  if(MAPST.draw){const n=MAPST.draw.pts.length;return `<h3>Dibujando: ${esc(MAPST.draw.nombre)}</h3>
+    <p class="sub">Haz clic en el plano para marcar cada esquina de la instalación, siguiendo su contorno. Para cerrarla, haz clic en el primer punto (naranjo) o presiona <b>Enter</b>.</p>
+    <p class="small">${n} punto${n===1?'':'s'} marcado${n===1?'':'s'}${n<3?' · se necesitan al menos 3':''}</p>
+    <div class="row"><button class="btn" onclick="MAPST.draw.pts.pop();renderMapa()" ${n?'':'disabled'}>↶ Deshacer punto</button><button class="btn pri" onclick="drawClose()" ${n>2?'':'disabled'}>Cerrar instalación</button><button class="btn" onclick="MAPST.draw=null;renderMapa()">Cancelar</button></div>
+    <p class="small mt">Atajos: Retroceso deshace el último punto · Esc cancela.</p>`}
+  if(MAPST.ez){const z=zonas().find(x=>x.id===MAPST.ez);if(!z){MAPST.ez=null;return mapEditPanel()}
+    const areas=[...new Set(DB.ceco.map(c=>c.area).filter(a=>a&&a!=='Sin asignar'))].sort((a,b)=>a.localeCompare(b,'es'));const za=new Set(splitL(z.areas).map(norm));
+    const nacc=DB.acc.filter(a=>a.zona&&norm(a.zona)===norm(z.nombre)).length;
+    return `<div class="row" style="justify-content:space-between"><h3 style="margin:0">Instalación ${esc(z.id)}</h3><button class="btn sm" onclick="MAPST.ez=null;renderMapa()">← Volver</button></div>
+    <p class="small">Arrastra los vértices blancos para ajustar el contorno. Arrastra los puntos naranjos pequeños (mitad de cada lado) para agregar un vértice. Doble clic en un vértice lo elimina.</p>
+    <form id="zForm"><label class="fld">Nombre de la instalación<input name="nombre" value="${esc(z.nombre)}" required></label>
+    <div class="fld mt"><span>Áreas de instalación asociadas <span class="small">(para asignar accidentes automáticamente por CECO)</span></span><div class="chips">${areas.map(a=>`<label><input type="checkbox" name="area" value="${esc(a)}" ${za.has(norm(a))?'checked':''}> ${esc(a)}</label>`).join('')||'<span class="small">No hay áreas en el maestro CECO.</span>'}</div></div>
+    <label class="fld mt">CECO asociados <span class="small">(opcional, separados por ";")</span><input name="cecos" value="${esc(z.cecos||'')}" placeholder="Ej. FA205; FA210"></label>
+    <label class="fld mt">Observación<input name="obs" value="${esc(z.obs||'')}"></label>
+    <p class="small">${nacc} accidente${nacc===1?'':'s'} registrado${nacc===1?'':'s'} en esta instalación.</p>
+    <div class="row"><button class="btn pri" type="submit">Guardar instalación</button><button class="btn" type="button" onclick="redrawZone()">Redibujar</button><button class="btn" type="button" style="margin-left:auto;color:var(--bad)" onclick="delZone()">Eliminar</button></div></form>`}
+  const zs=zonas();
+  return `<h3>Instalaciones del mapa</h3><p class="sub">Crea una instalación por cada área que quieras distinguir. Después, en cada accidente eliges su instalación en la lista o en el plano.</p>
+  <form class="row" id="zNew" style="flex-wrap:nowrap"><input name="n" placeholder="Nombre de la nueva zona" required style="flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:8px"><button class="btn pri" type="submit">＋ Dibujar</button></form>
+  ${zs.length>8?`<input class="zsearch mt" placeholder="Buscar instalación…" oninput="zFilter(this,'zEd')">`:''}<div class="mt zscroll" id="zEd">${zs.length?zs.slice().sort((x,y)=>x.nombre.localeCompare(y.nombre,'es')).map(z=>`<div class="zr" data-q="${esc(norm(z.nombre))}" onclick="MAPST.ez='${z.id}';renderMapa()"><span class="w">${esc(z.nombre)}</span><span class="small">${z.pts.length} vértices</span><b>›</b></div>`).join(''):'<p class="small">Aún no hay instalaciones.</p>'}</div>
+  ${zs.length?`<div class="card mt" style="background:#FAFAFA;box-shadow:none"><b>Asignar instalaciones a accidentes</b><p class="small" style="margin:4px 0 8px">Para accidentes sin instalación: usa el CECO del accidente y las áreas o CECO asociados a cada instalación.</p><button class="btn" onclick="autoZonas()">Revisar asignación automática</button></div>`:''}`;
+}
+const splitL=s=>String(s||'').split(/[;,\n]/).map(x=>x.trim()).filter(Boolean);
+function bindEdit(){
+  const w=$('mapW');if(!w)return;
+  const nf=$('zNew');if(nf)nf.onsubmit=e=>{e.preventDefault();const n=nf.n.value.trim();if(!n)return;if(zByName(n)){toast('Ya existe una instalación con ese nombre');return}MAPST.draw={nombre:n,pts:[]};renderMapa()};
+  const zf=$('zForm');if(zf)zf.onsubmit=e=>{e.preventDefault();const z=zonas().find(x=>x.id===MAPST.ez);const nn=zf.nombre.value.trim();if(!nn)return;
+    const o=zByName(nn);if(o&&o!==z){toast('Ya existe otra instalación con ese nombre');return}
+    if(norm(nn)!==norm(z.nombre))DB.acc.forEach(a=>{if(a.zona&&norm(a.zona)===norm(z.nombre))a.zona=nn});
+    z.nombre=nn;z.areas=[...zf.querySelectorAll('[name=area]:checked')].map(i=>i.value).join('; ');z.cecos=splitL(zf.cecos.value).map(c=>c.toUpperCase()).join('; ');z.obs=zf.obs.value.trim();
+    markDirty('Instalación "'+nn+'" guardada')};
+  w.querySelectorAll('polygon[data-z],.mz-pin[data-zp]').forEach(p=>{const id=p.dataset.z||p.dataset.zp;const zz=zonas().find(x=>x.id===id);
+    p.addEventListener('mousemove',e=>{if(!MAPST.draw&&zz)mapTipAt(w,e,'<b>'+esc(zz.nombre)+'</b>')});p.addEventListener('mouseleave',()=>mapTipAt(w));
+    p.addEventListener('click',e=>{if(MAPST.draw)return;e.stopPropagation();MAPST.ez=id;renderMapa()})});
+  if(MAPST.draw){
+    w.addEventListener('click',e=>{if(e.target.closest('.mh'))return;MAPST.draw.pts.push(relPos(w,e));renderMapa()});
+    const f=w.querySelector('.mh.first');if(f)f.addEventListener('click',e=>{e.stopPropagation();if(MAPST.draw.pts.length>2)drawClose()});
+    return;
+  }
+  const z=MAPST.ez&&zonas().find(x=>x.id===MAPST.ez);if(!z)return;
+  const poly=$('mp-'+z.id);
+  const drag=(el,i)=>{el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();el.setPointerCapture(e.pointerId);let moved=false;
+    const mv=ev=>{moved=true;const q=relPos(w,ev);z.pts[i]=q;el.style.left=q[0]+'%';el.style.top=q[1]+'%';if(poly)poly.setAttribute('points',ptsStr(z.pts))};
+    const up=()=>{el.removeEventListener('pointermove',mv);el.removeEventListener('pointerup',up);if(moved)markDirty();};
+    el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up)})};
+  w.querySelectorAll('.mh[data-vh]').forEach(el=>{const i=+el.dataset.vh;drag(el,i);
+    el.addEventListener('dblclick',e=>{e.stopPropagation();if(z.pts.length<=3){toast('Una instalación necesita al menos 3 vértices');return}z.pts.splice(i,1);markDirty()})});
+  // punto medio: al arrastrarlo se inserta un vértice nuevo en ese lado
+  w.querySelectorAll('.mh[data-mid]').forEach(nel=>{const i=+nel.dataset.mid;
+    nel.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const a=z.pts[i],b=z.pts[(i+1)%z.pts.length];z.pts.splice(i+1,0,[r2((a[0]+b[0])/2),r2((a[1]+b[1])/2)]);nel.classList.remove('mid');nel.setPointerCapture(e.pointerId);
+      const mv=ev=>{const q=relPos(w,ev);z.pts[i+1]=q;nel.style.left=q[0]+'%';nel.style.top=q[1]+'%';if(poly)poly.setAttribute('points',ptsStr(z.pts))};
+      const up=()=>{nel.removeEventListener('pointermove',mv);nel.removeEventListener('pointerup',up);markDirty()};
+      nel.addEventListener('pointermove',mv);nel.addEventListener('pointerup',up)})});
+}
+function drawClose(){const d=MAPST.draw;if(!d||d.pts.length<3)return;
+  const n=Math.max(0,...zonas().map(z=>parseInt(String(z.id).replace(/\D/g,''))||0))+1;const id='Z'+String(n).padStart(2,'0');
+  zonas().push({id,nombre:d.nombre,pts:d.pts,areas:'',cecos:'',obs:''});MAPST.draw=null;MAPST.ez=id;markDirty('Instalación "'+d.nombre+'" creada')}
+function redrawZone(){const z=zonas().find(x=>x.id===MAPST.ez);if(!z)return;if(!confirm('¿Borrar el contorno actual y dibujarlo de nuevo?'))return;
+  DB.zonas=zonas().filter(x=>x!==z);MAPST.ez=null;MAPST.draw={nombre:z.nombre,pts:[],keep:z};renderMapa()}
+function delZone(){const z=zonas().find(x=>x.id===MAPST.ez);if(!z)return;const n=DB.acc.filter(a=>a.zona&&norm(a.zona)===norm(z.nombre));
+  if(!confirm(`¿Eliminar la instalación "${z.nombre}"?`+(n.length?`\n${n.length} accidente(s) quedarán sin instalación.`:'')))return;
+  n.forEach(a=>a.zona='');DB.zonas=zonas().filter(x=>x!==z);MAPST.ez=null;markDirty('Instalación eliminada')}
+document.addEventListener('keydown',e=>{if(PAGE!=='mapa'||!MAPST.edit||!MAPST.draw)return;if(e.target.closest&&e.target.closest('input,textarea,select'))return;
+  if(e.key==='Enter'){e.preventDefault();drawClose()}else if(e.key==='Escape'){if(MAPST.draw.keep)zonas().push(MAPST.draw.keep);MAPST.draw=null;renderMapa()}else if(e.key==='Backspace'){e.preventDefault();MAPST.draw.pts.pop();renderMapa()}});
+/* asignación automática: punto marcado > CECO asociado > área de instalación asociada */
+function zoneFor(a){
+  if(a.mx!=null&&a.my!=null){const z=zoneAt(a.mx,a.my);if(z)return{z,por:'punto en el plano'}}
+  const c=normCeco(a.ceco);if(!c)return null;
+  const byC=zonas().filter(z=>splitL(z.cecos).map(x=>x.toUpperCase()).includes(c));if(byC.length===1)return{z:byC[0],por:'CECO '+c};if(byC.length>1)return{amb:true};
+  const ar=norm(M.info(c).area);const byA=zonas().filter(z=>splitL(z.areas).some(x=>norm(x)===ar));if(byA.length===1)return{z:byA[0],por:'área '+M.info(c).area};if(byA.length>1)return{amb:true};
+  return null;
+}
+let AUTOZ=null;
+function autoZonas(){
+  const sin=DB.acc.filter(a=>!a.zona||!zByName(a.zona));AUTOZ=[];let amb=0;
+  sin.forEach(a=>{const r=zoneFor(a);if(r&&r.z)AUTOZ.push({a,z:r.z,por:r.por});else if(r&&r.amb)amb++});
+  const byZ=new Map();AUTOZ.forEach(x=>byZ.set(x.z.nombre,(byZ.get(x.z.nombre)||0)+1));
+  openModal(`<h3>Asignación automática de instalaciones</h3><p>${N0(sin.length)} accidentes sin instalación. Se pueden asignar <b>${N0(AUTOZ.length)}</b>${amb?`; ${amb} coinciden con más de una instalación y quedan para asignar a mano`:''}; el resto no tiene punto ni CECO asociado a una instalación.</p>
+  ${AUTOZ.length?`<div class="tw" style="max-height:340px"><table><thead><tr><th class="l">Accidente</th><th class="l">Fecha</th><th class="l">CECO</th><th class="l">Instalación propuesta</th><th class="l">Por</th></tr></thead><tbody>${AUTOZ.map(x=>`<tr><td class="l">${esc(x.a.id)}</td><td class="l">${fdate(x.a.fecha)}</td><td class="l">${esc(x.a.ceco)}</td><td class="l"><b>${esc(x.z.nombre)}</b></td><td class="l small">${esc(x.por)}</td></tr>`).join('')}</tbody></table></div>
+  <p class="small">${[...byZ.entries()].map(([k,v])=>esc(k)+': '+v).join(' · ')}</p>`:'<p class="small">Asocia áreas o CECO a cada instalación para que la asignación automática encuentre coincidencias.</p>'}
+  <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Cerrar</button>${AUTOZ.length?'<button class="btn pri" onclick="applyAutoZonas()">Asignar '+N0(AUTOZ.length)+'</button>':''}</div>`);
+}
+function applyAutoZonas(){if(!AUTOZ)return;AUTOZ.forEach(x=>x.a.zona=x.z.nombre);const n=AUTOZ.length;AUTOZ=null;closeModal();markDirty(n+' accidentes asignados a instalaciones')}
+/* ---------- mapa pequeño: ficha y formulario de accidentes ---------- */
+function miniMap(zona,id){const zs=zonas().filter(z=>z.pts.length>2);
+  return `<div class="mapwrap mini"${id?` id="${id}"`:''}><div class="mapz">${mapImg('plano')}<svg viewBox="0 0 100 100" preserveAspectRatio="none">${zs.map(z=>{const on=zona&&norm(z.nombre)===norm(zona);return `<polygon data-z="${z.id}" points="${ptsStr(z.pts)}" class="mz thin ${on?'hl':''}" fill="${on?'#E75300':'#FFFFFF'}" fill-opacity="${on?.6:.12}"/>`}).join('')}</svg></div>${id?ZBTNS:''}</div>`}
+function zonaField(a){
+  const zs=zonas(),cur=a.zona||'',known=!cur||zByName(cur);
+  return `<div class="fld full"><span>Instalación del mapa</span><div class="row" style="gap:8px"><select name="zona" id="accZona" style="min-width:240px"><option value="">— Sin instalación —</option>${zs.map(z=>`<option ${norm(z.nombre)===norm(cur)?'selected':''}>${esc(z.nombre)}</option>`).join('')}${known?'':`<option selected>${esc(cur)}</option>`}</select>
+   <button type="button" class="btn sm" onclick="togglePick()">🗺 Elegir en el plano</button><span class="small" id="pickInfo"></span></div>
+   <input type="hidden" name="mx" value="${a.mx??''}"><input type="hidden" name="my" value="${a.my??''}"><div id="accPick" class="hidden"></div>${zs.length?'':'<span class="small">Aún no hay instalaciones dibujadas en el mapa.</span>'}</div>`}
+function togglePick(){
+  const box=$('accPick'),f=$('accForm');if(!box||!f)return;
+  if(!box.classList.contains('hidden')){box.classList.add('hidden');return}
+  const sel=$('accZona');
+  box.innerHTML=miniMap(sel.value,'pickW')+'<p class="small" style="margin:6px 0 0">Haz clic sobre la instalación donde ocurrió el accidente para seleccionarla.</p>';
+  box.classList.remove('hidden');
+  const w=$('pickW');bindZoom(w,{k:1,x:0,y:0});
+  const paint=()=>w.querySelectorAll('polygon[data-z]').forEach(p=>{const z=zonas().find(x=>x.id===p.dataset.z);const on=z&&norm(z.nombre)===norm(sel.value);p.classList.toggle('hl',!!on);p.setAttribute('fill',on?'#E75300':'#FFFFFF');p.setAttribute('fill-opacity',on?.6:.12)});
+  w.querySelectorAll('polygon[data-z]').forEach(p=>{const z=zonas().find(x=>x.id===p.dataset.z);
+    p.addEventListener('mousemove',e=>mapTipAt(w,e,'<b>'+esc(z.nombre)+'</b>'));p.addEventListener('mouseleave',()=>mapTipAt(w));
+    p.addEventListener('click',e=>{e.stopPropagation();sel.value=z.nombre;paint();$('pickInfo').textContent='Instalación: '+z.nombre})});
+  if(!w.querySelector('.maptip'))w.insertAdjacentHTML('beforeend','<div class="maptip"></div>');
+  sel.onchange=paint;
+}
+
+/* ---------- zoom y desplazamiento (botones, rueda del mouse, arrastrar) ---------- */
+const ZBTNS='<div class="mzbtns"><button type="button" data-zb="+" title="Acercar">+</button><button type="button" data-zb="-" title="Alejar">−</button><button type="button" data-zb="r" title="Ver mapa completo">⤢</button><span class="zlev"></span></div>';
+const ZMAX=2.3;
+function clampZ(z){z.x=Math.min(0,Math.max(1-z.k,z.x));z.y=Math.min(0,Math.max(1-z.k,z.y))}
+function zoomApply(w,z){const L=w&&w.querySelector('.mapz');if(!L)return;clampZ(z);L.style.transform=`translate(${z.x*100}%,${z.y*100}%) scale(${z.k})`;L.style.setProperty('--zs',1/z.k);
+  w.classList.toggle('zoomed',z.k>1.001);const l=w.querySelector('.zlev');if(l)l.textContent=z.k>1.001?'×'+(Math.round(z.k*10)/10).toString().replace('.',','):''}
+function zoomTo(w,z,k,px=.5,py=.5){k=Math.max(1,Math.min(ZMAX,k));z.x=px-(px-z.x)*k/z.k;z.y=py-(py-z.y)*k/z.k;z.k=k;zoomApply(w,z)}
+function bindZoom(w,z){
+  if(!w)return;zoomApply(w,z);
+  w.querySelectorAll('[data-zb]').forEach(b=>{b.addEventListener('pointerdown',e=>e.stopPropagation());b.addEventListener('click',e=>{e.stopPropagation();e.preventDefault();const v=b.dataset.zb;
+    if(v==='r'){z.k=1;z.x=0;z.y=0;zoomApply(w,z)}else zoomTo(w,z,z.k*(v==='+'?1.6:1/1.6))})});
+  w.addEventListener('wheel',e=>{e.preventDefault();const r=w.getBoundingClientRect();zoomTo(w,z,z.k*(e.deltaY<0?1.2:1/1.2),(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height)},{passive:false});
+  let st=null;
+  w.addEventListener('pointerdown',e=>{w._sup=false;if(e.button!==0||e.target.closest('.mh,.mzbtns'))return;st={x:e.clientX,y:e.clientY,zx:z.x,zy:z.y,moved:false,id:e.pointerId}});
+  w.addEventListener('pointermove',e=>{if(!st||z.k<=1.001)return;const dx=e.clientX-st.x,dy=e.clientY-st.y;if(!st.moved&&Math.hypot(dx,dy)<5)return;
+    if(!st.moved){st.moved=true;try{w.setPointerCapture(st.id)}catch(_){}w.classList.add('panning');mapTipAt(w)}
+    const r=w.getBoundingClientRect();z.x=st.zx+dx/r.width;z.y=st.zy+dy/r.height;zoomApply(w,z)});
+  const end=()=>{if(st&&st.moved)w._sup=true;w.classList.remove('panning');st=null};
+  w.addEventListener('pointerup',end);w.addEventListener('pointercancel',end);
+  w.addEventListener('click',e=>{if(w._sup){e.stopPropagation();e.preventDefault();w._sup=false}},true);
+}
+function zoomZone(id){const zz=zonas().find(x=>x.id===id);if(!zz)return;MAPST.view='plano';
+  const xs=zz.pts.map(p=>p[0]/100),ys=zz.pts.map(p=>p[1]/100);const x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+  const k=Math.max(1,Math.min(ZMAX,0.75/Math.max(x1-x0,y1-y0,0.01)));const z=MAPST.zoom.plano;z.k=k;z.x=0.5-k*(x0+x1)/2;z.y=0.5-k*(y0+y1)/2;clampZ(z);MAPST.sel=id;renderMapa()}
+
+function zFilter(inp,id){const q=norm(inp.value);document.querySelectorAll('#'+id+' .zr').forEach(r=>r.classList.toggle('hide',!!q&&!r.dataset.q.includes(q)))}
 
 /* ================= CARGA DE ARCHIVOS FUENTE ================= */
 const MES_MAP={ene:1,enero:1,feb:2,febrero:2,mar:3,marzo:3,abr:4,abril:4,may:5,mayo:5,jun:6,junio:6,jul:7,julio:7,ago:8,agosto:8,sep:9,sept:9,septiembre:9,set:9,oct:10,octubre:10,nov:11,noviembre:11,dic:12,diciembre:12};
@@ -1326,10 +1649,17 @@ async function pickBase(){
     const f=await h.getFile();const db=readBase(await f.arrayBuffer());FH=h;idb.set('fh',h);setDB(db,{kind:'file',label:f.name},false);saveCache();toast('Base abierta: '+f.name)}
   catch(e){if(e.name!=='AbortError')toast(e.message,6000)}
 }
+/* Con los datos publicados (sin datos sensibles) no se puede editar ni guardar: se exige abrir el Excel de trabajo */
+function needWorkBase(){
+  if(!(DB&&SRC&&SRC.kind==='pub'))return false;
+  openModal(`<h3>Abre tu base de trabajo</h3><p>Estás viendo los <b>indicadores publicados</b>, que no contienen todos los datos. Para editar o registrar accidentes, abre primero tu archivo <b>BD_Divisional_DVEN.xlsx</b> desde tu computador. Así no se sobrescribe tu base con datos incompletos.</p><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn pri" onclick="closeModal();pickBase()">📂 Abrir BD_Divisional_DVEN.xlsx</button></div>`);
+  return true;
+}
 async function saveBase(){
+  if(needWorkBase())return;
   const buf=buildWorkbook();
   if(FH&&canFS()){try{let pm=await FH.queryPermission({mode:'readwrite'});if(pm!=='granted')pm=await FH.requestPermission({mode:'readwrite'});if(pm!=='granted')throw new Error('sin permiso de escritura');
-      const w=await FH.createWritable();await w.write(buf);await w.close();return markSaved('Base guardada en '+FH.name)}catch(e){toast('No pude escribir en '+FH.name+' ('+e.message+'). Elige dónde guardarla.',6000)}}
+      const w=await FH.createWritable();await w.write(buf);await w.close();return markSaved('Base guardada en '+FH.name)}catch(e){toast(e.name==='InvalidStateError'||/state/i.test(e.message)?'El archivo '+FH.name+' cambió fuera de la app (¿está abierto en Excel o lo sincroniza OneDrive?). Ciérralo y, en la ventana que se abre, elige el mismo archivo para reemplazarlo. Tus cambios no se pierden.':'No pude escribir en '+FH.name+' ('+e.message+'). Elige dónde guardarla.',12000)}}
   if(canFS()){try{const h=await showSaveFilePicker({suggestedName:'BD_Divisional_DVEN.xlsx',types:XT});const w=await h.createWritable();await w.write(buf);await w.close();FH=h;idb.set('fh',h);return markSaved('Base guardada en '+h.name)}catch(e){if(e.name==='AbortError')return}}
   downloadBlob(buf);markSaved('Excel descargado: reemplaza tu archivo BD_Divisional_DVEN.xlsx por esta copia.');
 }
@@ -1363,10 +1693,11 @@ function buildWorkbook(){
   const ee=DB.eecc.slice().sort((a,b)=>a.y-b.y||a.m-b.m||a.empresa.localeCompare(b.empresa));
   sheet('HH_EECC',['Año','Mes','Empresa','RUT','N° Contrato','Nombre Contrato','CECO','Dot H','HH H','Dot M','HH M','Dot Total','HH Total','Tipo Contrato','Fuente'],[7,6,34,13,13,44,9,8,11,8,11,10,12,13,30],ee.map((r,i)=>[r.y,r.m,r.empresa,r.rut,r.contrato,r.nomContrato,r.ceco,r.dotH,r.hhH,r.dotM,r.hhM,{f:`H${i+2}+J${i+2}`,v:r.dotH+r.dotM},{f:`I${i+2}+K${i+2}`,v:r.hhH+r.hhM},{f:`IF(G${i+2}="FC450","Inversión","Operación")`,v:r.ceco==='FC450'?'Inversión':'Operación'},r.fuente]));
   const ac=DB.acc.slice().sort((a,b)=>a.fecha-b.fecha);
-  sheet('Accidentes',['ID','Fecha','Año','Mes','Hora','Turno','Clasificación','Tipo Personal','Empresa','N° Contrato','CECO','Cargo','Lugar / Proceso','Tipo Accidente','Tipo Lesión','Parte Cuerpo','Riesgo Crítico','Descripción','Fecha Inicio Reposo','Fecha Alta','En Reposo','DP Total (manual)','Días Cargo','Observación'],[6,11,6,5,7,6,9,9,22,12,8,20,22,18,18,14,16,50,11,11,8,9,8,50],
-    ac.map((a,i)=>[a.id,a.fecha,{f:`IF(B${i+2}="","",YEAR(B${i+2}))`,v:a.fecha.getFullYear()},{f:`IF(B${i+2}="","",MONTH(B${i+2}))`,v:a.fecha.getMonth()+1},a.hora,a.turno,a.cls,a.tipo,a.empresa,a.contrato,a.ceco,a.cargo,a.lugar,a.tacc,a.lesion,a.cuerpo,a.rc,a.desc,a.ini,a.alta,a.rep,a.dpm,a.dc||0,a.obs]));
+  sheet('Accidentes',['ID','Fecha','Año','Mes','Hora','Turno','Clasificación','Tipo Personal','Empresa','N° Contrato','CECO','Cargo','Lugar / Proceso','Tipo Accidente','Tipo Lesión','Parte Cuerpo','Riesgo Crítico','Descripción','Fecha Inicio Reposo','Fecha Alta','En Reposo','DP Total (manual)','Días Cargo','Observación','Zona Mapa','Mapa X %','Mapa Y %'],[6,11,6,5,7,6,9,9,22,12,8,20,22,18,18,14,16,50,11,11,8,9,8,50,24,9,9],
+    ac.map((a,i)=>[a.id,a.fecha,{f:`IF(B${i+2}="","",YEAR(B${i+2}))`,v:a.fecha.getFullYear()},{f:`IF(B${i+2}="","",MONTH(B${i+2}))`,v:a.fecha.getMonth()+1},a.hora,a.turno,a.cls,a.tipo,a.empresa,a.contrato,a.ceco,a.cargo,a.lugar,a.tacc,a.lesion,a.cuerpo,a.rc,a.desc,a.ini,a.alta,a.rep,a.dpm,a.dc||0,a.obs,a.zona||'',a.mx??null,a.my??null]));
   sheet('HH_Historico',['Año','Mes','HH Propios','HH EECC','HH Total','Fuente'],[7,6,14,14,14,50],DB.hist.map((h,i)=>[h.y,h.m,h.p,h.e,h.p!=null&&h.e!=null?{f:`C${i+2}+D${i+2}`,v:h.p+h.e}:h.t,h.fuente]));
   sheet('Referencia_Anual',['Año','Mes','TF Acumulada','TG Acumulada','TFT Acumulada','Fuente'],[7,6,13,13,13,50],(DB.ref||[]).map(r=>[r.y,r.m,r.tf,r.tg,r.tft,r.fuente]));
+  sheet('Zonas',['ID','Zona','Áreas asociadas','CECO asociados','Observación','Polígono'],[6,30,40,24,30,80],(DB.zonas||[]).map(z=>[z.id,z.nombre,z.areas,z.cecos,z.obs,z.pts.map(p=>p[0]+','+p[1]).join(';')]));
   // Control
   const y=+P('Año en curso',CUT.getFullYear());const cr=[];
   for(let m=1;m<=12;m++){const r=m+3;const pp=DB.prop.filter(x=>x.y===y&&x.m===m),e2=DB.eecc.filter(x=>x.y===y&&x.m===m);const sm=(a,k)=>a.reduce((s,x)=>s+x[k],0);
@@ -1441,11 +1772,11 @@ async function downloadPublic(){
 /* ================= ESTADO, BORRADOR E INICIO ================= */
 function serializeDB(){return JSON.stringify(DB,(k,v)=>v)}
 function reviveDB(s){const o=JSON.parse(s);const D=['fecha','ini','alta'];o.acc.forEach(a=>D.forEach(k=>{a[k]=a[k]?pDate(String(a[k]).slice(0,10)):null}));return o}
-function markDirty(t){DIRTY=true;if(!store.set('dven_draft',JSON.stringify({when:new Date().toISOString(),src:SRC,db:serializeDB()})))toast('No se pudo guardar el borrador en el navegador');rebuild();updateStatus();render();if(t)toast(t+' · recuerda guardar la base')}
+function markDirty(t){if(SRC&&SRC.kind==='pub'){needWorkBase();return}DIRTY=true;if(!store.set('dven_draft',JSON.stringify({when:new Date().toISOString(),src:SRC,db:serializeDB()})))toast('No se pudo guardar el borrador en el navegador');rebuild();updateStatus();render();if(t)toast(t+' · recuerda guardar la base')}
 function discardDraft(){if(!confirm('¿Descartar los cambios no guardados y volver a la última base guardada?'))return;store.del('dven_draft');DIRTY=false;boot()}
 const REF_2025={tft:[0,0,0,1.13,1.82,2.22,2.56,2.82,2.81,3.13,3.22,3.95],tg:[129,66.8,41.6,32.6,26.3,21.4,18.3,16.3,13.5,16,14.8,25.8]};
 function seedRef(db){db.ref=db.ref||[];if(!db.ref.some(r=>r.y===2025)){for(let m=1;m<=12;m++)db.ref.push({y:2025,m,tf:null,tg:REF_2025.tg[m-1],tft:REF_2025.tft[m-1],fuente:'Informe Indicadores de Seguridad 28.09.2026 (valores oficiales 2025)'});return true}return false}
-function setDB(db,src,dirty){const seeded=seedRef(db)&&ADMIN;DB=db;SRC=src;DIRTY=!!dirty||seeded;if(seeded)store.set('dven_draft',JSON.stringify({when:new Date().toISOString(),src,db:serializeDB()}));else if(!dirty)store.del('dven_draft');
+function setDB(db,src,dirty){db.zonas=db.zonas||[];const seeded=seedRef(db)&&ADMIN;DB=db;SRC=src;DIRTY=!!dirty||seeded;if(seeded)store.set('dven_draft',JSON.stringify({when:new Date().toISOString(),src,db:serializeDB()}));else if(!dirty)store.del('dven_draft');
   if(DB.params['Año en curso']==null)DB.params['Año en curso']=CUT.getFullYear();
   rebuild();updateStatus();$('welcome').classList.add('hidden');render()}
 function updateStatus(){
@@ -1453,8 +1784,8 @@ function updateStatus(){
   s.innerHTML=`<span class="dot ${DIRTY?'warn':'ok'}"></span>${esc(SRC.label)}<br>Propios: ${keyLabel(lp)} · EECC: ${keyLabel(le)}`;
   $('draftBanner').classList.toggle('show',DIRTY&&ADMIN);
 }
-const TITLES={resumen:'Consolidado divisional',propios:'Personal propio',eecc:'Empresas contratistas',accidentes:'Accidentes',proyecciones:'Proyecciones','informe':'Informe semanal','carga-propios':'Carga de datos · Propios','carga-eecc':'Carga de datos · EECC',base:'Base y configuración'};
-const RENDER={resumen:renderResumen,propios:renderPropios,eecc:renderEecc,accidentes:renderAcc,proyecciones:renderProy,informe:renderInforme,'carga-propios':renderCargaP,'carga-eecc':renderCargaE,base:renderBase};
+const TITLES={resumen:'Consolidado divisional',propios:'Personal propio',eecc:'Empresas contratistas',accidentes:'Accidentes',mapa:'Mapa de accidentes',proyecciones:'Proyecciones','informe':'Informe semanal','carga-propios':'Carga de datos · Propios','carga-eecc':'Carga de datos · EECC',base:'Base y configuración'};
+const RENDER={resumen:renderResumen,propios:renderPropios,eecc:renderEecc,accidentes:renderAcc,mapa:renderMapa,proyecciones:renderProy,informe:renderInforme,'carga-propios':renderCargaP,'carga-eecc':renderCargaE,base:renderBase};
 const ADMIN_PAGES=['carga-propios','carga-eecc','base'];
 function go(p){if(!RENDER[p])p='resumen';if(ADMIN_PAGES.includes(p)&&!ADMIN){openLogin(p);return}PAGE=p;try{history.replaceState(null,'','#'+p)}catch(e){}render();$('side').classList.remove('open');window.scrollTo(0,0)}
 function render(){
@@ -1467,7 +1798,9 @@ function render(){
   }
   document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.p===PAGE));
   $('pageTitle').textContent=TITLES[PAGE];
-  $('perSel').classList.toggle('hidden',!['resumen','propios','eecc','accidentes'].includes(PAGE));
+  $('perSel').classList.toggle('hidden',!['resumen','propios','eecc','accidentes','mapa'].includes(PAGE));
+  {const ys=$('perYear'),show=DB&&YEAR_PAGES.includes(PAGE)&&SEL.mode==='year';ys.classList.toggle('hidden',!show);
+   if(show){const cy=CUT.getFullYear(),y0=Math.min(cy,...M.acc.map(a=>a.y));let o='';for(let y=cy;y>=y0;y--)o+=`<option value="${y}" ${(SEL.yy||cy)===y?'selected':''}>${y}</option>`;ys.innerHTML=o}}
   document.querySelectorAll('.page').forEach(s=>s.classList.toggle('hidden',s.id!=='p-'+PAGE||!DB));
   if(!DB)return;
   M.cache.clear();
@@ -1502,7 +1835,8 @@ $('cutDate').addEventListener('change',e=>{const d=pDate(e.target.value);if(d){C
   const sync=()=>{mo.classList.toggle('hidden',md.value!=='month');rg.classList.toggle('hidden',md.value!=='range');
     SEL.mode=md.value;const mv=(mo.value||'').split('-');SEL.y=+mv[0]||null;SEL.m=+mv[1]||null;SEL.from=pDate(fr.value);SEL.to=pDate(to.value);render()};
   md.addEventListener('change',()=>{if(md.value==='month'&&!mo.value)mo.value=CUT.getFullYear()+'-'+pad(CUT.getMonth()+1);if(md.value==='range'){if(!fr.value)fr.value=iso(mkD(CUT.getFullYear(),CUT.getMonth()+1,1));if(!to.value)to.value=iso(CUT)}sync()});
-  [mo,fr,to].forEach(x=>x.addEventListener('change',sync));})();
+  [mo,fr,to].forEach(x=>x.addEventListener('change',sync));
+  $('perYear').addEventListener('change',e=>{SEL.yy=+e.target.value||null;render()});})();
 $('fileAny').addEventListener('change',e=>{const f=e.target.files[0];if(f){if(DIRTY&&!confirm('Tienes cambios sin guardar. ¿Reemplazar por este archivo?'))return;openLocal(f)}e.target.value=''});
 (()=>{const z=$('welcomeDrop');z.onclick=()=>pickBase();z.ondragover=e=>{e.preventDefault();z.classList.add('over')};z.ondragleave=()=>z.classList.remove('over');z.ondrop=e=>{e.preventDefault();z.classList.remove('over');const f=e.dataTransfer.files[0];if(f)openLocal(f)}})();
 PAGE=(location.hash||'#resumen').slice(1);if(!RENDER[PAGE])PAGE='resumen';
