@@ -292,6 +292,7 @@ body.gated .app{filter:blur(3px);pointer-events:none}
 .simacc select{padding:4px 6px;border:1px solid var(--line);border-radius:6px;font-family:inherit}
 .sim-grid{align-items:start;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}.simacc th,.simacc td{padding:5px 4px}.simacc .simIn.sm{width:56px}
 .simchip{background:#FAFAFA;border-radius:8px;padding:10px 12px;font-size:13px;color:var(--ink2)}.simchip span{display:block;font-size:11px;color:var(--muted);margin-bottom:2px}.simchip b{font-size:18px;color:var(--ink)}.simchip b.simc{color:var(--brand-d)}
+.spin{width:34px;height:34px;border:4px solid #F1D3C2;border-top-color:var(--brand);border-radius:50%;margin:auto;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
 @media print{
   @page{size:A4 landscape;margin:0}
   .deck{overflow:visible;padding:0}
@@ -1514,6 +1515,101 @@ function renderSim(){
 function simAdd(cls,dp){const X=simModel();const k=X.months.length?X.months[0].k:X.k0;SIM.acc.push({k,tipo:'EECC',cls,dp:cls==='CTP'?dp:0,dc:cls==='FATAL'?DC_FATAL:0});renderSim()}
 function simCls(i,c,dp){const a=SIM.acc[i];a.cls=c;if(c==='CTP'&&!a.dp)a.dp=dp;if(c!=='CTP')a.dp=0;if(c==='FATAL'&&!(a.dc>0))a.dc=DC_FATAL;if(c!=='FATAL'&&a.dc===DC_FATAL)a.dc=0;renderSim()}
 
+/* ================= BASE DE TRABAJO EN LA NUBE + "GUARDAR Y PUBLICAR" =================
+   data/base.json   : base completa, comprimida y cifrada (AES-256-GCM) con la contraseña de administrador.
+   data/publico.json: indicadores sin datos sensibles, cifrados con la clave de lectura.
+   Ambos se suben al repositorio con un token de GitHub guardado solo en el navegador de cada equipo. */
+const CLOUD_PATH='data/base.json';
+let ADMIN_PW=null,CLOUD_SHA=null;
+const GH_DEF={owner:'dvenproy',repo:'indicadoresdven',branch:'main'};
+const ghConf=()=>Object.assign({},GH_DEF,ghCfg());
+const ghApi=(g,path)=>`https://api.github.com/repos/${encodeURIComponent(g.owner)}/${encodeURIComponent(g.repo)}/contents/${path}`;
+function u8b64(u){let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)}
+async function gzipStr(str){const s=new Blob([str]).stream().pipeThrough(new CompressionStream('gzip'));return new Uint8Array(await new Response(s).arrayBuffer())}
+async function gunzipU8(u8){const s=new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'));return new Response(s).text()}
+async function encBase(db,pw){const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),it=300000;
+  const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},await aesKey(pw,salt,it),await gzipStr(JSON.stringify(db))));
+  return{v:2,kind:'base',gz:true,it,salt:u8b64(salt),iv:u8b64(iv),ct:u8b64(ct),generado:new Date().toISOString()}}
+async function decBase(o,pw){const pt=new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:b64d(o.iv)},await aesKey(pw,b64d(o.salt),o.it),b64d(o.ct)));return reviveDB(await gunzipU8(pt))}
+/* lectura: con token usa la API (siempre al día); sin token, el archivo del sitio */
+async function ghMeta(g,path){const r=await fetch(ghApi(g,path)+'?ref='+encodeURIComponent(g.branch||'main')+'&t='+Date.now(),{headers:{Authorization:'Bearer '+g.token,Accept:'application/vnd.github+json'},cache:'no-store'});
+  if(r.status===404)return null;if(!r.ok)throw new Error(r.status===401?'El token de GitHub no es válido o expiró':'GitHub respondió '+r.status);return r.json()}
+async function fetchCloud(){
+  const g=ghConf();
+  if(g.token){const m=await ghMeta(g,CLOUD_PATH);if(!m)return null;
+    const r=await fetch(ghApi(g,CLOUD_PATH)+'?ref='+encodeURIComponent(g.branch||'main')+'&t='+Date.now(),{headers:{Authorization:'Bearer '+g.token,Accept:'application/vnd.github.raw'},cache:'no-store'});
+    if(!r.ok)throw new Error('No pude leer la base en la nube ('+r.status+')');return{obj:await r.json(),sha:m.sha}}
+  try{const r=await fetch(CLOUD_PATH+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return null;return{obj:await r.json(),sha:null}}catch(e){return null}
+}
+/* abre la base de la nube con la contraseña: 'ok' | 'bad' | 'none' */
+async function loadCloud(pw,quiet){
+  let c;try{c=await fetchCloud()}catch(e){if(!quiet)toast(e.message,6000);return 'none'}
+  if(!c)return 'none';
+  let db;try{db=await decBase(c.obj,pw)}catch(e){return 'bad'}
+  ADMIN_PW=pw;ss.set('dven_apw',pw);CLOUD_SHA=c.sha;
+  const g=c.obj.generado?new Date(c.obj.generado):null;
+  setDB(db,{kind:'cloud',label:'Base en la nube'+(g?' · '+fdate(g)+' '+pad(g.getHours())+':'+pad(g.getMinutes()):'')},false);
+  return 'ok';
+}
+async function ghPut(g,path,text,sha,msg){
+  const body={message:msg,content:u8b64(new TextEncoder().encode(text)),branch:g.branch||'main'};if(sha)body.sha=sha;
+  const r=await fetch(ghApi(g,path),{method:'PUT',headers:{Authorization:'Bearer '+g.token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok){const j=await r.json().catch(()=>({}));const e=new Error((r.status===409||r.status===422)&&/sha|match/i.test(j.message||'')?'conflict':'GitHub '+r.status+': '+(j.message||''));e.status=r.status;throw e}
+  return (await r.json()).content.sha;
+}
+function busy(t){openModal(`<div style="text-align:center;padding:18px"><div class="spin"></div><p style="margin:14px 0 0">${esc(t)}</p></div>`)}
+/* ---------- el botón ---------- */
+async function publishAll(){
+  if(!ADMIN){openLogin();return}
+  if(SRC.kind==='pub'){needWorkBase();return}
+  const g=ghConf();
+  if(!g.token){openGhSetup(true);return}
+  if(adminHash()===DEFAULT_ADMIN_HASH){openModal(`<h3>Primero cambia la contraseña de administrador</h3><p>La base completa se guarda cifrada con la contraseña de administrador. Antes de publicarla, cámbiala por una propia de al menos 12 caracteres en <b>Base y configuración → Contraseña de administrador</b>.</p><div class="row" style="justify-content:flex-end"><button class="btn pri" onclick="closeModal();go('base')">Ir a cambiarla</button></div>`);return}
+  if(!ADMIN_PW||!(await checkPw(ADMIN_PW,adminHash()))){askAdminPw();return}
+  if(ADMIN_PW.length<12){openModal(`<h3>Contraseña demasiado corta</h3><p>Para proteger la base en la nube, la contraseña de administrador debe tener al menos 12 caracteres. Cámbiala en <b>Base y configuración</b> y vuelve a intentarlo.</p><div class="row" style="justify-content:flex-end"><button class="btn pri" onclick="closeModal();go('base')">Ir a Base y configuración</button></div>`);return}
+  if(!DB.params['Clave lectura']){askReadKey();return}
+  busy('Guardando y publicando…');
+  try{
+    const m=await ghMeta(g,CLOUD_PATH);
+    if(m&&CLOUD_SHA&&m.sha!==CLOUD_SHA){closeModal();return conflictMsg()}
+    if(m&&!CLOUD_SHA&&!confirm('Ya existe una base en la nube y vas a reemplazarla por la que tienes abierta ('+SRC.label+'). ¿Continuar?')){closeModal();return}
+    const base=JSON.stringify(await encBase(DB,ADMIN_PW));
+    CLOUD_SHA=await ghPut(g,CLOUD_PATH,base,m&&m.sha,'Actualiza base de trabajo '+fdate(today()));
+    const inclE=DB.params['Publicar EECC']!=='NO',inclA=DB.params['Publicar ficha accidentes']!=='NO';
+    const pub=buildPublic(inclE,inclA);const pubTxt=JSON.stringify(Object.assign({generado:pub.generado},await encryptJSON(pub,DB.params['Clave lectura'])));
+    const mp=await ghMeta(g,PUB_PATH);await ghPut(g,PUB_PATH,pubTxt,mp&&mp.sha,'Actualiza indicadores publicados '+fdate(today()));
+    let xl='';
+    if(FH&&canFS()){try{if((await FH.queryPermission({mode:'readwrite'}))==='granted'){const w=await FH.createWritable();await w.write(buildWorkbook());await w.close();xl=' También se guardó en '+FH.name+'.'}}catch(e){}}
+    DIRTY=false;store.del('dven_draft');SRC={kind:'cloud',label:'Base en la nube · '+fdate(today())+' '+pad(new Date().getHours())+':'+pad(new Date().getMinutes())};
+    updateStatus();render();
+    openModal(`<h3>✓ Guardado y publicado</h3><p>La base de trabajo y los indicadores quedaron actualizados. Quienes entren al sitio verán los cambios en 1 a 2 minutos.${xl}</p><div class="row" style="justify-content:flex-end"><button class="btn pri" onclick="closeModal()">Listo</button></div>`);
+  }catch(e){
+    if(e.message==='conflict')return conflictMsg();
+    openModal(`<h3>No se pudo publicar</h3><div class="msg bad">${esc(e.message)}</div><p class="small">Tus cambios siguen en esta pantalla; no cierres la página. Revisa la conexión a internet o el token de GitHub y vuelve a intentarlo.</p><div class="row" style="justify-content:flex-end"><button class="btn" onclick="closeModal()">Cerrar</button><button class="btn pri" onclick="closeModal();publishAll()">Reintentar</button></div>`);
+  }
+}
+function conflictMsg(){openModal(`<h3>Otra persona publicó cambios</h3><p>La base en la nube cambió después de que la abriste (otro administrador guardó y publicó). Para no borrar su trabajo, no se publicó nada.</p><p>Descarga una copia de tus cambios, recarga la base actualizada y vuelve a ingresar lo que hiciste.</p><div class="row" style="justify-content:flex-end"><button class="btn" onclick="downloadBase()">⬇ Copia de mis cambios (Excel)</button><button class="btn pri" onclick="DIRTY=false;closeModal();reloadCloud()">Cargar base actualizada</button></div>`)}
+async function reloadCloud(){busy('Cargando base…');const r=await loadCloud(ADMIN_PW||ss.get('dven_apw')||'');closeModal();if(r!=='ok')toast('No pude cargar la base en la nube',5000)}
+function askAdminPw(){openModal(`<h3>Confirma tu contraseña de administrador</h3><p class="sub">Se usa para cifrar la base antes de subirla.</p><form id="apwF"><label class="fld">Contraseña<input type="password" id="apw" autocomplete="current-password"></label><div id="apwM"></div><div class="row" style="justify-content:flex-end;margin-top:12px"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button class="btn pri">Continuar</button></div></form>`);
+  setTimeout(()=>$('apw').focus(),50);$('apwF').onsubmit=async e=>{e.preventDefault();const v=$('apw').value;if(!(await checkPw(v,adminHash()))){$('apwM').innerHTML='<div class="msg bad">Contraseña incorrecta</div>';return}ADMIN_PW=v;ss.set('dven_apw',v);closeModal();publishAll()}}
+function askReadKey(){openModal(`<h3>Clave de lectura del sitio</h3><p class="sub">Es la clave que usan todos para entrar al sitio (la misma de siempre). Se guarda dentro de la base cifrada, así no hay que escribirla de nuevo.</p><form id="rkF"><div class="fgrid" style="grid-template-columns:1fr 1fr"><label class="fld">Clave de lectura<input type="password" id="rk1" autocomplete="new-password"></label><label class="fld">Repetir<input type="password" id="rk2" autocomplete="new-password"></label></div><div id="rkM"></div><div class="row" style="justify-content:flex-end;margin-top:12px"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button class="btn pri">Guardar y continuar</button></div></form>`);
+  $('rkF').onsubmit=e=>{e.preventDefault();const a=$('rk1').value,b=$('rk2').value;if(a.length<8){$('rkM').innerHTML='<div class="msg bad">Mínimo 8 caracteres</div>';return}if(a!==b){$('rkM').innerHTML='<div class="msg bad">Las claves no coinciden</div>';return}DB.params['Clave lectura']=a;closeModal();publishAll()}}
+/* ---------- conexión GitHub de este equipo ---------- */
+function openGhSetup(thenPublish){const g=ghConf();
+  openModal(`<h3>Conectar este equipo con GitHub</h3><p class="sub">Se hace una sola vez por equipo (PC o celular). El token queda guardado solo en este navegador.</p>
+  <form id="ghF"><div class="fgrid" style="grid-template-columns:1fr 1fr"><label class="fld">Organización<input id="gO" value="${esc(g.owner)}"></label><label class="fld">Repositorio<input id="gR" value="${esc(g.repo)}"></label>
+  <label class="fld full">Token de GitHub<input id="gT" type="password" value="${esc(g.token||'')}" placeholder="github_pat_…" autocomplete="off"></label></div>
+  <div id="ghM"></div><div class="row" style="justify-content:flex-end;margin-top:12px">${g.token?`<button type="button" class="btn" style="margin-right:auto;color:var(--bad)" onclick="store.del('dven_gh');closeModal();toast('Token borrado de este equipo');if(PAGE==='base')renderBase()">Borrar token de este equipo</button>`:''}<button type="button" class="btn" onclick="closeModal()">Cancelar</button><button class="btn pri">Probar y guardar</button></div></form>`);
+  $('ghF').onsubmit=async e=>{e.preventDefault();const c={owner:$('gO').value.trim(),repo:$('gR').value.trim(),branch:'main',token:$('gT').value.trim()};
+    $('ghM').innerHTML='<p class="small">Probando…</p>';
+    try{const r=await fetch(`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}`,{headers:{Authorization:'Bearer '+c.token,Accept:'application/vnd.github+json'}});
+      if(!r.ok)throw new Error(r.status===401?'Token no válido':r.status===404?'No encuentro el repositorio con ese token':'GitHub respondió '+r.status);
+      const j=await r.json();if(!(j.permissions&&j.permissions.push))throw new Error('El token no tiene permiso para escribir (Contents: Read and write)');
+      store.set('dven_gh',JSON.stringify(c));closeModal();toast('Equipo conectado con GitHub');if(thenPublish)publishAll();else if(PAGE==='base')renderBase()}
+    catch(err){$('ghM').innerHTML=`<div class="msg bad">${esc(err.message)}</div>`}}}
+window.addEventListener('beforeunload',e=>{if(DIRTY&&ADMIN){e.preventDefault();e.returnValue=''}});
+function askReadKeyOnly(){askReadKey();$('rkF').onsubmit=e=>{e.preventDefault();const a=$('rk1').value,b=$('rk2').value;if(a.length<8){$('rkM').innerHTML='<div class="msg bad">Mínimo 8 caracteres</div>';return}if(a!==b){$('rkM').innerHTML='<div class="msg bad">Las claves no coinciden</div>';return}DB.params['Clave lectura']=a;closeModal();markDirty('Clave de lectura guardada')}}
+
 /* ================= CARGA DE ARCHIVOS FUENTE ================= */
 const MES_MAP={ene:1,enero:1,feb:2,febrero:2,mar:3,marzo:3,abr:4,abril:4,may:5,mayo:5,jun:6,junio:6,jul:7,julio:7,ago:8,agosto:8,sep:9,sept:9,septiembre:9,set:9,oct:10,octubre:10,nov:11,noviembre:11,dic:12,diciembre:12};
 function detectMonth(...texts){
@@ -1677,11 +1773,14 @@ function renderBase(){
    <label class="fld">Meta TFT (opcional)<input id="prTFT" type="number" step="0.01" value="${esc(P('Meta TFT',''))}"></label>
   </div><div class="row mt"><button class="btn pri" onclick="saveParams()">Guardar parámetros</button><span class="small">El informe usa semana de lunes a domingo.</span></div></div>
   </div>
-  <div class="card mt"><h3>Publicación web</h3><p class="sub">El sitio publicado <b>no usa el Excel</b>: lee <code>${PUB_PATH}</code>, un archivo que se genera aquí <b>sin datos sensibles</b>: nunca incluye nombres, RUT, contraseña ni observaciones internas; la ficha de accidentes es opcional. Con clave de lectura, el archivo queda cifrado y solo se puede ver ingresando esa clave.</p>
-   <div class="fgrid"><label class="fld">Clave de lectura (opcional)<input type="password" id="pubPw" autocomplete="new-password" placeholder="Sin clave = sitio abierto"></label><label class="fld">Repetir clave<input type="password" id="pubPw2" autocomplete="new-password"></label>
-   <label class="fld" style="justify-content:flex-end"><span><input type="checkbox" id="pubEmp" checked> Incluir detalle EECC por empresa y contrato (HH y dotación)</span></label>
-   <label class="fld full"><span><input type="checkbox" id="pubAcc" checked> Incluir ficha completa de accidentes (empresa, contrato, cargo, hora, turno, lugar, riesgo crítico, lesión y descripción). Nunca se publican nombres, RUT ni observaciones internas.</span></label></div>
-   <div class="row mt"><button class="btn pri" onclick="downloadPublic()">⬇ Generar publico.json</button>${ghCfg().token?'<button class="btn" onclick="saveGitHub()">⬆ Publicar en GitHub</button>':''}<span class="small">Usa siempre la misma clave de lectura; si la cambias, comparte la nueva.</span></div><div id="pubMsg"></div><div id="ghMsg"></div></div>
+  <div class="card mt"><h3>Guardar y publicar</h3><p class="sub">Un clic sube a GitHub la <b>base de trabajo completa cifrada</b> con la contraseña de administrador (para trabajar desde cualquier equipo o celular) y los <b>indicadores publicados</b> cifrados con la clave de lectura (sin nombres, RUT ni observaciones internas). El Excel queda como respaldo: descárgalo cuando quieras.</p>
+   <div class="row"><button class="btn pri" onclick="publishAll()">☁ Guardar y publicar</button><button class="btn" onclick="downloadBase()">⬇ Descargar Excel de respaldo</button><button class="btn" onclick="openGhSetup(false)">${ghConf().token?'🔗 Conexión GitHub de este equipo ✓':'🔗 Conectar este equipo con GitHub'}</button></div>
+   <div class="fgrid mt"><label class="fld" style="justify-content:flex-end"><span><input type="checkbox" ${DB.params['Publicar EECC']!=='NO'?'checked':''} onchange="DB.params['Publicar EECC']=this.checked?'SI':'NO';markDirty()"> Publicar detalle EECC por empresa y contrato</span></label>
+   <label class="fld full"><span><input type="checkbox" ${DB.params['Publicar ficha accidentes']!=='NO'?'checked':''} onchange="DB.params['Publicar ficha accidentes']=this.checked?'SI':'NO';markDirty()"> Publicar ficha de accidentes (empresa, contrato, cargo, hora, turno, lugar, riesgo crítico, lesión y descripción)</span></label></div>
+   <div class="row mt"><button class="btn sm" onclick="askReadKeyOnly()">${DB.params['Clave lectura']?'Cambiar clave de lectura':'Definir clave de lectura'}</button><span class="small">${DB.params['Clave lectura']?'Clave de lectura guardada en la base cifrada.':'Aún no se ha definido: se pedirá al publicar.'}</span></div>
+   <details class="mt"><summary class="small" style="cursor:pointer">Publicación manual (generar publico.json y subirlo a mano)</summary><div class="fgrid mt"><label class="fld">Clave de lectura<input type="password" id="pubPw" autocomplete="new-password"></label><label class="fld">Repetir clave<input type="password" id="pubPw2" autocomplete="new-password"></label></div>
+   <input type="checkbox" id="pubEmp" class="hidden" ${DB.params['Publicar EECC']!=='NO'?'checked':''}><input type="checkbox" id="pubAcc" class="hidden" ${DB.params['Publicar ficha accidentes']!=='NO'?'checked':''}>
+   <div class="row mt"><button class="btn" onclick="downloadPublic()">⬇ Generar publico.json</button></div><div id="pubMsg"></div></details></div>
   <div class="card mt"><h3>Contraseña de administrador</h3><p class="sub">Se guarda cifrada (hash PBKDF2) en la hoja Parametros de la base. Después de cambiarla, guarda la base.</p>
    <div class="fgrid"><label class="fld">Contraseña actual<input type="password" id="pw0" autocomplete="current-password"></label><label class="fld">Nueva contraseña<input type="password" id="pw1" autocomplete="new-password"></label><label class="fld">Repetir nueva<input type="password" id="pw2" autocomplete="new-password"></label></div>
    <div class="row mt"><button class="btn pri" onclick="changePw()">Cambiar contraseña</button>${DB.params['Clave administrador']?'':'<span class="pill warn">Usando la contraseña inicial: cámbiala</span>'}</div></div>
@@ -1690,10 +1789,6 @@ function renderBase(){
    <div class="tw"><table><thead><tr><th class="l">Tasa</th>${MES3.map(m=>`<th>${m}</th>`).join('')}</tr></thead><tbody>
    ${[['tft','TFT acumulada'],['tg','TG acumulada'],['tf','TF acumulada (opcional)']].map(([k,l])=>`<tr><td class="l">${l}</td>${MES3.map((_,i)=>{const r=(DB.ref||[]).find(x=>x.y===+REF_Y&&x.m===i+1);return `<td><input class="refIn" data-k="${k}" data-m="${i+1}" value="${r&&r[k]!=null?String(r[k]).replace('.',','):''}" style="width:54px;text-align:right"></td>`}).join('')}</tr>`).join('')}
    </tbody></table></div><div class="row mt"><button class="btn pri" onclick="saveRef()">Guardar referencia</button></div></div>
-  <details class="card mt"><summary style="cursor:pointer;font-weight:650">Publicación en GitHub (opcional, no recomendado para datos sensibles)</summary><div class="mt"><p class="sub">La app publicada en GitHub Pages lee <code>${BASE_PATH}</code> del mismo repositorio. Para <b>publicar</b> cambios desde aquí, ingresa un token personal (fine-grained) con permiso <i>Contents: Read and write</i> solo para ese repositorio. El token se guarda únicamente en este navegador.</p>
-   <div class="fgrid"><label class="fld">Usuario u organización<input id="ghO" value="${esc(gh.owner||'')}" placeholder="eotarola"></label><label class="fld">Repositorio<input id="ghR" value="${esc(gh.repo||'')}" placeholder="estadisticas-dven"></label><label class="fld">Rama<input id="ghB" value="${esc(gh.branch||'main')}"></label>
-   <label class="fld full">Token<input id="ghT" type="password" value="${esc(gh.token||'')}" placeholder="github_pat_…"></label></div>
-   <div class="row mt"><button class="btn pri" onclick="saveGh()">Guardar conexión</button><button class="btn" onclick="loadGitHub(true)">Probar y recargar desde GitHub</button><button class="btn" onclick="store.del('dven_gh');renderBase()">Olvidar token</button></div></div></details>
   <div class="card mt"><div class="row" style="justify-content:space-between"><div><h3>Maestro de CECO</h3><p class="sub">Gerencia y Área de instalación de cada centro de costo. Los cambios se aplican a todo el histórico.</p></div><input id="cecoQ" placeholder="Buscar" oninput="filterCeco()" style="padding:7px 10px;border:1px solid var(--line);border-radius:8px"></div>
    <datalist id="dlGer">${gl.map(g=>`<option value="${esc(g)}">`).join('')}</datalist><datalist id="dlArea">${areas.map(a=>`<option value="${esc(a)}">`).join('')}</datalist>
    <div class="tw" style="max-height:480px"><table id="tCeco"><thead><tr><th class="l">CECO</th><th class="l">Nombre</th><th class="l">Gerencia</th><th class="l">Área instalación</th><th class="l">Observación</th></tr></thead><tbody>
@@ -1759,7 +1854,7 @@ async function pickBase(){
 /* Con los datos publicados (sin datos sensibles) no se puede editar ni guardar: se exige abrir el Excel de trabajo */
 function needWorkBase(){
   if(!(DB&&SRC&&SRC.kind==='pub'))return false;
-  openModal(`<h3>Abre tu base de trabajo</h3><p>Estás viendo los <b>indicadores publicados</b>, que no contienen todos los datos. Para editar o registrar accidentes, abre primero tu archivo <b>BD_Divisional_DVEN.xlsx</b> desde tu computador. Así no se sobrescribe tu base con datos incompletos.</p><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn pri" onclick="closeModal();pickBase()">📂 Abrir BD_Divisional_DVEN.xlsx</button></div>`);
+  openModal(`<h3>Abre tu base de trabajo</h3><p>Estás viendo los <b>indicadores publicados</b>, que no contienen todos los datos. Para editar o registrar accidentes desde aquí, primero debe existir la base de trabajo en la nube (se crea la primera vez que usas «☁ Guardar y publicar» desde tu PC); mientras tanto, abre tu archivo <b>BD_Divisional_DVEN.xlsx</b> desde tu computador. Así no se sobrescribe tu base con datos incompletos.</p><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn pri" onclick="closeModal();pickBase()">📂 Abrir BD_Divisional_DVEN.xlsx</button></div>`);
   return true;
 }
 async function saveBase(){
@@ -1793,7 +1888,7 @@ function buildWorkbook(){
   }
   // LEEME
   const le=XLSX.utils.aoa_to_sheet(DB.leeme&&DB.leeme.length?DB.leeme:[['BASE DE DATOS DIVISIONAL – ESTADÍSTICAS DE SEGURIDAD']]);le['!cols']=[{wch:28},{wch:110}];XLSX.utils.book_append_sheet(wb,le,'LEEME');
-  sheet('Parametros',['Parámetro','Valor','Descripción'],[30,22,70],Object.entries(DB.params).map(([k,v])=>[k,k==='Versión base'?today():(typeof v==='number'&&k.startsWith('Fecha')?fromSerial(v):v),'']));
+  sheet('Parametros',['Parámetro','Valor','Descripción'],[30,22,70],Object.entries(DB.params).filter(([k])=>k!=='Clave lectura').map(([k,v])=>[k,k==='Versión base'?today():(typeof v==='number'&&k.startsWith('Fecha')?fromSerial(v):v),'']));
   sheet('CECO',['CECO','Nombre CECO','Gerencia','Orden Gerencia','Área Instalación','Activo','Observación'],[10,42,44,10,30,8,50],DB.ceco.map(c=>[c.ceco,c.nombre,c.gerencia,c.orden,c.area,c.activo,c.obs]));
   const pr=DB.prop.slice().sort((a,b)=>a.y-b.y||a.m-b.m||a.ceco.localeCompare(b.ceco));
   sheet('HH_Propios',['Año','Mes','CECO','Dot H','Dot M','HH H','HH M','Dot Total','HH Total','Fuente'],[7,6,9,8,8,12,12,10,12,32],pr.map((r,i)=>[r.y,r.m,r.ceco,r.dotH,r.dotM,r.hhH,r.hhM,{f:`D${i+2}+E${i+2}`,v:r.dotH+r.dotM},{f:`F${i+2}+G${i+2}`,v:r.hhH+r.hhM},r.fuente]));
@@ -1833,19 +1928,25 @@ function openLogin(next){
   openModal(`<h3>Acceso administrador</h3><form id="lgForm"><label class="fld">Contraseña<input type="password" id="lgPw" autocomplete="current-password" autofocus></label>
   <div id="lgMsg"></div><div class="row" style="justify-content:flex-end;margin-top:14px"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button class="btn pri" type="submit">Ingresar</button></div></form>`);
   setTimeout(()=>{const i=$('lgPw');if(i)i.focus()},50);
-  $('lgForm').onsubmit=async ev=>{ev.preventDefault();const ok=await checkPw($('lgPw').value,adminHash());
+  $('lgForm').onsubmit=async ev=>{ev.preventDefault();const pw=$('lgPw').value;
+    if(!IS_LOCAL||!DB||SRC.kind==='pub'){$('lgMsg').innerHTML='<p class="small">Verificando…</p>';
+      const r=await loadCloud(pw,true);
+      if(r==='ok'){setAdmin(true);closeModal();toast('Sesión iniciada · base de trabajo cargada');updateStatus();go(typeof next==='string'?next:PAGE);return}
+      if(r==='bad'){$('lgMsg').innerHTML='<div class="msg bad">Contraseña incorrecta</div>';return}}
+    const ok=await checkPw(pw,adminHash());
     if(!ok){$('lgMsg').innerHTML='<div class="msg bad">Contraseña incorrecta</div>';return}
+    ADMIN_PW=pw;ss.set('dven_apw',pw);
     setAdmin(true);closeModal();toast('Sesión de administrador iniciada');
     const d=store.get('dven_draft');if(d&&confirm('Hay cambios sin guardar de una sesión anterior en este navegador. ¿Recuperarlos?')){try{const o=JSON.parse(d);setDB(reviveDB(o.db),Object.assign({},o.src,{label:(o.src&&o.src.label||'Base')+' + cambios locales'}),true)}catch(e){}}
     updateStatus();if(!DB){$('welcome').classList.remove('hidden')}go(typeof next==='string'?next:PAGE)};
 }
-function logout(){if(DIRTY&&!confirm('Hay cambios sin guardar. Quedarán en este navegador para la próxima sesión. ¿Cerrar sesión?'))return;setAdmin(false);if(!IS_LOCAL&&SRC.kind!=='pub'){location.reload();return}updateStatus();if(ADMIN_PAGES.includes(PAGE))PAGE='resumen';render();toast('Sesión cerrada')}
+function logout(){if(DIRTY&&!confirm(SRC.kind==='cloud'?'Hay cambios sin publicar y se perderán. ¿Cerrar sesión?':'Hay cambios sin guardar. Quedarán en este navegador para la próxima sesión. ¿Cerrar sesión?'))return;if(SRC.kind==='cloud')DIRTY=false;ADMIN_PW=null;ss.del('dven_apw');setAdmin(false);if(!IS_LOCAL&&SRC.kind!=='pub'){location.reload();return}updateStatus();if(ADMIN_PAGES.includes(PAGE))PAGE='resumen';render();toast('Sesión cerrada')}
 async function changePw(){
   const a=$('pw1').value,b=$('pw2').value,cur=$('pw0').value;
   if(!(await checkPw(cur,adminHash()))){toast('La contraseña actual no es correcta',4000);return}
-  if(a.length<8){toast('La nueva contraseña debe tener al menos 8 caracteres',4000);return}
+  if(a.length<12){toast('La nueva contraseña debe tener al menos 12 caracteres (protege la base en la nube)',5000);return}
   if(a!==b){toast('Las contraseñas nuevas no coinciden',4000);return}
-  DB.params['Clave administrador']=await makeHash(a);['pw0','pw1','pw2'].forEach(i=>$(i).value='');markDirty('Contraseña actualizada');
+  DB.params['Clave administrador']=await makeHash(a);ADMIN_PW=a;ss.set('dven_apw',a);['pw0','pw1','pw2'].forEach(i=>$(i).value='');markDirty('Contraseña actualizada');
 }
 /* ================= SITIO PÚBLICO ================= */
 let PUB_RAW=null;
@@ -1879,7 +1980,7 @@ async function downloadPublic(){
 /* ================= ESTADO, BORRADOR E INICIO ================= */
 function serializeDB(){return JSON.stringify(DB,(k,v)=>v)}
 function reviveDB(s){const o=JSON.parse(s);const D=['fecha','ini','alta'];o.acc.forEach(a=>D.forEach(k=>{a[k]=a[k]?pDate(String(a[k]).slice(0,10)):null}));return o}
-function markDirty(t){if(SRC&&SRC.kind==='pub'){needWorkBase();return}DIRTY=true;if(!store.set('dven_draft',JSON.stringify({when:new Date().toISOString(),src:SRC,db:serializeDB()})))toast('No se pudo guardar el borrador en el navegador');rebuild();updateStatus();render();if(t)toast(t+' · recuerda guardar la base')}
+function markDirty(t){if(SRC&&SRC.kind==='pub'){needWorkBase();return}DIRTY=true;if(SRC.kind!=='cloud'&&!store.set('dven_draft',JSON.stringify({when:new Date().toISOString(),src:SRC,db:serializeDB()})))toast('No se pudo guardar el borrador en el navegador');rebuild();updateStatus();render();if(t)toast(t+(SRC.kind==='cloud'?' · recuerda Guardar y publicar':' · recuerda guardar la base'))}
 function discardDraft(){if(!confirm('¿Descartar los cambios no guardados y volver a la última base guardada?'))return;store.del('dven_draft');DIRTY=false;boot()}
 const REF_2025={tft:[0,0,0,1.13,1.82,2.22,2.56,2.82,2.81,3.13,3.22,3.95],tg:[129,66.8,41.6,32.6,26.3,21.4,18.3,16.3,13.5,16,14.8,25.8]};
 function seedRef(db){db.ref=db.ref||[];if(!db.ref.some(r=>r.y===2025)){for(let m=1;m<=12;m++)db.ref.push({y:2025,m,tf:null,tg:REF_2025.tg[m-1],tft:REF_2025.tft[m-1],fuente:'Informe Indicadores de Seguridad 28.09.2026 (valores oficiales 2025)'});return true}return false}
@@ -1889,7 +1990,9 @@ function setDB(db,src,dirty){db.zonas=db.zonas||[];const seeded=seedRef(db)&&ADM
 function updateStatus(){
   const s=$('dbStatus');const lp=lastLoaded('Propio'),le=lastLoaded('EECC');
   s.innerHTML=`<span class="dot ${DIRTY?'warn':'ok'}"></span>${esc(SRC.label)}<br>Propios: ${keyLabel(lp)} · EECC: ${keyLabel(le)}`;
-  $('draftBanner').classList.toggle('show',DIRTY&&ADMIN);
+  const bn=$('draftBanner');bn.classList.toggle('show',DIRTY&&ADMIN);
+  bn.innerHTML=SRC.kind==='cloud'?'⚠ Hay cambios que aún no están publicados. <button class="btn sm pri" onclick="publishAll()">☁ Guardar y publicar</button>'
+    :'⚠ Hay cambios que aún no están guardados en tu archivo de base. <button class="btn sm" onclick="saveBase()">💾 Guardar base</button><button class="btn sm pri" onclick="publishAll()">☁ Guardar y publicar</button>';
 }
 const TITLES={resumen:'Consolidado divisional',propios:'Personal propio',eecc:'Empresas contratistas',accidentes:'Accidentes',mapa:'Mapa de accidentes',proyecciones:'Proyecciones','informe':'Informe semanal','carga-propios':'Carga de datos · Propios','carga-eecc':'Carga de datos · EECC',base:'Base y configuración'};
 const RENDER={resumen:renderResumen,propios:renderPropios,eecc:renderEecc,accidentes:renderAcc,mapa:renderMapa,proyecciones:renderProy,informe:renderInforme,'carga-propios':renderCargaP,'carga-eecc':renderCargaE,base:renderBase};
@@ -1925,11 +2028,12 @@ async function boot(){
     const c=store.get('dven_cache');if(c){try{const o=JSON.parse(c);setDB(reviveDB(o.db),{kind:'cache',label:'Última base vista'},false);return}catch(e){}}
     $('welcomeMsg').textContent='No se pudo cargar la base de datos publicada.';$('welcome').classList.remove('hidden');render();return;
   }
+  const apw=ss.get('dven_apw');
+  if(!IS_LOCAL&&apw&&await loadCloud(apw,true)==='ok')return;
   const d=store.get('dven_draft');
   if(d){try{const o=JSON.parse(d);setDB(reviveDB(o.db),Object.assign({},o.src,{label:(o.src&&o.src.label||'Base')+' + cambios locales'}),true);return}catch(e){store.del('dven_draft')}}
   const c=store.get('dven_cache');
   if(c){try{const o=JSON.parse(c);const w=new Date(o.when);setDB(reviveDB(o.db),{kind:'cache',label:(o.src&&o.src.label||'Base')+' · guardada '+fdate(w)+' '+pad(w.getHours())+':'+pad(w.getMinutes())},false);return}catch(e){store.del('dven_cache')}}
-  if(await loadGitHub(false))return;
   if(await pub())return;
   if(!IS_LOCAL&&await loadPublic())return; // otro equipo sin base: muestra lo publicado
   $('welcome').classList.remove('hidden');render();
