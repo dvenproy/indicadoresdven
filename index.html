@@ -286,6 +286,12 @@ body.gated .app{filter:blur(3px);pointer-events:none}
 .zscroll .zr:last-child{border-bottom:0}
 .zsearch{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;font-family:inherit}
 .zr.hide{display:none}
+.simIn{width:110px;padding:5px 7px;border:1px solid var(--line);border-radius:6px;text-align:right;font-family:inherit}.simIn.sm{width:66px}
+.simres .simrow td{background:#FDEEE5}
+.simrep{padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}.simrep input{margin-left:4px;padding:3px 6px;border:1px solid var(--line);border-radius:6px}
+.simacc select{padding:4px 6px;border:1px solid var(--line);border-radius:6px;font-family:inherit}
+.sim-grid{align-items:start;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}.simacc th,.simacc td{padding:5px 4px}.simacc .simIn.sm{width:56px}
+.simchip{background:#FAFAFA;border-radius:8px;padding:10px 12px;font-size:13px;color:var(--ink2)}.simchip span{display:block;font-size:11px;color:var(--muted);margin-bottom:2px}.simchip b{font-size:18px;color:var(--ink)}.simchip b.simc{color:var(--brand-d)}
 @media print{
   @page{size:A4 landscape;margin:0}
   .deck{overflow:visible;padding:0}
@@ -469,7 +475,7 @@ function rebuild(){
   M={cm,info,PM,EM,HM,acc,gerencias,pKeys:[...PM.keys()].sort((a,b)=>a-b),eKeys:[...EM.keys()].sort((a,b)=>a-b),cache:new Map()};
 }
 const lastKeyLE=(keys,k)=>{let r=null;for(const x of keys){if(x<=k)r=x;else break}return r};
-/* HH completas de un mes para un tipo: dato real, estimado (hacia adelante) o histórico */
+/* HH completas de un mes para un tipo */
 function monthFull(tipo,y,m){
   const k=y*100+m, ck=tipo+k;
   if(M.cache.has(ck))return M.cache.get(ck);
@@ -479,8 +485,11 @@ function monthFull(tipo,y,m){
   else{
     const last=keys.length?keys[keys.length-1]:null;
     if(last!=null&&k>last){
-      const ly=Math.floor(last/100),lm=last%100,f=dim(y,m)/dim(ly,lm);
-      res={src:'det',est:true,from:last,rows:map.get(last).map(r=>Object.assign({},r,{hhH:r.hhH*f,hhM:r.hhM*f}))};
+      const tot=kk=>{const r=monthFull(tipo,Math.floor(kk/100),kk%100);return r.src==='det'?r.rows.reduce((s,x)=>s+x.hhH+x.hhM,0):r.src==='hist'?r.hh:null};
+      const prev=n=>{let yy=y,mm=m-n;while(mm<1){mm+=12;yy--}return yy*100+mm};
+      const vals=[1,2,3].map(n=>{const kk=prev(n);return{v:tot(kk),d:dim(Math.floor(kk/100),kk%100)}}).filter(x=>x.v!=null);const sd=vals.reduce((s,x)=>s+x.d,0);const target=vals.length?vals.reduce((s,x)=>s+x.v,0)/sd*dim(y,m):null;
+      const lr=map.get(last),lt=lr.reduce((s,x)=>s+x.hhH+x.hhM,0),f=lt>0&&target!=null?target/lt:1;
+      res={src:'det',est:true,from:last,rows:lr.map(r=>Object.assign({},r,{hhH:r.hhH*f,hhM:r.hhM*f}))};
     }else{
       const h=M.HM.get(k);const v=h?(tipo==='Propio'?h.p:h.e):null;
       res=v!=null?{src:'hist',est:false,hh:v}:{src:'none',est:false};
@@ -533,13 +542,16 @@ function accInterval(a,cutDn){
   if(e==null||e<s)return null;return[s,Math.min(e,cutDn)];
 }
 const COUNTED=c=>c==='CTP'||c==='STP'||c==='FATAL';
+/* Días cargo: un fatal suma automáticamente 6.000 días cargo (salvo que se haya registrado otro valor) */
+const DC_FATAL=6000;
+const accDC=a=>a.cls==='FATAL'?((+a.dc||0)>0?+a.dc:DC_FATAL):(+a.dc||0);
 function indic(s,e,f,cutDn){
   cutDn=cutDn??dn(CUT);
   const h=hhRange(s,e,f);
   let ctp=0,stp=0,fat=0,dp=0,dc=0;const list=[];
   for(const a of M.acc){
     if(!accOk(a,f))continue;
-    if(a.dn>=s&&a.dn<=e&&COUNTED(a.cls)){list.push(a);if(a.cls==='CTP')ctp++;else if(a.cls==='STP')stp++;else fat++;dc+=a.dc||0}
+    if(a.dn>=s&&a.dn<=e&&COUNTED(a.cls)){list.push(a);if(a.cls==='CTP')ctp++;else if(a.cls==='STP')stp++;else fat++;dc+=accDC(a)}
     if(a.dn<=e){const iv=accInterval(a,cutDn);if(iv){const x=Math.max(iv[0],s),z=Math.min(iv[1],e);if(z>=x)dp+=z-x+1}}
   }
   const r=v=>h.hh>0?v*1e6/h.hh:0;
@@ -656,7 +668,7 @@ function tablaPeriodos(f0,showSemana=true){
   let h=`<div class="tw"><table><thead><tr><th class="l">Detalle</th>${cols.map(([n,r])=>`<th colspan="3" style="text-align:center">${n} <span class="small">(${fdate(fromDn(r[0]))} al ${fdate(fromDn(r[1]))})</span></th>`).join('')}</tr><tr><th></th>${cols.map(()=>tipos.map(t=>`<th>${t[0]}</th>`).join('')).join('')}</tr></thead><tbody>`;
   rowsDef.forEach(([lab,k,fmt])=>{h+=`<tr><td>${lab}</td>${cols.map(([n])=>tipos.map(([t])=>{const x=R[n+t];return `<td${t==='Global'?' style="font-weight:600"':''}>${fmt(x[k])}${k==='hh'&&x.est?'<span class="est">*</span>':''}</td>`}).join('')).join('')}</tr>`});
   h+='</tbody></table></div>';
-  if(Object.values(R).some(x=>x.est))h+='<p class="small">* Incluye HH estimadas (mes sin carga: se proyecta desde el último mes cargado, proporcional a los días).</p>';
+  if(Object.values(R).some(x=>x.est))h+='<p class="small">* Incluye HH estimadas para meses aún sin cierre.</p>';
   return h;
 }
 /* tabla por gerencia → CECO */
@@ -777,7 +789,7 @@ function showAcc(id){
   ${a.zona&&zByName(a.zona)?`<div style="max-width:520px">${miniMap(a.zona)}</div>`:''}
   <div class="ad-sec">Qué pasó</div><div class="ad-grid">${f('Tipo de accidente',e(a.tacc))}${f('Riesgo crítico',e(a.rc))}${f('Tipo de lesión',e(a.lesion))}${f('Parte del cuerpo',e(a.cuerpo))}</div>
   ${a.desc?`<div class="ad-desc">${esc(a.desc)}</div>`:''}
-  <div class="ad-sec">Consecuencias</div><div class="ad-grid">${f('Días perdidos a la fecha',N0(dp))}${f('Estado',a.rep==='SI'?'En reposo':a.alta?'Con alta':'—')}${f('Inicio reposo',a.ini?fdate(a.ini):'')}${f('Fecha de alta',a.alta?fdate(a.alta):'')}${f('Días cargo',a.dc?N0(a.dc):'0')}</div>
+  <div class="ad-sec">Consecuencias</div><div class="ad-grid">${f('Días perdidos a la fecha',N0(dp))}${f('Estado',a.rep==='SI'?'En reposo':a.alta?'Con alta':'—')}${f('Inicio reposo',a.ini?fdate(a.ini):'')}${f('Fecha de alta',a.alta?fdate(a.alta):'')}${f('Días cargo',N0(accDC(a)))}</div>
   ${ADMIN&&a.obs?`<div class="ad-sec">Observación (solo administrador)</div><div class="ad-desc">${esc(a.obs)}</div>`:''}
   <div class="row" style="justify-content:flex-end;margin-top:16px">${ADMIN?`<button class="btn" onclick="editAcc('${esc(a.id)}')">Editar</button>`:''}<button class="btn pri" onclick="closeModal()">Cerrar</button></div>`);
 }
@@ -941,6 +953,8 @@ function editAcc(id){
   <div class="row" style="justify-content:flex-end;margin-top:14px">${id?`<button type="button" class="btn" style="margin-right:auto;color:var(--bad)" onclick="delAcc('${esc(id)}')">Eliminar</button>`:''}<button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn pri">Guardar</button></div></form>`);
   fillContratos();
   const tp=document.querySelector('#accForm [name=tipo]'),em=document.querySelector('#accForm [name=empresa]');
+  const cl=document.querySelector('#accForm [name=cls]'),dcI=document.querySelector('#accForm [name=dc]');
+  cl.addEventListener('change',()=>{if(cl.value==='FATAL'&&!(+dcI.value>0))dcI.value=DC_FATAL;else if(cl.value!=='FATAL'&&+dcI.value===DC_FATAL)dcI.value=0});
   tp.addEventListener('change',()=>{if(tp.value==='Propio'){em.value='Codelco';fillContratos()}else if(em.value==='Codelco'){em.value=''}});
   $('accForm').onsubmit=ev=>{ev.preventDefault();const fd=new FormData(ev.target);const o=id?a:{};
     ACC_FIELDS.forEach(([k,,t])=>{let v=fd.get(k);if(t==='zona'){o.mx=numOrNull(fd.get('mx'));o.my=numOrNull(fd.get('my'))}if(t==='date')v=pDate(v);else if(t==='number')v=k==='dc'?num(v):numOrNull(v);else v=String(v??'').trim();o[k]=v});
@@ -959,8 +973,8 @@ let _mdTarget=null;$('modal').addEventListener('mousedown',e=>{_mdTarget=e.targe
 /* ================= PROYECCIONES ================= */
 function proyModel(){
   const p=periods(),Y=indic(...p.year,null),cd=p.cd,dec31=dn(mkD(p.y,12,31)),rem=dec31-cd;
-  const r90=hhRange(cd-89,cd,null),rate=r90.hh/90; // HH por día
-  const hhRem=rate*rem,hhProj=Y.hh+hhRem;
+  const r90=hhRange(cd+1,dec31,null),hhRem=rem>0?r90.hh:0,rate=rem>0?hhRem/rem:0; // HH futuras estimadas
+  const hhProj=Y.hh+hhRem;
   // tasa histórica: años completos con HH (12 meses)
   const yrs=[];for(let y=2013;y<p.y;y++){let hh=0,ok=true;for(let m=1;m<=12;m++){const r=monthHH(y,m,null);if(r.missing||r.hh<=0){ok=false;break}hh+=r.hh}if(ok){const c=M.acc.filter(a=>a.y===y&&(a.cls==='CTP'||a.cls==='FATAL')).length,s=M.acc.filter(a=>a.y===y&&a.cls==='STP').length;yrs.push({y,hh,ctp:c,stp:s,tf:c*1e6/hh,tft:(c+s)*1e6/hh})}}
   const hHH=yrs.reduce((s,x)=>s+x.hh,0),hC=yrs.reduce((s,x)=>s+x.ctp,0),hS=yrs.reduce((s,x)=>s+x.stp,0);
@@ -982,12 +996,13 @@ function renderProy(){
   const extraC=X.maxC!=null?X.maxC-(Y.ctp+Y.fat):null;
   const recDate=sa&&rec.best?fromDn(dn(sa.fecha)+rec.best+1):null;
   let h=`<div class="grid g4">
-   ${kpi('HH proyectadas al 31-dic',N0(X.hhProj),`${N0(Y.hh)} a la fecha + ${N0(X.hhRem)} (ritmo últimos 90 días: ${N0(X.rate)} HH/día)`,'hero')}
+   ${ADMIN?kpi('HH proyectadas al 31-dic',N0(X.hhProj),`${N0(Y.hh)} a la fecha + ${N0(X.hhRem)} estimadas`,'hero'):kpi('Días sin accidentes CTP',sa?N0(sa.dias):'—',sa?'Último CTP/Fatal: '+fdate(sa.fecha):'','hero')}
    ${kpi('Margen para la meta TF',extraC==null?'—':extraC<0?'Meta superada':N0(extraC)+' CTP',X.maxC!=null?`Máximo ${N0(X.maxC)} CTP+Fatal en el año para TF ≤ ${N2(X.mTF)}`:'Define la meta TF en Parámetros','hero')}
    ${kpi('Margen para la meta TG',X.dpBudget==null?'—':X.dpBudget<0?'Meta superada':N0(X.dpBudget)+' días',X.mTG!=null?`Días perdidos+cargo disponibles para TG ≤ ${N1(X.mTG)}`:'')}
    ${kpi('Récord sin CTP',rec.best?N0(rec.best)+' días':'—',rec.best?`${fdate(rec.desde)} → ${fdate(rec.hasta)}${recDate?`<br>Se supera el ${fdate(recDate)} si no hay CTP`:''}`:'')}
   </div>
-  <div class="card mt"><h3>Cierre ${p.y} por escenario</h3><p class="sub">Escenarios aplicados a las ${N0(X.hhRem)} HH restantes del año. Los días perdidos futuros suponen ${N1(X.dpPer)} DP por CTP (promedio de ${X.dpsN} CTP con días registrados); no se proyectan días adicionales de reposos en curso.</p>
+  <div id="simBox"></div>
+  <div class="card mt"><h3>Cierre ${p.y} por escenario</h3><p class="sub">${ADMIN?`Escenarios aplicados a las ${N0(X.hhRem)} HH restantes del año.`:'Escenarios aplicados al resto del año.'} Los días perdidos futuros suponen ${N1(X.dpPer)} DP por CTP (promedio de ${X.dpsN} CTP con días registrados); no se proyectan días adicionales de reposos en curso.</p>
    <div class="tw"><table><thead><tr><th class="l">Escenario</th><th>CTP adicionales esperados</th><th>CTP+F al cierre</th><th>STP al cierre</th><th>TF</th><th>TG</th><th>TFT</th><th class="l">vs meta TF</th></tr></thead><tbody>
    <tr><td class="l">Valores al ${fdate(CUT)}</td><td>—</td><td>${N0(Y.ctp+Y.fat)}</td><td>${N0(Y.stp)}</td><td>${N2(Y.tf)}</td><td>${N1(Y.tg)}</td><td>${N2(Y.tft)}</td><td class="l">${metaPill(Y.tf,X.mTF,'')}</td></tr>
    ${X.scen.map(s=>`<tr><td class="l">${esc(s.n)}</td><td>${N1(s.addC)}</td><td>${N1(s.C)}</td><td>${N1(s.S)}</td><td>${N2(s.tf)}</td><td>${N1(s.tg)}</td><td>${N2(s.tft)}</td><td class="l">${metaPill(s.tf,X.mTF,'')}</td></tr>`).join('')}
@@ -1013,13 +1028,14 @@ function renderProy(){
     const e=dn(mkD(p.y,m,dim(p.y,m)));
     if(m<p.m){const x=indic(acc0,e,null);real.push(x.tf);s0.push(null);sH.push(null)}
     else if(m===p.m){real.push(Y.tf);s0.push(Y.tf);sH.push(Y.tf)}
-    else{real.push(null);const hh=Y.hh+X.rate*(e-p.cd);const C=Y.ctp+Y.fat;s0.push(C*1e6/hh);sH.push((C+X.lamH*X.rate*(e-p.cd))*1e6/hh)}
+    else{real.push(null);const hh=Y.hh+hhRange(p.cd+1,e,null).hh;const C=Y.ctp+Y.fat;s0.push(C*1e6/hh);sH.push((C+X.lamH*X.rate*(e-p.cd))*1e6/hh)}
   }
   const ds=[line('Real',real,COL.ink,{borderWidth:2.5}),line('Sin nuevos CTP',s0,COL.prop,{borderDash:[5,4],pointRadius:2}),line('Promedio histórico',sH,COL.eecc,{borderDash:[5,4],pointRadius:2})];
   if(X.mTF!=null)ds.push(line('Meta',labs.map(()=>X.mTF),COL.meta,{borderDash:[6,4],pointRadius:0}));
   mkChart('chPr',{type:'line',data:{labels:labs,datasets:ds},options:{scales:{y:{beginAtZero:true}}}});
   const se=[0,0,0,0,0,0,0,0,0,0,0,0],ss=se.slice();M.acc.forEach(a=>{if(a.cls==='CTP'||a.cls==='FATAL')se[a.m-1]++;else if(a.cls==='STP')ss[a.m-1]++});
   mkChart('chSe',{type:'bar',data:{labels:labs,datasets:[bar('CTP + Fatal',se,'#B42318',{stack:'a'}),bar('STP',ss,COL.eecc,{stack:'a'})]},options:{scales:{x:{stacked:true},y:{stacked:true,ticks:{precision:0}}}}});
+  renderSim();
   mkChart('chHi',{type:'line',data:{labels:X.yrs.map(y=>String(y.y)).concat(p.y+' (a la fecha)'),datasets:[line('TF',X.yrs.map(y=>y.tf).concat(Y.tf),COL.ink),line('TFT',X.yrs.map(y=>y.tft).concat(Y.tft),COL.c3)]},options:{scales:{y:{beginAtZero:true}}}});
 }
 
@@ -1126,7 +1142,7 @@ function renderInforme(){
         ${[[30,'Próximos 30 días'],[90,'Próximos 90 días'],[X.rem,'Resto del año']].map(([d,l])=>{const v=X.prob(X.lamH,X.rate*d);return `<div class="pb"><span>${l}</span><div class="bar"><i style="width:${pct(v)}%"></i></div><b>${pct(v)}%</b></div>`}).join('')}
       </div>
       <div class="goal soft"><div>Si no hay nuevos CTP, al 31 de diciembre sumaremos <b>${N0(diasDic)} días</b>${showHHsin?` y <b>${N0(hhDic)} horas</b>`:''} sin accidentes CTP.${rec.best?` El récord registrado es de <b>${N0(rec.best)} días</b>.`:''}</div></div>
-      <p class="fine">Escenarios estimados con el ritmo de trabajo de los últimos 90 días y la tasa histórica de accidentes (modelo de Poisson). TG futura supone ${N1(X.dpPer)} días perdidos por CTP. Valores orientativos: no predicen fechas.</p>
+      <p class="fine">Escenarios estimados con las HH proyectadas del resto del año y la tasa histórica de accidentes (modelo de Poisson). TG futura supone ${N1(X.dpPer)} días perdidos por CTP. Valores orientativos: no predicen fechas.</p>
     </div>
    </div>${foot(pg)}</section>`}
   h+='</div>';
@@ -1141,7 +1157,7 @@ function renderInforme(){
   if(REP_OPT.proy){
     const real=[],a0=[],aH=[];for(let m=1;m<=12;m++){const e=dn(mkD(p.y,m,dim(p.y,m)));
       if(m<p.m){real.push(cur[m-1].tf);a0.push(null);aH.push(null)}else if(m===p.m){real.push(Y.tf);a0.push(Y.tf);aH.push(Y.tf)}
-      else{real.push(null);const hh=Y.hh+X.rate*(e-p.cd);a0.push((Y.ctp+Y.fat)*1e6/hh);aH.push((Y.ctp+Y.fat+X.lamH*X.rate*(e-p.cd))*1e6/hh)}}
+      else{real.push(null);const hh=Y.hh+hhRange(p.cd+1,e,null).hh;a0.push((Y.ctp+Y.fat)*1e6/hh);aH.push((Y.ctp+Y.fat+X.lamH*X.rate*(e-p.cd))*1e6/hh)}}
     const ds=[ln('Real',real,RC.main),ln('Sin nuevos CTP',a0,RC.light,{borderDash:[5,4],labelBelow:true,skipIdx:p.m-1}),ln('Promedio histórico',aH,RC.hist,{borderDash:[5,4],skipIdx:p.m-1})];
     if(X.mTF!=null)ds.push(ln('Meta',labs.map(()=>X.mTF),RC.gray,{borderDash:[6,4],pointRadius:0,noLabels:true,borderWidth:1.5}));
     mkChart('rPr',{type:'line',data:{labels:labs,datasets:ds},options:baseOpt(N2)});
@@ -1176,7 +1192,7 @@ const ptsStr=p=>p.map(q=>q[0]+','+q[1]).join(' ');
 const r2=v=>Math.round(v*100)/100;
 function relPos(wrap,e){const r=(wrap.querySelector('.mapz')||wrap).getBoundingClientRect();return[r2(Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100))),r2(Math.max(0,Math.min(100,(e.clientY-r.top)/r.height*100)))]}
 function mapImg(view){const b=MAP_IMG[view];return `<img src="${b}.jpg" alt="" draggable="false" onerror="mapImgErr(this,'${b}')">`}
-function mapImgErr(im,b){if(!im.dataset.f){im.dataset.f='1';im.src=b+'.png';return}
+function mapImgErr(im,b){const n=+(im.dataset.f||0);const alt=[b+'.JPG',b+'.png',b+'.PNG',b+'.jpeg'];if(n<alt.length){im.dataset.f=n+1;im.src=alt[n];return}
   im.replaceWith(Object.assign(document.createElement('div'),{className:'map-miss',innerHTML:`No encontré la imagen <b>${esc(b)}.jpg</b>.<br>Debe estar en la carpeta <code>img/</code> junto a index.html (en tu computador y en el repositorio).`}))}
 const clsKey=c=>c==='STP'?'stp':c==='FATAL'?'fatal':'ctp';
 function mapFilterOk(a){if(MAPST.tipo&&a.tipo!==MAPST.tipo)return false;
@@ -1406,6 +1422,97 @@ function zoomZone(id){const zz=zonas().find(x=>x.id===id);if(!zz)return;MAPST.vi
   const k=Math.max(1,Math.min(ZMAX,0.75/Math.max(x1-x0,y1-y0,0.01)));const z=MAPST.zoom.plano;z.k=k;z.x=0.5-k*(x0+x1)/2;z.y=0.5-k*(y0+y1)/2;clampZ(z);MAPST.sel=id;renderMapa()}
 
 function zFilter(inp,id){const q=norm(inp.value);document.querySelectorAll('#'+id+' .zr').forEach(r=>r.classList.toggle('hide',!!q&&!r.dataset.q.includes(q)))}
+
+/* ================= SIMULADOR DE ESCENARIOS (Proyecciones) =================
+   HH futuras estimadas (editables).
+   Accidentes ficticios: se agregan por mes y solo existen en esta pantalla (no se guardan en la base). */
+let SIM={hasta:null,hastaD:null,amb:'',hh:{},acc:[],altas:{},metric:'tf'};
+const ymAdd=(k,n)=>{let y=Math.floor(k/100),m=k%100+n;while(m>12){m-=12;y++}return y*100+m};
+const ymLab=k=>`${MES3[k%100-1]} ${String(Math.floor(k/100)).slice(2)}`;
+function simModel(){
+  const p=periods(),y=p.y,cd=p.cd,k0=y*100+p.m;
+  if(!SIM.hasta||SIM.hasta<k0||SIM.hasta>ymAdd(k0,12))SIM.hasta=Math.max(k0,y*100+12);
+  const maxD=dn(mkD(Math.floor(ymAdd(k0,12)/100),ymAdd(k0,12)%100,dim(Math.floor(ymAdd(k0,12)/100),ymAdd(k0,12)%100)));
+  if(SIM.hastaD){const d=dn(SIM.hastaD);if(d<=cd||d>maxD)SIM.hastaD=null;else SIM.hasta=SIM.hastaD.getFullYear()*100+SIM.hastaD.getMonth()+1}
+  const HK=SIM.hasta,Hy=Math.floor(HK/100),Hm=HK%100,end=SIM.hastaD?dn(SIM.hastaD):dn(mkD(Hy,Hm,dim(Hy,Hm)));
+  const f=SIM.amb?{tipo:SIM.amb}:null,y0=dn(mkD(y,1,1));
+  const real=indic(y0,cd,f);
+  const months=[];
+  for(let k=k0;k<=HK;k=ymAdd(k,1)){const yy=Math.floor(k/100),m=k%100,ms=dn(mkD(yy,m,1)),me=Math.min(end,dn(mkD(yy,m,dim(yy,m)))),fs=Math.max(ms,cd+1);if(fs>me)continue;
+    const est=monthHH(yy,m,f).hh;months.push({k,y:yy,m,ms,me,fs,full:fs===ms,est,hh:est*(me-fs+1)/dim(yy,m)})}
+  const reposos=M.acc.filter(a=>a.rep==='SI'&&a.dn<=cd&&accOk(a,f));
+  const repDays=(from,to)=>reposos.reduce((s,a)=>{const al=SIM.altas[a.id];const last=Math.min(al?dn(al)-1:end,to);return s+Math.max(0,last-Math.max(from,cd+1)+1)},0);
+  const fict=SIM.acc.filter(a=>!SIM.amb||a.tipo===SIM.amb);
+  const fDn=a=>dn(mkD(Math.floor(a.k/100),a.k%100,15)); // accidente ficticio: se supone a mitad de mes
+  /* acumulado del año "yr" hasta el día "upto" (upto > cd); cada año parte de cero */
+  const cum=(yr,upto,withF)=>{const ys=dn(mkD(yr,1,1));
+    let hh=0,C=0,S=0,DP=0;
+    if(yr===y){hh=real.hh;C=real.ctp+real.fat;S=real.stp;DP=real.dp+real.dc}
+    DP+=repDays(Math.max(ys,cd+1),upto);
+    months.forEach(x=>{if(x.y===yr&&x.fs<=upto)hh+=x.hh*(Math.min(upto,x.me)-x.fs+1)/(x.me-x.fs+1)});
+    if(withF)fict.forEach(a=>{const d=fDn(a);if(Math.floor(a.k/100)===yr&&d<=upto){if(a.cls==='STP')S++;else C++;DP+=(+a.dp||0)+accDC(a)}});
+    const r=v=>hh>0?v*1e6/hh:0;return{hh,C,S,DP,tf:r(C),tg:r(DP),tft:r(C+S)}};
+  const years=[];for(let yr=y;yr<=Hy;yr++)years.push(yr);
+  const res=years.map(yr=>{const e=Math.min(end,dn(mkD(yr,12,31)));return{yr,e,base:cum(yr,e,false),sim:cum(yr,e,true)}});
+  /* días y HH sin CTP: siguen contando entre años hasta un nuevo CTP/Fatal */
+  const sa=sinAcc(f);
+  const lastF=fict.filter(a=>a.cls!=='STP').map(fDn).filter(d=>d<=end).sort((a,b)=>a-b).pop();
+  const sinB=sa?{dias:end-dn(sa.fecha),hh:sa.hh+hhRange(cd+1,end,f).hh}:null;
+  const sinS=lastF!=null?{dias:end-lastF,hh:hhRange(lastF+1,end,f).hh}:sinB;
+  const serie=[];
+  for(let k=y*100+1;k<=HK;k=ymAdd(k,1)){const yy=Math.floor(k/100),m=k%100,e=Math.min(end,dn(mkD(yy,m,dim(yy,m))));
+    if(e<=cd){serie.push({k,real:indic(y0,e,f),base:null,sim:null})}
+    else serie.push({k,real:yy===y&&m===p.m?indic(y0,cd,f):null,base:cum(yy,e,false),sim:cum(yy,e,true)})}
+  return{p,y,cd,HK,end,maxD,real,months,reposos,fict,res,serie,repDays,sinB,sinS,k0};
+}
+function renderSim(){
+  const box=$('simBox');if(!box)return;const X=simModel(),p=X.p;
+  const mTF=numOrNull(P('Meta TF',null)),mTG=numOrNull(P('Meta TG',null)),mTFT=numOrNull(P('Meta TFT',null));
+  const dpDef=Math.round(proyModel().dpPer)||0;
+  const futK=X.months.map(x=>x.k);
+  const row=(n,o,cls)=>`<tr class="${cls||''}"><td class="l">${n}</td><td>${N0(o.hh)}</td><td>${N0(o.C)}</td><td>${N0(o.S)}</td><td>${N0(o.DP)}</td><td><b>${N2(o.tf)}</b> ${metaPill(o.tf,mTF,'')}</td><td><b>${N1(o.tg)}</b> ${metaPill(o.tg,mTG,'')}</td><td><b>${N2(o.tft)}</b>${mTFT!=null?' '+metaPill(o.tft,mTFT,''):''}</td></tr>`;
+  const rl={hh:X.real.hh,C:X.real.ctp+X.real.fat,S:X.real.stp,DP:X.real.dp+X.real.dc,tf:X.real.tf,tg:X.real.tg,tft:X.real.tft};
+  box.innerHTML=`<div class="card mt"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3>Simulador de escenarios</h3>
+   <p class="sub">Estima los indicadores acumulados al mes que elijas (hasta 12 meses), agregando accidentes ficticios. Cada año calendario parte de cero; los días y HH sin CTP siguen contando. Nada de esto se guarda en la base.</p></div>
+   <div class="row" style="gap:8px"><label class="fld">Estimar hasta<select onchange="SIM.hasta=+this.value;SIM.hastaD=null;renderSim()">${Array.from({length:13},(_,i)=>ymAdd(X.k0,i)).map(k=>`<option value="${k}" ${SIM.hasta===k?'selected':''}>${MESES[k%100-1]} ${Math.floor(k/100)}</option>`).join('')}</select></label>
+   <label class="fld">o hasta el día<input type="date" value="${SIM.hastaD?iso(SIM.hastaD):''}" min="${iso(fromDn(X.cd+1))}" max="${iso(fromDn(X.maxD))}" onchange="SIM.hastaD=pDate(this.value);renderSim()" style="padding:7px 9px;border:1px solid var(--line);border-radius:8px"></label>
+   <label class="fld">Ámbito<select onchange="SIM.amb=this.value;renderSim()"><option value="">Global</option><option value="Propio" ${SIM.amb==='Propio'?'selected':''}>Codelco</option><option value="EECC" ${SIM.amb==='EECC'?'selected':''}>EECC</option></select></label>
+   <button class="btn" style="align-self:flex-end" onclick="SIM={hasta:null,hastaD:null,amb:'',hh:{},acc:[],altas:{},metric:SIM.metric};renderSim()">Limpiar</button></div></div>
+  <div class="grid g2 mt sim-grid">
+   <div><div class="ad-sec" style="margin-top:0">1 · Accidentes ficticios</div>
+    ${X.months.length?`${SIM.acc.length?`<div class="tw"><table class="simacc"><thead><tr><th class="l">Mes</th><th class="l">Personal</th><th class="l">Clase</th><th>DP</th><th>Días cargo</th><th></th></tr></thead><tbody>${SIM.acc.map((a,i)=>`<tr>
+      <td class="l"><select onchange="SIM.acc[${i}].k=+this.value;renderSim()">${futK.map(k=>`<option value="${k}" ${a.k===k?'selected':''}>${ymLab(k)}</option>`).join('')}</select></td>
+      <td class="l"><select onchange="SIM.acc[${i}].tipo=this.value;renderSim()"><option value="EECC" ${a.tipo==='EECC'?'selected':''}>EECC</option><option value="Propio" ${a.tipo==='Propio'?'selected':''}>Codelco</option></select></td>
+      <td class="l"><select onchange="simCls(${i},this.value,${dpDef})">${['CTP','STP','FATAL'].map(c=>`<option ${a.cls===c?'selected':''}>${c}</option>`).join('')}</select></td>
+      <td><input class="simIn sm" type="number" min="0" value="${a.dp}" ${a.cls==='CTP'?'':'disabled'} onchange="SIM.acc[${i}].dp=+this.value||0;renderSim()"></td>
+      <td><input class="simIn sm" type="number" min="0" value="${a.dc}" onchange="SIM.acc[${i}].dc=+this.value||0;renderSim()"></td>
+      <td><button class="btn sm" title="Quitar" onclick="SIM.acc.splice(${i},1);renderSim()">✕</button></td></tr>`).join('')}</tbody></table></div>`:'<p class="small">Sin accidentes ficticios: el escenario simulado es igual al base.</p>'}
+     <div class="row mt" style="gap:6px"><button class="btn sm" onclick="simAdd('CTP',${dpDef})">＋ CTP</button><button class="btn sm" onclick="simAdd('STP',0)">＋ STP</button><button class="btn sm" onclick="simAdd('FATAL',0)">＋ Fatal</button></div>
+     <p class="small">DP por CTP sugerido: ${dpDef} días (promedio histórico). Un Fatal suma automáticamente 6.000 días cargo. Cada accidente ficticio se supone el día 15 de su mes.</p>`:''}
+   </div>
+   <div><div class="ad-sec" style="margin-top:0">2 · Reposos en curso</div>
+    ${X.reposos.length?X.reposos.map(a=>`<div class="simrep"><div><b>${fdate(a.fecha)}</b> · ${esc(a.cls)} · ${a.tipo==='Propio'?'Codelco':esc(a.empresa||'EECC')}</div><label class="small">Alta estimada <input type="date" value="${SIM.altas[a.id]?iso(SIM.altas[a.id]):''}" min="${iso(fromDn(X.cd+1))}" onchange="SIM.altas['${esc(a.id)}']=pDate(this.value);renderSim()"></label></div>`).join('')+`<p class="small">Sin fecha de alta, se supone que sigue en reposo hasta el fin de la estimación. Suma ${N0(X.repDays(X.cd+1,X.end))} días perdidos futuros.</p>`:'<p class="small">No hay accidentados en reposo.</p>'}
+   </div>
+  </div>
+  <div class="grid g2 mt simsin">
+   <div class="simchip"><span>Días sin accidentes CTP al ${fdate(fromDn(X.end))}</span><b>${X.sinB?N0(X.sinB.dias):'—'}</b> base${X.sinS!==X.sinB?` · <b class="simc">${N0(X.sinS.dias)}</b> simulado`:''}</div>
+   <div class="simchip"><span>HH sin accidentes CTP al ${fdate(fromDn(X.end))}</span><b>${X.sinB?N0(X.sinB.hh):'—'}</b> base${X.sinS!==X.sinB?` · <b class="simc">${N0(X.sinS.hh)}</b> simulado`:''}</div>
+  </div>
+  <div class="tw mt"><table class="simres"><thead><tr><th class="l">Resultado acumulado</th><th>HH</th><th>CTP + Fatal</th><th>STP</th><th>DP + cargo</th><th>TF</th><th>TG</th><th>TFT</th></tr></thead><tbody>
+   ${row('Real al '+fdate(CUT),rl)}
+   ${X.months.length?X.res.map(r=>{const al=r.e===dn(mkD(r.yr,12,31))?`Cierre ${r.yr}`:`${r.yr} al ${fdate(fromDn(r.e))}`;return row(`Base · ${al} <span class="small">(sin nuevos accidentes)</span>`,r.base)+row(`<b>Simulado · ${al}</b>${X.fict.some(a=>Math.floor(a.k/100)===r.yr)?` <span class="small">(+${X.fict.filter(a=>Math.floor(a.k/100)===r.yr).length} accidente${X.fict.filter(a=>Math.floor(a.k/100)===r.yr).length===1?'':'s'})</span>`:''}`,r.sim,'simrow')}).join(''):''}
+  </tbody></table></div>
+  <div class="row mt" style="justify-content:space-between"><div class="seg">${[['tf','TF'],['tg','TG'],['tft','TFT']].map(([k,l])=>`<button class="${SIM.metric===k?'on':''}" onclick="SIM.metric='${k}';renderSim()">${l}</button>`).join('')}</div>${legend([[COL.ink,'Real'],[COL.prop,'Base',1],[COL.eecc,'Simulado',1],[COL.meta,'Meta',1]])}</div>
+  <div class="chart"><canvas id="chSim"></canvas></div></div>`;
+  const k=SIM.metric,meta=k==='tf'?mTF:k==='tg'?mTG:mTFT;
+  const ds=[line('Real',X.serie.map(s=>s.real?s.real[k]:null),COL.ink,{borderWidth:2.5}),
+    line('Base',X.serie.map((s,i)=>s.base?s.base[k]:(X.serie[i+1]&&X.serie[i+1].base&&s.real?s.real[k]:null)),COL.prop,{borderDash:[5,4],pointRadius:2}),
+    line('Simulado',X.serie.map((s,i)=>s.sim?s.sim[k]:(X.serie[i+1]&&X.serie[i+1].sim&&s.real?s.real[k]:null)),COL.eecc,{borderDash:[5,4],pointRadius:3})];
+  if(meta!=null)ds.push(line('Meta',X.serie.map(()=>meta),COL.meta,{borderDash:[6,4],pointRadius:0}));
+  mkChart('chSim',{type:'line',data:{labels:X.serie.map(s=>X.HK>X.y*100+12?ymLab(s.k):MES3[s.k%100-1]),datasets:ds},options:{scales:{y:{beginAtZero:true}}}});
+}
+function simAdd(cls,dp){const X=simModel();const k=X.months.length?X.months[0].k:X.k0;SIM.acc.push({k,tipo:'EECC',cls,dp:cls==='CTP'?dp:0,dc:cls==='FATAL'?DC_FATAL:0});renderSim()}
+function simCls(i,c,dp){const a=SIM.acc[i];a.cls=c;if(c==='CTP'&&!a.dp)a.dp=dp;if(c!=='CTP')a.dp=0;if(c==='FATAL'&&!(a.dc>0))a.dc=DC_FATAL;if(c!=='FATAL'&&a.dc===DC_FATAL)a.dc=0;renderSim()}
 
 /* ================= CARGA DE ARCHIVOS FUENTE ================= */
 const MES_MAP={ene:1,enero:1,feb:2,febrero:2,mar:3,marzo:3,abr:4,abril:4,may:5,mayo:5,jun:6,junio:6,jul:7,julio:7,ago:8,agosto:8,sep:9,sept:9,septiembre:9,set:9,oct:10,octubre:10,nov:11,noviembre:11,dic:12,diciembre:12};
@@ -1824,15 +1931,20 @@ async function boot(){
   if(c){try{const o=JSON.parse(c);const w=new Date(o.when);setDB(reviveDB(o.db),{kind:'cache',label:(o.src&&o.src.label||'Base')+' · guardada '+fdate(w)+' '+pad(w.getHours())+':'+pad(w.getMinutes())},false);return}catch(e){store.del('dven_cache')}}
   if(await loadGitHub(false))return;
   if(await pub())return;
+  if(!IS_LOCAL&&await loadPublic())return; // otro equipo sin base: muestra lo publicado
   $('welcome').classList.remove('hidden');render();
 }
 /* eventos */
 document.querySelectorAll('.nav a').forEach(a=>a.addEventListener('click',()=>go(a.dataset.p)));
 $('menuBtn').onclick=()=>$('side').classList.toggle('open');
 CUT=today();$('cutDate').value=iso(CUT);
-$('cutDate').addEventListener('change',e=>{const d=pDate(e.target.value);if(d){CUT=d;render()}});
+$('cutDate').addEventListener('change',e=>{const d=pDate(e.target.value);if(d){CUT=d;if(window._clampPer)window._clampPer();render()}});
 (()=>{const md=$('perMode'),mo=$('perMonth'),rg=$('perRange'),fr=$('perFrom'),to=$('perTo');
-  const sync=()=>{mo.classList.toggle('hidden',md.value!=='month');rg.classList.toggle('hidden',md.value!=='range');
+  const clampTo=()=>{const c=iso(CUT);[fr,to].forEach(x=>x.max=c);mo.max=c.slice(0,7);
+    if(to.value&&to.value>c){to.value=c;toast(`Los indicadores se calculan solo hasta "Valores al" (${fdate(CUT)}): después de esa fecha todavía no hay datos. Para estimar el cierre del año usa Proyecciones.`,9000)}
+    if(fr.value&&fr.value>c)fr.value=c;};
+  window._clampPer=clampTo;clampTo();
+  const sync=()=>{clampTo();mo.classList.toggle('hidden',md.value!=='month');rg.classList.toggle('hidden',md.value!=='range');
     SEL.mode=md.value;const mv=(mo.value||'').split('-');SEL.y=+mv[0]||null;SEL.m=+mv[1]||null;SEL.from=pDate(fr.value);SEL.to=pDate(to.value);render()};
   md.addEventListener('change',()=>{if(md.value==='month'&&!mo.value)mo.value=CUT.getFullYear()+'-'+pad(CUT.getMonth()+1);if(md.value==='range'){if(!fr.value)fr.value=iso(mkD(CUT.getFullYear(),CUT.getMonth()+1,1));if(!to.value)to.value=iso(CUT)}sync()});
   [mo,fr,to].forEach(x=>x.addEventListener('change',sync));
