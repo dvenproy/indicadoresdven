@@ -294,6 +294,7 @@ body.gated .app{filter:blur(3px);pointer-events:none}
 .simchip{background:#FAFAFA;border-radius:8px;padding:10px 12px;font-size:13px;color:var(--ink2)}.simchip span{display:block;font-size:11px;color:var(--muted);margin-bottom:2px}.simchip b{font-size:18px;color:var(--ink)}.simchip b.simc{color:var(--brand-d)}
 .spin{width:34px;height:34px;border:4px solid #F1D3C2;border-top-color:var(--brand);border-radius:50%;margin:auto;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
 .gate-adm{display:block;margin-top:16px;font-size:12px;color:#7A8290;cursor:pointer;text-decoration:underline}.gate-adm:hover{color:var(--brand)}
+.kpi-split{display:flex;gap:22px;align-items:baseline}.kpi-split>span{display:inline-flex;align-items:baseline;gap:6px}.kpi-split small{font-size:13px;font-weight:600;color:var(--muted)}
 @media print{
   @page{size:A4 landscape;margin:0}
   .deck{overflow:visible;padding:0}
@@ -627,7 +628,7 @@ async function decryptJSON(p,pw){const pt=await crypto.subtle.decrypt({name:'AES
 function buildPublic(inclEmp,inclAcc){
   const P0=DB.params;
   return{v:1,generado:new Date().toISOString(),
-    db:{params:{'Division':P0['Division'],'Año en curso':P0['Año en curso'],'Meta TF':P0['Meta TF'],'Meta TG':P0['Meta TG'],'Meta TFT':P0['Meta TFT']},
+    db:{params:{'Versión plano':P0['Versión plano'],'Division':P0['Division'],'Año en curso':P0['Año en curso'],'Meta TF':P0['Meta TF'],'Meta TG':P0['Meta TG'],'Meta TFT':P0['Meta TFT']},
       ceco:DB.ceco.map(c=>({ceco:c.ceco,nombre:c.nombre,gerencia:c.gerencia,orden:c.orden,area:c.area,activo:c.activo,obs:''})),
       prop:DB.prop.map(r=>({y:r.y,m:r.m,ceco:r.ceco,dotH:r.dotH,dotM:r.dotM,hhH:r.hhH,hhM:r.hhM,fuente:''})),
       eecc:DB.eecc.map(r=>({y:r.y,m:r.m,empresa:inclEmp?r.empresa:'',rut:'',contrato:inclEmp?r.contrato:'',nomContrato:inclEmp?r.nomContrato:'',ceco:r.ceco,dotH:r.dotH,hhH:r.hhH,dotM:r.dotM,hhM:r.hhM,fuente:''})),
@@ -882,8 +883,9 @@ function renderAcc(){
   let h=`<div class="grid g4">
    ${kpi('Accidentes '+S0.short,N0(M.acc.filter(a=>a.dn>=S0.s&&a.dn<=S0.e&&COUNTED(a.cls)).length),'CTP + STP + Fatales · '+esc(S0.label),'hero')}
    ${kpi('En reposo hoy',N0(rep.length),rep.map(a=>`${fdate(a.fecha)} · ${ADMIN?esc(a.empresa):(a.tipo==='Propio'?'Codelco':'EECC')}`).join('<br>')||'Ninguno')}
-   ${ADMIN?kpi('Registros por revisar',N0(rev.length),rev.length?'Marcados "confirmar" en Observación':'Todo al día'):kpi('Accidentes CTP '+S0.short,N0(M.acc.filter(a=>a.dn>=S0.s&&a.dn<=S0.e&&(a.cls==='CTP'||a.cls==='FATAL')).length),'CTP + Fatales del periodo')}
-   ${kpi('Registro histórico',N0(M.acc.length),`Desde ${M.acc.length?M.acc[0].y:'—'}`)}
+   ${(()=>{const inP=a=>a.dn>=S0.s&&a.dn<=S0.e;const nC=M.acc.filter(a=>inP(a)&&a.cls==='CTP').length,nF=M.acc.filter(a=>inP(a)&&a.cls==='FATAL').length,nS=M.acc.filter(a=>inP(a)&&a.cls==='STP').length;
+     return kpi('CTP y STP '+S0.short,`<span class="kpi-split"><span><b>${N0(nC+nF)}</b><small>CTP</small></span><span><b>${N0(nS)}</b><small>STP</small></span></span>`,'CTP = con tiempo perdido'+(nF?` (incluye ${nF} fatal${nF>1?'es':''})`:'')+' · STP = sin tiempo perdido')})()}
+   ${ADMIN?kpi('Registros por revisar',N0(rev.length),rev.length?'Marcados "confirmar" en Observación':'Todo al día'):kpi('Registro histórico',N0(M.acc.length),`Desde ${M.acc.length?M.acc[0].y:'—'}`)}
   </div>
   <div class="grid g2 mt">
    <div class="card"><h3>Accidentes CTP + Fatales por año</h3><p class="sub">${Ys[0]}–${p.y}${p.m<12?' ('+p.y+' parcial)':''}</p>${legend([[COL.prop,'Propios'],[COL.eecc,'EECC']])}<div class="chart"><canvas id="chAY"></canvas></div></div>
@@ -1194,8 +1196,20 @@ function centroid(p){let a=0,cx=0,cy=0;for(let i=0,j=p.length-1;i<p.length;j=i++
 const ptsStr=p=>p.map(q=>q[0]+','+q[1]).join(' ');
 const r2=v=>Math.round(v*100)/100;
 function relPos(wrap,e){const r=(wrap.querySelector('.mapz')||wrap).getBoundingClientRect();return[r2(Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100))),r2(Math.max(0,Math.min(100,(e.clientY-r.top)/r.height*100)))]}
-function mapImg(view){const b=MAP_IMG[view];return `<img src="${b}.jpg" alt="" draggable="false" onerror="mapImgErr(this,'${b}')">`}
-function mapImgErr(im,b){const n=+(im.dataset.f||0);const alt=[b+'.JPG',b+'.png',b+'.PNG',b+'.jpeg'];if(n<alt.length){im.dataset.f=n+1;im.src=alt[n];return}
+/* Versión del plano: al cambiar la imagen, las instalaciones dibujadas sobre la versión anterior se trasladan con la
+   transformación calculada entre ambas imágenes (coordenadas en % de la imagen). */
+const MAP_VER=2;
+const MAP_TX={2:[0.760458,0.014103,10.722393,-0.049591,0.779000,27.167942]}; // plano v1 -> v2 (ampliado, 06-10-2026)
+function migrateMap(db){const v0=+(db.params&&db.params['Versión plano'])||1;if(v0>=MAP_VER)return false;
+  const hasZ=(db.zonas||[]).some(z=>z.pts&&z.pts.length),hasP=(db.acc||[]).some(a=>a.mx!=null);
+  const cl=v=>Math.round(Math.max(0,Math.min(100,v))*100)/100;
+  const T=(p,t)=>[cl(t[0]*p[0]+t[1]*p[1]+t[2]),cl(t[3]*p[0]+t[4]*p[1]+t[5])];
+  for(let v=v0+1;v<=MAP_VER;v++){const t=MAP_TX[v];if(!t)continue;
+    (db.zonas||[]).forEach(z=>{z.pts=z.pts.map(p=>T(p,t))});
+    (db.acc||[]).forEach(a=>{if(a.mx!=null&&a.my!=null){const q=T([a.mx,a.my],t);a.mx=q[0];a.my=q[1]}})}
+  db.params['Versión plano']=MAP_VER;return hasZ||hasP}
+function mapImg(view){const b=MAP_IMG[view];return `<img src="${b}.jpg?v=${MAP_VER}" alt=""" draggable="false" onerror="mapImgErr(this,'${b}')">`}
+function mapImgErr(im,b){const n=+(im.dataset.f||0);const alt=[b+'.JPG',b+'.png',b+'.PNG',b+'.jpeg'].map(x=>x+'?v='+MAP_VER);if(n<alt.length){im.dataset.f=n+1;im.src=alt[n];return}
   im.replaceWith(Object.assign(document.createElement('div'),{className:'map-miss',innerHTML:`No encontré la imagen <b>${esc(b)}.jpg</b>.<br>Debe estar en la carpeta <code>img/</code> junto a index.html (en tu computador y en el repositorio).`}))}
 const clsKey=c=>c==='STP'?'stp':c==='FATAL'?'fatal':'ctp';
 function mapFilterOk(a){if(MAPST.tipo&&a.tipo!==MAPST.tipo)return false;
@@ -1990,7 +2004,7 @@ function markDirty(t){if(SRC&&SRC.kind==='pub'){needWorkBase();return}DIRTY=true
 function discardDraft(){if(!confirm('¿Descartar los cambios no guardados y volver a la última base guardada?'))return;store.del('dven_draft');DIRTY=false;boot()}
 const REF_2025={tft:[0,0,0,1.13,1.82,2.22,2.56,2.82,2.81,3.13,3.22,3.95],tg:[129,66.8,41.6,32.6,26.3,21.4,18.3,16.3,13.5,16,14.8,25.8]};
 function seedRef(db){db.ref=db.ref||[];if(!db.ref.some(r=>r.y===2025)){for(let m=1;m<=12;m++)db.ref.push({y:2025,m,tf:null,tg:REF_2025.tg[m-1],tft:REF_2025.tft[m-1],fuente:'Informe Indicadores de Seguridad 28.09.2026 (valores oficiales 2025)'});return true}return false}
-function setDB(db,src,dirty){db.zonas=db.zonas||[];const seeded=seedRef(db)&&ADMIN;DB=db;SRC=src;DIRTY=!!dirty||seeded;if(seeded)store.set('dven_draft',JSON.stringify({when:new Date().toISOString(),src,db:serializeDB()}));else if(!dirty)store.del('dven_draft');
+function setDB(db,src,dirty){db.zonas=db.zonas||[];db.params=db.params||{};const migr=migrateMap(db);if(migr&&ADMIN&&src.kind!=='pub'){dirty=true;setTimeout(()=>toast('Instalaciones adaptadas al nuevo plano · revísalas en el mapa y pulsa Guardar y publicar',9000),400)}const seeded=seedRef(db)&&ADMIN;DB=db;SRC=src;DIRTY=!!dirty||seeded;if(seeded)store.set('dven_draft',JSON.stringify({when:new Date().toISOString(),src,db:serializeDB()}));else if(!dirty)store.del('dven_draft');
   if(DB.params['Año en curso']==null)DB.params['Año en curso']=CUT.getFullYear();
   rebuild();updateStatus();$('welcome').classList.add('hidden');render()}
 function updateStatus(){
