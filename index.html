@@ -293,6 +293,7 @@ body.gated .app{filter:blur(3px);pointer-events:none}
 .sim-grid{align-items:start;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}.simacc th,.simacc td{padding:5px 4px}.simacc .simIn.sm{width:56px}
 .simchip{background:#FAFAFA;border-radius:8px;padding:10px 12px;font-size:13px;color:var(--ink2)}.simchip span{display:block;font-size:11px;color:var(--muted);margin-bottom:2px}.simchip b{font-size:18px;color:var(--ink)}.simchip b.simc{color:var(--brand-d)}
 .spin{width:34px;height:34px;border:4px solid #F1D3C2;border-top-color:var(--brand);border-radius:50%;margin:auto;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.gate-adm{display:block;margin-top:16px;font-size:12px;color:#7A8290;cursor:pointer;text-decoration:underline}.gate-adm:hover{color:var(--brand)}
 @media print{
   @page{size:A4 landscape;margin:0}
   .deck{overflow:visible;padding:0}
@@ -325,6 +326,7 @@ body.gated .app{filter:blur(3px);pointer-events:none}
   <form id="gateForm"><label for="gatePw">Ingrese contraseña para acceder</label>
   <input type="password" id="gatePw" autocomplete="current-password" required>
   <button class="btn pri" type="submit">Ingresar</button><div id="gateMsg"></div></form>
+  <a class="gate-adm" onclick="gateAdmin()">Soy administrador</a>
 </div><div class="gate-foot">Dirección de Seguridad y Salud Ocupacional</div></div>
 <div class="app">
   <aside class="side" id="side">
@@ -611,7 +613,7 @@ async function pbkdf2(pw,salt,it){const k=await crypto.subtle.importKey('raw',ne
 async function makeHash(pw){const salt=crypto.getRandomValues(new Uint8Array(16)),it=150000;return `pbkdf2$${it}$${b64e(salt)}$${b64e(await pbkdf2(pw,salt,it))}`}
 async function checkPw(pw,stored){try{const [,it,s,h]=String(stored).split('$');return b64e(await pbkdf2(pw,b64d(s),+it))===h}catch(e){return false}}
 const adminHash=()=>(DB&&DB.params&&DB.params['Clave administrador'])||DEFAULT_ADMIN_HASH;
-function setAdmin(v){ADMIN=!!v;document.body.classList.toggle('admin',ADMIN);if(ADMIN)ss.set('dven_admin','1');else ss.del('dven_admin')}
+function setAdmin(v){ADMIN=!!v;if(ADMIN)window._gateBack=false;document.body.classList.toggle('admin',ADMIN);if(ADMIN)ss.set('dven_admin','1');else ss.del('dven_admin')}
 
 /* ===== publicación web: archivo público sin datos sensibles, opcionalmente cifrado ===== */
 const PUB_PATH='data/publico.json';
@@ -968,7 +970,7 @@ function editAcc(id){
 }
 function delAcc(id){if(!confirm('¿Eliminar este accidente del registro?'))return;DB.acc=DB.acc.filter(x=>x.id!==id);markDirty('Accidente eliminado');closeModal()}
 function openModal(h){$('modalBox').innerHTML=h;$('modal').classList.add('show')}
-function closeModal(){$('modal').classList.remove('show')}
+function closeModal(){$('modal').classList.remove('show');if(window._gateBack&&!ADMIN){window._gateBack=false;askViewerPw()}}
 let _mdTarget=null;$('modal').addEventListener('mousedown',e=>{_mdTarget=e.target});$('modal').addEventListener('click',e=>{if(e.target.id==='modal'&&_mdTarget&&_mdTarget.id==='modal')closeModal();_mdTarget=null});
 
 /* ================= PROYECCIONES ================= */
@@ -1610,6 +1612,10 @@ function openGhSetup(thenPublish){const g=ghConf();
 window.addEventListener('beforeunload',e=>{if(DIRTY&&ADMIN){e.preventDefault();e.returnValue=''}});
 function askReadKeyOnly(){askReadKey();$('rkF').onsubmit=e=>{e.preventDefault();const a=$('rk1').value,b=$('rk2').value;if(a.length<8){$('rkM').innerHTML='<div class="msg bad">Mínimo 8 caracteres</div>';return}if(a!==b){$('rkM').innerHTML='<div class="msg bad">Las claves no coinciden</div>';return}DB.params['Clave lectura']=a;closeModal();markDirty('Clave de lectura guardada')}}
 
+/* acceso de administrador desde la pantalla de la clave de lectura */
+function gateAdmin(){$('gate').classList.add('hidden');document.body.classList.remove('gated');window._gateBack=true;openLogin()}
+function showReadKey(){const k=DB.params['Clave lectura'];openModal(`<h3>Clave de lectura del sitio</h3>${k?`<p>La clave que se usa para entrar al sitio es:</p><p style="font-size:20px;font-weight:700;letter-spacing:.03em;background:#FAFAFA;padding:10px 14px;border-radius:8px;word-break:break-all">${esc(k)}</p><p class="small">Compártela solo por un canal privado.</p>`:'<p>Aún no hay una clave de lectura guardada en la base. Defínela con "Cambiar clave de lectura".</p>'}<div class="row" style="justify-content:flex-end"><button class="btn pri" onclick="closeModal()">Cerrar</button></div>`)}
+
 /* ================= CARGA DE ARCHIVOS FUENTE ================= */
 const MES_MAP={ene:1,enero:1,feb:2,febrero:2,mar:3,marzo:3,abr:4,abril:4,may:5,mayo:5,jun:6,junio:6,jul:7,julio:7,ago:8,agosto:8,sep:9,sept:9,septiembre:9,set:9,oct:10,octubre:10,nov:11,noviembre:11,dic:12,diciembre:12};
 function detectMonth(...texts){
@@ -1777,7 +1783,7 @@ function renderBase(){
    <div class="row"><button class="btn pri" onclick="publishAll()">☁ Guardar y publicar</button><button class="btn" onclick="downloadBase()">⬇ Descargar Excel de respaldo</button><button class="btn" onclick="openGhSetup(false)">${ghConf().token?'🔗 Conexión GitHub de este equipo ✓':'🔗 Conectar este equipo con GitHub'}</button></div>
    <div class="fgrid mt"><label class="fld" style="justify-content:flex-end"><span><input type="checkbox" ${DB.params['Publicar EECC']!=='NO'?'checked':''} onchange="DB.params['Publicar EECC']=this.checked?'SI':'NO';markDirty()"> Publicar detalle EECC por empresa y contrato</span></label>
    <label class="fld full"><span><input type="checkbox" ${DB.params['Publicar ficha accidentes']!=='NO'?'checked':''} onchange="DB.params['Publicar ficha accidentes']=this.checked?'SI':'NO';markDirty()"> Publicar ficha de accidentes (empresa, contrato, cargo, hora, turno, lugar, riesgo crítico, lesión y descripción)</span></label></div>
-   <div class="row mt"><button class="btn sm" onclick="askReadKeyOnly()">${DB.params['Clave lectura']?'Cambiar clave de lectura':'Definir clave de lectura'}</button><span class="small">${DB.params['Clave lectura']?'Clave de lectura guardada en la base cifrada.':'Aún no se ha definido: se pedirá al publicar.'}</span></div>
+   <div class="row mt">${DB.params['Clave lectura']?'<button class="btn sm" onclick="showReadKey()">👁 Ver clave de lectura</button>':''}<button class="btn sm" onclick="askReadKeyOnly()">${DB.params['Clave lectura']?'Cambiar clave de lectura':'Definir clave de lectura'}</button><span class="small">${DB.params['Clave lectura']?'Clave de lectura guardada en la base cifrada.':'Aún no se ha definido: se pedirá al publicar.'}</span></div>
    <details class="mt"><summary class="small" style="cursor:pointer">Publicación manual (generar publico.json y subirlo a mano)</summary><div class="fgrid mt"><label class="fld">Clave de lectura<input type="password" id="pubPw" autocomplete="new-password"></label><label class="fld">Repetir clave<input type="password" id="pubPw2" autocomplete="new-password"></label></div>
    <input type="checkbox" id="pubEmp" class="hidden" ${DB.params['Publicar EECC']!=='NO'?'checked':''}><input type="checkbox" id="pubAcc" class="hidden" ${DB.params['Publicar ficha accidentes']!=='NO'?'checked':''}>
    <div class="row mt"><button class="btn" onclick="downloadPublic()">⬇ Generar publico.json</button></div><div id="pubMsg"></div></details></div>
