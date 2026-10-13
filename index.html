@@ -1142,9 +1142,9 @@ function renderInforme(){
         ${showHHsin?`<div class="hero-b"><div class="big2">${sa?N0(sa.hh):'—'}</div><div class="cap">horas <b>sin accidentes CTP</b><br>Codelco y Colaboradores</div></div>`:''}
       </div>
       <div class="cnt">
-        <div class="cbox"><div class="num">${Y.ctp+Y.fat}</div><div><b>accidentes CTP${Y.fat?' / fatales':''}</b><br>durante el año ${p.y}</div></div>
-        <div class="cbox"><div class="num">${Y.stp}</div><div><b>accidentes STP</b><br>durante el año ${p.y}</div></div>
-        <div class="cbox es"><div class="num">${EVY.length}</div><div><b>eventos significativos</b><br>durante el año ${p.y}</div></div>
+        <div class="cbox"><div class="num">${Y.ctp+Y.fat}</div><div><b>accidentes CTP${Y.fat?' / fatales':''}</b><br>año ${p.y}</div></div>
+        <div class="cbox"><div class="num">${Y.stp}</div><div><b>accidentes STP</b><br>año ${p.y}</div></div>
+        <div class="cbox es"><div class="num">${EVY.length}</div><div><b>eventos significativos</b><br>año ${p.y}</div></div>
         <div class="pcu"><div class="pcu-t">Parte del cuerpo afectada</div>${pcRows.map(([k,v])=>`<div class="pcu-r"><span>${k}</span><b>${v}</b></div>`).join('')||'<div class="small">Sin accidentes</div>'}</div>
       </div>
       <div class="tiles">
