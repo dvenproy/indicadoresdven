@@ -661,7 +661,7 @@ function buildPublic(inclEmp,inclAcc){
       eecc:DB.eecc.map(r=>({y:r.y,m:r.m,empresa:inclEmp?r.empresa:'',rut:'',contrato:inclEmp?r.contrato:'',nomContrato:inclEmp?r.nomContrato:'',ceco:r.ceco,dotH:r.dotH,hhH:r.hhH,dotM:r.dotM,hhM:r.hhM,fuente:''})),
       acc:DB.acc.map(a=>({id:a.id,fecha:a.fecha,hora:inclAcc?a.hora:'',turno:inclAcc?a.turno:'',cls:a.cls,tipo:a.tipo,empresa:inclAcc?a.empresa:'',contrato:inclAcc?a.contrato:'',ceco:a.ceco,cargo:inclAcc?a.cargo:'',lugar:inclAcc?a.lugar:'',esId:a.esId||'',tacc:a.tacc,lesion:inclAcc?a.lesion:'',cuerpo:a.cuerpo,rc:inclAcc?a.rc:'',desc:inclAcc?a.desc:'',ini:a.ini,alta:a.alta,rep:a.rep,dpm:a.dpm,dc:a.dc,obs:'',zona:a.zona||'',mx:a.mx??null,my:a.my??null})),
       zonas:(DB.zonas||[]).map(z=>({id:z.id,nombre:z.nombre,pts:z.pts,areas:'',cecos:'',obs:''})),
-      ev:(DB.ev||[]).map(e=>({id:e.id,fecha:e.fecha,hora:inclAcc?e.hora:'',tipo:e.tipo,titulo:e.titulo,rc:inclAcc?e.rc:'',ceco:e.ceco,empresa:inclAcc?e.empresa:'',zona:e.zona,desc:inclAcc?e.desc:'',estado:e.estado,cierre:e.cierre,link:e.link||'',inv:(e.inv||[]).map(f=>({name:f.name,type:f.type,size:f.size,path:f.path,key:f.key,fecha:f.fecha})),medidas:(e.medidas||[]).map(m=>({desc:m.desc,resp:m.resp,plazo:m.plazo,cierre:m.cierre}))})),
+      ev:(DB.ev||[]).map(e=>({id:e.id,fecha:e.fecha,hora:inclAcc?e.hora:'',tipo:e.tipo,titulo:e.titulo,rc:inclAcc?e.rc:'',ceco:e.ceco,empresa:inclAcc?e.empresa:'',zona:e.zona,desc:inclAcc?e.desc:'',estado:e.estado,cierre:e.cierre,link:e.link||'',inv:(e.inv||[]).map(f=>({name:f.name,type:f.type,size:f.size,path:f.path,key:f.key,fecha:f.fecha,sb:!!f.sb})),medidas:(e.medidas||[]).map(m=>({desc:m.desc,resp:m.resp,plazo:m.plazo,cierre:m.cierre}))})),
       corp:(DB.corp||[]).map(c=>({corte:c.corte,desde:c.desde,fuente:'',maxTF:c.maxTF,maxTG:c.maxTG,divs:c.divs,tot:c.tot})),
       hist:DB.hist,ref:DB.ref||[],leeme:null}};
 }
@@ -1120,7 +1120,7 @@ function renderInforme(){
     const hc=DIV?'':'<th>HH</th>',hv=x=>DIV?'':`<td class="n">${N0(x.hh)}</td>`;
     return `<table class="rtab"><thead><tr><th>Gerencia / Superintendencia</th>${hc}<th>CTP</th><th>STP</th><th>DP</th><th>TF</th><th>TG</th><th>TFT</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.g)}</td>${hv(r.x)}<td class="n">${r.x.ctp+r.x.fat}</td><td class="n">${r.x.stp}</td><td class="n">${N0(r.x.dp)}</td><td class="n">${N2(r.x.tf)}</td><td class="n">${N1(r.x.tg)}</td><td class="n">${N2(r.x.tft)}</td></tr>`).join('')}<tr class="t"><td>División Ventanas</td>${hv(Y)}<td class="n">${Y.ctp+Y.fat}</td><td class="n">${Y.stp}</td><td class="n">${N0(Y.dp)}</td><td class="n">${N2(Y.tf)}</td><td class="n">${N1(Y.tg)}</td><td class="n">${N2(Y.tft)}</td></tr></tbody></table>`})();
   // últimos 3 accidentes (primera página): sin nombres, empresas ni descripciones
-  const EVY=evYear(p.y,p.cd),EVL=EVY.filter(e=>e.tipo===ES_TIPOS[0]).length,EVW=EVY.filter(e=>{const d=dn(e.fecha);return d>=p.week[0]&&d<=p.week[1]}).length;
+  const EVY=evYear(p.y,p.cd),EVW=EVY.filter(e=>{const d=dn(e.fecha);return d>=p.week[0]&&d<=p.week[1]}).length;
   const NACC=EVY.length?3:8;
   const last3=accY.slice().reverse().slice(0,3);
   const ult=`<div class="ult"><div class="ult-t">Últimos accidentes ${p.y}</div>${last3.length?last3.map(a=>`<div class="ult-r"><div class="ult-d"><b>${pad(a.fecha.getDate())}</b><span>${MES3[a.fecha.getMonth()]}</span></div><span class="rp ${a.cls==='STP'?'neu':'bad'}">${a.cls}</span><div class="ult-x"><b>${esc(a.tacc||'Tipo de accidente por informar')}</b><span><b class="ult-e">${a.tipo==='Propio'?'Codelco':esc(a.empresa&&!/confirmar|completar/i.test(a.empresa)?a.empresa:'Empresa contratista')}</b> · ${esc(gShort(a.g))}${a.cuerpo&&a.cuerpo.length<25?' · '+esc(a.cuerpo):''}</span></div></div>`).join(''):'<div class="small">Sin accidentes en el año</div>'}
@@ -1144,7 +1144,7 @@ function renderInforme(){
       <div class="cnt">
         <div class="cbox"><div class="num">${Y.ctp+Y.fat}</div><div><b>accidentes CTP${Y.fat?' / fatales':''}</b><br>durante el año ${p.y}</div></div>
         <div class="cbox"><div class="num">${Y.stp}</div><div><b>accidentes STP</b><br>durante el año ${p.y}</div></div>
-        <div class="cbox es"><div class="num">${EVY.length}</div><div><b>eventos significativos</b><br>${EVY.length?(EVL?EVL+' con lesiones':'sin lesiones'):'durante el año '+p.y}</div></div>
+        <div class="cbox es"><div class="num">${EVY.length}</div><div><b>eventos significativos</b><br>durante el año ${p.y}</div></div>
         <div class="pcu"><div class="pcu-t">Parte del cuerpo afectada</div>${pcRows.map(([k,v])=>`<div class="pcu-r"><span>${k}</span><b>${v}</b></div>`).join('')||'<div class="small">Sin accidentes</div>'}</div>
       </div>
       <div class="tiles">
@@ -1815,7 +1815,7 @@ function editEv(id,pre){
   <button type="button" class="btn sm" onclick="evNewAcc()">＋ Crear accidente con los datos de este evento</button>
   <div class="ad-sec">Medidas correctivas <span class="small">(no salen en los informes semanales)</span></div><div id="evMed"></div>
   <button type="button" class="btn sm" onclick="evMedAdd()">＋ Agregar medida</button>
-  <div class="ad-sec">Investigación <span class="small">(PDF o PowerPoint · se guarda cifrada · no sale en los informes semanales)</span></div><div id="evInv"></div>
+  <div class="ad-sec">Investigación <span class="small">(PDF o PowerPoint · ${SBC?'se guarda en Supabase':'se guarda cifrada'} · no sale en los informes semanales)</span></div><div id="evInv"></div>
   <label class="btn sm" style="cursor:pointer">📎 Adjuntar archivo<input type="file" accept=".pdf,.ppt,.pptx,.doc,.docx" multiple class="hidden" onchange="evInvAdd(this)"></label>
   <div class="row" style="justify-content:flex-end;margin-top:14px">${id?`<button type="button" class="btn" style="margin-right:auto;color:var(--bad)" onclick="delEv('${esc(id)}')">Eliminar</button>`:''}<button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn pri">Guardar</button></div></form>`);
   evMedRender();evInvRender();
@@ -1846,11 +1846,17 @@ function evMedRender(){const b=$('evMed');if(!b)return;
   b.innerHTML=EVD.medidas.length?`<div class="tw"><table class="evmed"><thead><tr><th class="l">Medida correctiva</th><th class="l">Responsable del cierre</th><th class="l">Plazo</th><th class="l">Fecha de cierre</th><th class="l">Estado</th><th></th></tr></thead><tbody>${EVD.medidas.map((m,i)=>`<tr data-i="${i}"><td class="l"><input data-k="desc" value="${esc(m.desc||'')}" placeholder="Descripción de la medida"></td><td class="l"><input data-k="resp" value="${esc(m.resp||'')}" placeholder="Nombre / cargo"></td><td class="l"><input type="date" data-k="plazo" value="${m.plazo?iso(m.plazo):''}"></td><td class="l"><input type="date" data-k="cierre" value="${m.cierre?iso(m.cierre):''}"></td><td class="l">${medPill(m)}</td><td><button type="button" class="btn sm" onclick="evCollect();EVD.medidas.splice(${i},1);evMedRender()">✕</button></td></tr>`).join('')}</tbody></table></div>`:'<p class="small">Sin medidas registradas.</p>'}
 function evMedAdd(){evCollect();EVD.medidas.push({desc:'',resp:'',plazo:null,cierre:null});evMedRender();const r=document.querySelectorAll('#evMed [data-k=desc]');if(r.length)r[r.length-1].focus()}
 /* investigación: archivos cifrados en el repositorio */
-const INV_MAX=25*1024*1024;
+const INV_MAX=25*1024*1024,SB_INV_MAX=50*1024*1024;
 function invList(e,edit){const L=edit?EVD.inv:(e.inv||[]);return L.length?L.map((f,i)=>`<div class="invf"><span>📄 <b>${esc(f.name)}</b> <span class="small">${N1(f.size/1048576)} MB · ${f.fecha?fdate(pDate(String(f.fecha).slice(0,10))):''}</span></span><span><button type="button" class="btn sm" onclick="invOpen('${esc(edit?'':e.id)}',${i},${edit?1:0})">Abrir</button>${edit?`<button type="button" class="btn sm" onclick="invDel(${i})">✕</button>`:''}</span></div>`).join(''):'<p class="small">Sin archivos adjuntos.</p>'}
 function evInvRender(){const b=$('evInv');if(b)b.innerHTML=invList(null,true)}
 async function evInvAdd(inp){
   const files=[...inp.files];inp.value='';if(!files.length)return;
+  if(SBC){for(const f of files){
+      if(f.size>SB_INV_MAX){toast(`"${f.name}" pesa ${N1(f.size/1048576)} MB: el máximo es 50 MB. Guárdalo como PDF o usa el enlace a SharePoint.`,8000);continue}
+      const b=$('evInv');b.insertAdjacentHTML('beforeend',`<p class="small" id="upl">Subiendo ${esc(f.name)}…</p>`);
+      try{EVD.inv.push(await sbUpload(f,EVD.id||'nuevo'));toast('Archivo adjuntado: '+f.name)}catch(e){toast('No se pudo subir '+f.name+': '+e.message,8000)}
+      const u=$('upl');if(u)u.remove();evInvRender()}
+    return}
   const g=ghConf();if(!g.token){toast('Primero conecta este equipo con GitHub (Base y configuración) para subir archivos',7000);return}
   for(const f of files){
     if(f.size>INV_MAX){toast(`"${f.name}" pesa ${N1(f.size/1048576)} MB: el máximo es 25 MB. Guárdalo como PDF o usa el enlace a SharePoint.`,8000);continue}
@@ -1868,17 +1874,20 @@ async function evInvAdd(inp){
   }
 }
 function invDel(i){if(!confirm('¿Quitar este archivo del evento?'))return;const f=EVD.inv.splice(i,1)[0];invRemote(f,'delete');evInvRender()}
-async function invRemote(f,op){try{const g=ghConf();if(!g.token||!f||!f.path)return;const m=await ghMeta(g,f.path);if(!m)return;
+async function invRemote(f,op){if(f&&(f.sb||!f.key)&&SBC){if(sbIsAdmin())await sbRemove(f);return}try{const g=ghConf();if(!g.token||!f||!f.path)return;const m=await ghMeta(g,f.path);if(!m)return;
   await fetch(ghApi(g,f.path),{method:'DELETE',headers:{Authorization:'Bearer '+g.token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({message:'Quita investigación',sha:m.sha,branch:g.branch||'main'})})}catch(e){}}
 async function invOpen(evId,i,edit){
   const f=edit?EVD.inv[i]:(evById(evId).inv||[])[i];if(!f)return;
-  try{toast('Descargando y descifrando '+f.name+'…');const g=ghConf();let buf;
+  const isPdf=/pdf/i.test(f.type||'')||/\.pdf$/i.test(f.name||'');let w=null;if(isPdf){try{w=window.open('about:blank','_blank')}catch(e){}}
+  try{let pt;
+    if(f.sb||(!f.key&&SBC)){if(!SBC)throw new Error('La conexión con Supabase no está configurada');toast('Abriendo '+f.name+'…');pt=await sbDownload(f)}
+    else{toast('Descargando y descifrando '+f.name+'…');const g=ghConf();let buf;
     if(g.token){const r=await fetch(ghApi(g,f.path)+'?ref='+encodeURIComponent(g.branch||'main'),{headers:{Authorization:'Bearer '+g.token,Accept:'application/vnd.github.raw'},cache:'no-store'});if(!r.ok)throw new Error('GitHub '+r.status);buf=new Uint8Array(await r.arrayBuffer())}
     else{const r=await fetch(f.path,{cache:'no-store'});if(!r.ok)throw new Error('Archivo no disponible ('+r.status+')');buf=new Uint8Array(await r.arrayBuffer())}
-    const k=await crypto.subtle.importKey('raw',b64d(f.key),'AES-GCM',false,['decrypt']);const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:buf.slice(4,16)},k,buf.slice(16));
+    const k=await crypto.subtle.importKey('raw',b64d(f.key),'AES-GCM',false,['decrypt']);pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:buf.slice(4,16)},k,buf.slice(16))}
     const url=URL.createObjectURL(new Blob([pt],{type:f.type||'application/octet-stream'}));
-    if(/pdf/i.test(f.type)||/\.pdf$/i.test(f.name))window.open(url,'_blank');else{const a=document.createElement('a');a.href=url;a.download=f.name;document.body.appendChild(a);a.click();a.remove()}
-  }catch(e){toast('No se pudo abrir el archivo: '+e.message,7000)}
+    if(isPdf){if(w&&!w.closed)w.location.href=url;else window.open(url,'_blank')}else{const a=document.createElement('a');a.href=url;a.download=f.name;document.body.appendChild(a);a.click();a.remove()}
+  }catch(e){if(w)try{w.close()}catch(_){}toast('No se pudo abrir el archivo: '+e.message,7000)}
 }
 /* ---------- accidentes: campo "Evento significativo" ---------- */
 function esField(a){const cur=a.esId||'';
@@ -1939,6 +1948,7 @@ function busy(t){openModal(`<div style="text-align:center;padding:18px"><div cla
 async function publishAll(){
   if(!ADMIN){openLogin();return}
   if(SRC.kind==='pub'){needWorkBase();return}
+  if(SBC)return sbPublish();
   const g=ghConf();
   if(!g.token){openGhSetup(true);return}
   if(adminHash()===DEFAULT_ADMIN_HASH){openModal(`<h3>Primero cambia la contraseña de administrador</h3><p>La base completa se guarda cifrada con la contraseña de administrador. Antes de publicarla, cámbiala por una propia de al menos 12 caracteres en <b>Base y configuración → Contraseña de administrador</b>.</p><div class="row" style="justify-content:flex-end"><button class="btn pri" onclick="closeModal();go('base')">Ir a cambiarla</button></div>`);return}
@@ -1966,10 +1976,10 @@ async function publishAll(){
   }
 }
 function conflictMsg(){openModal(`<h3>Otra persona publicó cambios</h3><p>La base en la nube cambió después de que la abriste (otro administrador guardó y publicó). Para no borrar su trabajo, no se publicó nada.</p><p>Descarga una copia de tus cambios, recarga la base actualizada y vuelve a ingresar lo que hiciste.</p><div class="row" style="justify-content:flex-end"><button class="btn" onclick="downloadBase()">⬇ Copia de mis cambios (Excel)</button><button class="btn pri" onclick="DIRTY=false;closeModal();reloadCloud()">Cargar base actualizada</button></div>`)}
-async function reloadCloud(){busy('Cargando base…');const r=await loadCloud(ADMIN_PW||ss.get('dven_apw')||'');closeModal();if(r!=='ok')toast('No pude cargar la base en la nube',5000)}
+async function reloadCloud(){if(SBC){busy('Cargando base…');try{await sbLoadBase()}catch(e){toast('No pude cargar la base: '+e.message,5000)}closeModal();return}busy('Cargando base…');const r=await loadCloud(ADMIN_PW||ss.get('dven_apw')||'');closeModal();if(r!=='ok')toast('No pude cargar la base en la nube',5000)}
 function askAdminPw(){openModal(`<h3>Confirma tu contraseña de administrador</h3><p class="sub">Se usa para cifrar la base antes de subirla.</p><form id="apwF"><label class="fld">Contraseña<input type="password" id="apw" autocomplete="current-password"></label><div id="apwM"></div><div class="row" style="justify-content:flex-end;margin-top:12px"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button class="btn pri">Continuar</button></div></form>`);
   setTimeout(()=>$('apw').focus(),50);$('apwF').onsubmit=async e=>{e.preventDefault();const v=$('apw').value;if(!(await checkPw(v,adminHash()))){$('apwM').innerHTML='<div class="msg bad">Contraseña incorrecta</div>';return}ADMIN_PW=v;ss.set('dven_apw',v);closeModal();publishAll()}}
-function askReadKey(){openModal(`<h3>Clave de lectura del sitio</h3><p class="sub">Es la clave que usan todos para entrar al sitio (la misma de siempre). Se guarda dentro de la base cifrada, así no hay que escribirla de nuevo.</p><form id="rkF"><div class="fgrid" style="grid-template-columns:1fr 1fr"><label class="fld">Clave de lectura<input type="password" id="rk1" autocomplete="new-password"></label><label class="fld">Repetir<input type="password" id="rk2" autocomplete="new-password"></label></div><div id="rkM"></div><div class="row" style="justify-content:flex-end;margin-top:12px"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button class="btn pri">Guardar y continuar</button></div></form>`);
+function askReadKey(){openModal(`<h3>Clave de lectura del sitio</h3><p class="sub">Es la clave que usan todos para entrar al sitio (la misma de siempre). Queda guardada en la base, así no hay que escribirla de nuevo.</p><form id="rkF"><div class="fgrid" style="grid-template-columns:1fr 1fr"><label class="fld">Clave de lectura<input type="password" id="rk1" autocomplete="new-password"></label><label class="fld">Repetir<input type="password" id="rk2" autocomplete="new-password"></label></div><div id="rkM"></div><div class="row" style="justify-content:flex-end;margin-top:12px"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button class="btn pri">Guardar y continuar</button></div></form>`);
   $('rkF').onsubmit=e=>{e.preventDefault();const a=$('rk1').value,b=$('rk2').value;if(a.length<8){$('rkM').innerHTML='<div class="msg bad">Mínimo 8 caracteres</div>';return}if(a!==b){$('rkM').innerHTML='<div class="msg bad">Las claves no coinciden</div>';return}DB.params['Clave lectura']=a;closeModal();publishAll()}}
 /* ---------- conexión GitHub de este equipo ---------- */
 function openGhSetup(thenPublish){const g=ghConf();
@@ -1990,6 +2000,170 @@ function askReadKeyOnly(){askReadKey();$('rkF').onsubmit=e=>{e.preventDefault();
 /* acceso de administrador desde la pantalla de la clave de lectura */
 function gateAdmin(){$('gate').classList.add('hidden');document.body.classList.remove('gated');window._gateBack=true;openLogin()}
 function showReadKey(){const k=DB.params['Clave lectura'];openModal(`<h3>Clave de lectura del sitio</h3>${k?`<p>La clave que se usa para entrar al sitio es:</p><p style="font-size:20px;font-weight:700;letter-spacing:.03em;background:#FAFAFA;padding:10px 14px;border-radius:8px;word-break:break-all">${esc(k)}</p><p class="small">Compártela solo por un canal privado.</p>`:'<p>Aún no hay una clave de lectura guardada en la base. Defínela con "Cambiar clave de lectura".</p>'}<div class="row" style="justify-content:flex-end"><button class="btn pri" onclick="closeModal()">Cerrar</button></div>`)}
+
+/* ================= SUPABASE: base de trabajo, indicadores publicados e investigaciones =================
+   Se activa cuando existe data/supabase.json en el sitio: {"url":"https://xxxx.supabase.co","anonKey":"…","adminEmail":"…","lectorEmail":"…"}
+   - Administrador: inicia sesión con la cuenta admin; lee y guarda la base completa (tablas por tema) con las funciones leer_base / guardar_base.
+   - Jefatura: entra con la clave de lectura (cuenta lector); solo puede leer la tabla publicacion (indicadores sin datos sensibles) y abrir investigaciones.
+   - Investigaciones: bucket privado "investigaciones" (sin cifrado propio; el acceso lo controla Supabase). */
+let SBC=null,SB_VER=null,SB_RK=null,SB_AT=null;
+/*SCHEMA*/
+const SB_SCHEMA={
+  ceco:{src:'ceco',cols:[['ceco','ceco','text'],['nombre','nombre','text'],['gerencia','gerencia','text'],['orden','orden','n0'],['area','area_instalacion','text'],['activo','activo','text'],['obs','observacion','text']]},
+  hh_propios:{src:'prop',cols:[['y','anio','int'],['m','mes','int'],['ceco','ceco','text'],['dotH','dot_h','n0'],['dotM','dot_m','n0'],['hhH','hh_h','n0'],['hhM','hh_m','n0'],['fuente','fuente','text']]},
+  hh_eecc:{src:'eecc',cols:[['y','anio','int'],['m','mes','int'],['empresa','empresa','text'],['rut','rut','text'],['contrato','n_contrato','text'],['nomContrato','nombre_contrato','text'],['ceco','ceco','text'],['dotH','dot_h','n0'],['hhH','hh_h','n0'],['dotM','dot_m','n0'],['hhM','hh_m','n0'],['fuente','fuente','text']]},
+  accidentes:{src:'acc',skip:['dn','y','m','g','a','tcx'],cols:[['id','id','text'],['fecha','fecha','date'],['hora','hora','text'],['turno','turno','text'],['cls','clasificacion','text'],['tipo','tipo_personal','text'],['empresa','empresa','text'],['contrato','n_contrato','text'],['ceco','ceco','text'],['cargo','cargo','text'],['lugar','lugar_proceso','text'],['tacc','tipo_accidente','text'],['lesion','tipo_lesion','text'],['cuerpo','parte_cuerpo','text'],['rc','riesgo_critico','text'],['desc','descripcion','text'],['ini','inicio_reposo','date'],['alta','fecha_alta','date'],['rep','en_reposo','text'],['dpm','dp_manual','numeric'],['dc','dias_cargo','n0'],['obs','observacion','text'],['zona','instalacion','text'],['mx','mapa_x','numeric'],['my','mapa_y','numeric'],['esId','evento_id','text']]},
+  hh_historico:{src:'hist',cols:[['y','anio','int'],['m','mes','int'],['p','hh_propios','numeric'],['e','hh_eecc','numeric'],['t','hh_total','numeric'],['fuente','fuente','text']]},
+  referencia_anual:{src:'ref',cols:[['y','anio','int'],['m','mes','int'],['tf','tf_acumulada','numeric'],['tg','tg_acumulada','numeric'],['tft','tft_acumulada','numeric'],['fuente','fuente','text']]},
+  instalaciones:{src:'zonas',cols:[['id','id','text'],['nombre','nombre','text'],['areas','areas_asociadas','text'],['cecos','ceco_asociados','text'],['obs','observacion','text'],['pts','poligono','jsonb']]},
+  eventos:{src:'ev',skip:['medidas','inv'],cols:[['id','id','text'],['fecha','fecha','date'],['hora','hora','text'],['tipo','tipo','text'],['titulo','titulo','text'],['rc','riesgo_critico','text'],['ceco','ceco','text'],['empresa','empresa','text'],['zona','instalacion','text'],['desc','descripcion','text'],['estado','estado','text'],['cierre','fecha_cierre','date'],['link','enlace_investigacion','text']]},
+  medidas:{sub:'medidas',cols:[['desc','medida','text'],['resp','responsable_cierre','text'],['plazo','plazo','date'],['cierre','fecha_cierre','date']]},
+  investigaciones:{sub:'inv',cols:[['name','nombre_archivo','text'],['type','tipo_archivo','text'],['size','tamano_bytes','numeric'],['path','ruta','text'],['fecha','fecha_carga','date'],['key','llave_antigua','text']]},
+  corporativo:{src:'corp',cols:[['corte','corte','date'],['desde','desde','date'],['fuente','fuente','text'],['maxTF','tf_max','numeric'],['maxTG','tg_max','numeric'],['divs','divisiones','jsonb'],['tot','totales','jsonb']]}
+};
+/*END*/
+const SB_DATE=v=>{if(v==null||v==='')return null;if(v instanceof Date)return isNaN(v)?null:iso(v);const d=pDate(String(v).slice(0,10));return d?iso(d):null};
+function sbCell(v,t){
+  if(t==='text')return v==null?null:String(v);
+  if(t==='date')return SB_DATE(v);
+  if(t==='jsonb')return v===undefined?null:v;
+  if(v==null||v==='')return null;const n=typeof v==='number'?v:Number(String(v).replace(',','.'));if(!Number.isFinite(n))return null;return t==='int'?Math.round(n):n;
+}
+function sbRow(o,def,extraBase){const r=Object.assign({},extraBase||{});const used=new Set(def.skip||[]);
+  def.cols.forEach(([k,c,t])=>{used.add(k);r[c]=sbCell(o[k],t)});
+  const ex={};Object.keys(o).forEach(k=>{if(!used.has(k)&&o[k]!==undefined&&typeof o[k]!=='function')ex[k]=o[k] instanceof Date?iso(o[k]):o[k]});r.extra=Object.keys(ex).length?ex:null;return r}
+/* DB de la app → tablas */
+function sbRows(db){
+  const out={parametros:Object.entries(db.params||{}).map(([k,v])=>({clave:k,valor:v instanceof Date?iso(v):v===undefined?null:v}))};
+  Object.entries(SB_SCHEMA).forEach(([t,def])=>{
+    if(def.sub)out[t]=(db.ev||[]).flatMap(e=>(e[def.sub]||[]).map((x,i)=>sbRow(x,def,{evento_id:e.id,n:i+1})));
+    else out[t]=(db[def.src]||[]).map(o=>sbRow(o,def));
+  });
+  out.otros=db.leeme?[{clave:'leeme',datos:db.leeme}]:[];
+  return out;
+}
+/* tablas → DB de la app */
+function sbObj(r,def){const o={};def.cols.forEach(([k,c,t])=>{let v=r[c];if(v==null)v=t==='text'?'':t==='n0'?0:null;o[k]=v});if(r.extra)Object.assign(o,r.extra);return o}
+function sbToDB(d){
+  const db={params:{},leeme:null};(d.parametros||[]).forEach(p=>{db.params[p.clave]=p.valor});
+  Object.entries(SB_SCHEMA).forEach(([t,def])=>{if(!def.sub)db[def.src]=(d[t]||[]).map(r=>sbObj(r,def))});
+  (db.ceco||[]).forEach(c=>{if(!c.orden)c.orden=99});
+  (db.zonas||[]).forEach(z=>{if(!Array.isArray(z.pts))z.pts=[]});
+  const byEv=new Map((db.ev||[]).map(e=>{e.medidas=[];e.inv=[];return[e.id,e]}));
+  ['medidas','investigaciones'].forEach(t=>{const def=SB_SCHEMA[t];(d[t]||[]).slice().sort((a,b)=>a.n-b.n).forEach(r=>{const e=byEv.get(r.evento_id);if(!e)return;const o=sbObj(r,def);if(t==='investigaciones'){if(!o.key)delete o.key;o.sb=!o.key}e[def.sub].push(o)})});
+  const lm=(d.otros||[]).find(x=>x.clave==='leeme');if(lm)db.leeme=lm.datos;
+  return reviveDB(JSON.stringify(db));
+}
+/* ---------- cliente HTTP mínimo ---------- */
+async function sbInit(){
+  try{const r=await fetch('data/supabase.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const j=await r.json();
+    if(j&&j.url&&j.anonKey){SBC={url:String(j.url).replace(/\/+$/,''),key:j.anonKey,adminEmail:j.adminEmail,lectorEmail:j.lectorEmail}}}catch(e){}
+}
+const sbSess=()=>{try{return JSON.parse(ss.get('dven_sb')||'null')}catch(e){return null}};
+async function sbAuth(body,grant){
+  const r=await fetch(SBC.url+'/auth/v1/token?grant_type='+grant,{method:'POST',headers:{apikey:SBC.key,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(j.error_description||j.msg||j.message||('Supabase '+r.status));e.status=r.status;throw e}
+  const s={at:j.access_token,rt:j.refresh_token,exp:Date.now()+((j.expires_in||3600)*1000),email:(j.user&&j.user.email)||body.email||''};ss.set('dven_sb',JSON.stringify(s));return s}
+async function sbSignIn(email,pw){try{await sbAuth({email,password:pw},'password');return true}catch(e){if(e.status===400||e.status===401)return false;throw e}}
+async function sbToken(){const s=sbSess();if(!s)return null;if(Date.now()<s.exp-60000)return s.at;
+  try{const n=await sbAuth({refresh_token:s.rt},'refresh_token');n.email=s.email;ss.set('dven_sb',JSON.stringify(n));return n.at}catch(e){ss.del('dven_sb');return null}}
+const sbIsAdmin=()=>{const s=sbSess();return !!(s&&SBC&&s.email&&String(s.email).toLowerCase()===String(SBC.adminEmail||'').toLowerCase())};
+async function sbHdr(extra){const t=await sbToken();if(!t){const e=new Error('La sesión expiró: vuelve a ingresar');e.auth=true;throw e}return Object.assign({apikey:SBC.key,Authorization:'Bearer '+t},extra||{})}
+async function sbRpc(fn,args){
+  const r=await fetch(SBC.url+'/rest/v1/rpc/'+fn,{method:'POST',headers:await sbHdr({'Content-Type':'application/json'}),body:JSON.stringify(args||{})});
+  const txt=await r.text();let j=null;try{j=txt?JSON.parse(txt):null}catch(e){}
+  if(!r.ok){const m=(j&&(j.message||j.hint))||txt||('Supabase '+r.status);const e=new Error(/conflicto/i.test(m)?'conflict':m);e.status=r.status;throw e}
+  return j;
+}
+function sbLogout(){ss.del('dven_sb');try{fetch(SBC.url+'/auth/v1/logout',{method:'POST',headers:{apikey:SBC.key,Authorization:'Bearer '+(sbSess()||{}).at}})}catch(e){}}
+/* ---------- lectura ---------- */
+async function sbLoadBase(){
+  const d=await sbRpc('leer_base');SB_VER=Number(d.version)||0;SB_AT=d.actualizado?new Date(d.actualizado):null;
+  const empty=!SB_VER&&!(d.accidentes||[]).length&&!(d.hh_propios||[]).length&&!(d.ceco||[]).length;
+  if(empty)return 'empty';
+  const db=sbToDB(d);SB_RK=db.params['Clave lectura']||null;
+  setDB(db,{kind:'cloud',label:'Base en Supabase'+(SB_AT?' · '+fdate(SB_AT)+' '+pad(SB_AT.getHours())+':'+pad(SB_AT.getMinutes()):'')},false);
+  return 'ok';
+}
+async function sbLoadPublic(){
+  const r=await fetch(SBC.url+'/rest/v1/publicacion?id=eq.1&select=datos,generado',{headers:await sbHdr(),cache:'no-store'});
+  if(!r.ok)throw new Error('Supabase '+r.status);const a=await r.json();
+  if(!a.length||!a[0].datos){DB=null;$('welcomeMsg').textContent='Aún no hay indicadores publicados.';$('welcome').classList.remove('hidden');render();return false}
+  applyPublic(Object.assign({},a[0].datos,{generado:a[0].generado||a[0].datos.generado}));return true;
+}
+/* visitante: clave de lectura = contraseña de la cuenta lector */
+async function sbViewer(){
+  if(await sbToken()){try{if(await sbLoadPublic())return true}catch(e){if(!e.auth)toast('No pude leer los indicadores: '+e.message,6000)}}
+  const g=$('gate');g.classList.remove('hidden');document.body.classList.add('gated');setTimeout(()=>$('gatePw').focus(),50);
+  $('gateForm').onsubmit=async ev=>{ev.preventDefault();$('gateMsg').innerHTML='<p class="small" style="text-align:center">Verificando…</p>';
+    let ok=false;try{ok=await sbSignIn(SBC.lectorEmail,$('gatePw').value)}catch(e){$('gateMsg').innerHTML=`<div class="msg bad" style="text-align:center">Sin conexión con la base (${esc(e.message)})</div>`;return}
+    if(!ok){$('gateMsg').innerHTML='<div class="msg bad" style="text-align:center">Contraseña incorrecta</div>';$('gatePw').select();return}
+    g.classList.add('hidden');document.body.classList.remove('gated');$('gatePw').value='';$('gateMsg').innerHTML='';
+    try{await sbLoadPublic()}catch(e){toast('No pude leer los indicadores: '+e.message,6000)}};
+  return true;
+}
+/* administrador: 'ok' | 'bad' | 'empty' */
+async function sbAdminLogin(pw){
+  if(!(await sbSignIn(SBC.adminEmail,pw)))return 'bad';
+  return await sbLoadBase();
+}
+/* base vacía en Supabase: traer la base actual (GitHub cifrada o Excel) */
+function sbImport(pw){
+  setAdmin(true);
+  openModal(`<h3>Primera carga en Supabase</h3><p>La base en Supabase todavía está vacía. Trae tu base actual una sola vez; después pulsa <b>☁ Guardar y publicar</b> y quedará guardada en Supabase.</p>
+  <div class="grid g2" style="gap:12px"><div class="card"><h3 style="margin-top:0">Desde la base en GitHub</h3><p class="small">La base cifrada que usabas hasta ahora (data/base.json). Se abre con la contraseña de administrador anterior.</p><label class="fld">Contraseña anterior<input type="password" id="impPw" value="${esc(pw||'')}"></label><div id="impM"></div><button class="btn pri mt" onclick="sbImportGh()">Traer desde GitHub</button></div>
+  <div class="card"><h3 style="margin-top:0">Desde el Excel</h3><p class="small">Tu archivo BD_Divisional_DVEN.xlsx.</p><button class="btn pri mt" onclick="closeModal();pickBase()">📂 Abrir Excel</button></div></div>
+  <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" onclick="closeModal()">Más tarde</button></div>`);
+}
+async function sbImportGh(){
+  const pw=$('impPw').value;$('impM').innerHTML='<p class="small">Abriendo…</p>';
+  try{const r=await fetch(CLOUD_PATH+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('No encontré data/base.json en el sitio');
+    let db;try{db=await decBase(await r.json(),pw)}catch(e){$('impM').innerHTML='<div class="msg bad">Contraseña anterior incorrecta</div>';return}
+    SB_VER=0;SB_RK=null;closeModal();setDB(db,{kind:'cloud',label:'Base importada desde GitHub · falta publicar en Supabase'},true);
+    toast('Base importada. Revisa y pulsa ☁ Guardar y publicar para dejarla en Supabase',9000);go(PAGE)}
+  catch(e){$('impM').innerHTML=`<div class="msg bad">${esc(e.message)}</div>`}
+}
+/* ---------- guardar y publicar ---------- */
+async function sbPublish(){
+  if(!sbIsAdmin()||!(await sbToken())){openLogin('__publish');return}
+  if(!DB.params['Clave lectura']){askReadKey();return}
+  busy('Guardando en Supabase y publicando…');
+  try{
+    const inclE=DB.params['Publicar EECC']!=='NO',inclA=DB.params['Publicar ficha accidentes']!=='NO';
+    const pub=JSON.parse(JSON.stringify(buildPublic(inclE,inclA)));
+    const v=await sbRpc('guardar_base',{p_datos:sbRows(DB),p_version:SB_VER==null?0:SB_VER,p_publico:pub});
+    {const nv=Number(v&&typeof v==='object'?v.version:v);SB_VER=Number.isFinite(nv)&&nv>0?nv:(SB_VER||0)+1}
+    let rk='';const k=DB.params['Clave lectura'];
+    if(k&&k!==SB_RK){try{await sbRpc('cambiar_clave_lectura',{p_nueva:k});SB_RK=k;rk=' La clave de lectura quedó actualizada.'}catch(e){rk=' ⚠ No se pudo actualizar la clave de lectura: '+e.message}}
+    let xl='';
+    if(FH&&canFS()){try{if((await FH.queryPermission({mode:'readwrite'}))==='granted'){const w=await FH.createWritable();await w.write(buildWorkbook());await w.close();xl=' También se guardó en '+FH.name+'.'}}catch(e){}}
+    DIRTY=false;store.del('dven_draft');const n=new Date();SB_AT=n;SRC={kind:'cloud',label:'Base en Supabase · '+fdate(n)+' '+pad(n.getHours())+':'+pad(n.getMinutes())};
+    updateStatus();render();
+    openModal(`<h3>✓ Guardado y publicado</h3><p>La base quedó guardada en Supabase y los indicadores ya están actualizados para quienes entran con la clave de lectura.${rk}${xl}</p><div class="row" style="justify-content:flex-end"><button class="btn pri" onclick="closeModal()">Listo</button></div>`);
+  }catch(e){
+    if(e.message==='conflict')return conflictMsg();
+    if(e.auth){closeModal();openLogin('__publish');return}
+    openModal(`<h3>No se pudo guardar</h3><div class="msg bad">${esc(e.message)}</div><p class="small">Tus cambios siguen en esta pantalla; no cierres la página. Revisa la conexión a internet y vuelve a intentarlo.</p><div class="row" style="justify-content:flex-end"><button class="btn" onclick="closeModal()">Cerrar</button><button class="btn pri" onclick="closeModal();publishAll()">Reintentar</button></div>`);
+  }
+}
+async function sbChangePw(cur,a){
+  if(!(await sbSignIn(SBC.adminEmail,cur))){toast('La contraseña actual no es correcta',4000);return}
+  const r=await fetch(SBC.url+'/auth/v1/user',{method:'PUT',headers:await sbHdr({'Content-Type':'application/json'}),body:JSON.stringify({password:a})});
+  if(!r.ok){const j=await r.json().catch(()=>({}));toast('No se pudo cambiar: '+(j.msg||j.message||r.status),6000);return}
+  ['pw0','pw1','pw2'].forEach(i=>$(i).value='');toast('Contraseña de administrador actualizada en Supabase',5000);
+}
+/* ---------- investigaciones en Storage ---------- */
+const SB_BUCKET='investigaciones';
+const sbObjUrl=(p,auth)=>SBC.url+'/storage/v1/object/'+(auth?'authenticated/':'')+SB_BUCKET+'/'+p.split('/').map(encodeURIComponent).join('/');
+async function sbUpload(f,evid){
+  const safe=String(f.name).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9._-]+/g,'_').slice(-80);
+  const path=`${evid}/${Date.now()}_${safe}`;
+  const r=await fetch(sbObjUrl(path),{method:'POST',headers:await sbHdr({'Content-Type':f.type||'application/octet-stream','x-upsert':'false'}),body:f});
+  if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.message||j.error||('Supabase '+r.status)))}
+  return{name:f.name,type:f.type||'',size:f.size,path,fecha:iso(today()),sb:true};
+}
+async function sbDownload(f){const r=await fetch(sbObjUrl(f.path,true),{headers:await sbHdr(),cache:'no-store'});if(!r.ok)throw new Error(r.status===400||r.status===404?'El archivo no existe o no tienes acceso':'Supabase '+r.status);return new Uint8Array(await r.arrayBuffer())}
+async function sbRemove(f){try{await fetch(sbObjUrl(f.path),{method:'DELETE',headers:await sbHdr()})}catch(e){}}
 
 /* ================= CARGA DE ARCHIVOS FUENTE ================= */
 const MES_MAP={ene:1,enero:1,feb:2,febrero:2,mar:3,marzo:3,abr:4,abril:4,may:5,mayo:5,jun:6,junio:6,jul:7,julio:7,ago:8,agosto:8,sep:9,sept:9,septiembre:9,set:9,oct:10,octubre:10,nov:11,noviembre:11,dic:12,diciembre:12};
@@ -2154,17 +2328,17 @@ function renderBase(){
    <label class="fld">Meta TFT (opcional)<input id="prTFT" type="number" step="0.01" value="${esc(P('Meta TFT',''))}"></label>
   </div><div class="row mt"><button class="btn pri" onclick="saveParams()">Guardar parámetros</button><span class="small">El informe usa semana de lunes a domingo.</span></div></div>
   </div>
-  <div class="card mt"><h3>Guardar y publicar</h3><p class="sub">Un clic sube a GitHub la <b>base de trabajo completa cifrada</b> con la contraseña de administrador (para trabajar desde cualquier equipo o celular) y los <b>indicadores publicados</b> cifrados con la clave de lectura (sin nombres, RUT ni observaciones internas). El Excel queda como respaldo: descárgalo cuando quieras.</p>
-   <div class="row"><button class="btn pri" onclick="publishAll()">☁ Guardar y publicar</button><button class="btn" onclick="downloadBase()">⬇ Descargar Excel de respaldo</button><button class="btn" onclick="openGhSetup(false)">${ghConf().token?'🔗 Conexión GitHub de este equipo ✓':'🔗 Conectar este equipo con GitHub'}</button></div>
+  <div class="card mt"><h3>Guardar y publicar</h3>${SBC?`<p class="sub">Un clic guarda la <b>base de trabajo completa en Supabase</b> (tablas por tema, con respaldo automático de las últimas 30 versiones) y actualiza los <b>indicadores publicados</b> que ve tu jefatura con la clave de lectura. El Excel queda como respaldo: descárgalo cuando quieras.</p>`:`<p class="sub">Un clic sube a GitHub la <b>base de trabajo completa cifrada</b> con la contraseña de administrador (para trabajar desde cualquier equipo o celular) y los <b>indicadores publicados</b> cifrados con la clave de lectura (sin nombres, RUT ni observaciones internas). El Excel queda como respaldo: descárgalo cuando quieras.</p>`}
+   <div class="row"><button class="btn pri" onclick="publishAll()">☁ Guardar y publicar</button><button class="btn" onclick="downloadBase()">⬇ Descargar Excel de respaldo</button>${SBC?'<span class="pill ok" style="align-self:center">Conectado a Supabase</span>':''}<button class="btn ${SBC?'hidden':''}" onclick="openGhSetup(false)">${ghConf().token?'🔗 Conexión GitHub de este equipo ✓':'🔗 Conectar este equipo con GitHub'}</button></div>
    <div class="fgrid mt"><label class="fld" style="justify-content:flex-end"><span><input type="checkbox" ${DB.params['Publicar EECC']!=='NO'?'checked':''} onchange="DB.params['Publicar EECC']=this.checked?'SI':'NO';markDirty()"> Publicar detalle EECC por empresa y contrato</span></label>
    <label class="fld full"><span><input type="checkbox" ${DB.params['Publicar ficha accidentes']!=='NO'?'checked':''} onchange="DB.params['Publicar ficha accidentes']=this.checked?'SI':'NO';markDirty()"> Publicar ficha de accidentes (empresa, contrato, cargo, hora, turno, lugar, riesgo crítico, lesión y descripción)</span></label></div>
-   <div class="row mt">${DB.params['Clave lectura']?'<button class="btn sm" onclick="showReadKey()">👁 Ver clave de lectura</button>':''}<button class="btn sm" onclick="askReadKeyOnly()">${DB.params['Clave lectura']?'Cambiar clave de lectura':'Definir clave de lectura'}</button><span class="small">${DB.params['Clave lectura']?'Clave de lectura guardada en la base cifrada.':'Aún no se ha definido: se pedirá al publicar.'}</span></div>
-   <details class="mt"><summary class="small" style="cursor:pointer">Publicación manual (generar publico.json y subirlo a mano)</summary><div class="fgrid mt"><label class="fld">Clave de lectura<input type="password" id="pubPw" autocomplete="new-password"></label><label class="fld">Repetir clave<input type="password" id="pubPw2" autocomplete="new-password"></label></div>
+   <div class="row mt">${DB.params['Clave lectura']?'<button class="btn sm" onclick="showReadKey()">👁 Ver clave de lectura</button>':''}<button class="btn sm" onclick="askReadKeyOnly()">${DB.params['Clave lectura']?'Cambiar clave de lectura':'Definir clave de lectura'}</button><span class="small">${DB.params['Clave lectura']?(SBC?'Al cambiarla, se actualiza en Supabase al pulsar Guardar y publicar.':'Clave de lectura guardada en la base cifrada.'):'Aún no se ha definido: se pedirá al publicar.'}</span></div>
+   <details class="mt ${SBC?'hidden':''}"><summary class="small" style="cursor:pointer">Publicación manual (generar publico.json y subirlo a mano)</summary><div class="fgrid mt"><label class="fld">Clave de lectura<input type="password" id="pubPw" autocomplete="new-password"></label><label class="fld">Repetir clave<input type="password" id="pubPw2" autocomplete="new-password"></label></div>
    <input type="checkbox" id="pubEmp" class="hidden" ${DB.params['Publicar EECC']!=='NO'?'checked':''}><input type="checkbox" id="pubAcc" class="hidden" ${DB.params['Publicar ficha accidentes']!=='NO'?'checked':''}>
    <div class="row mt"><button class="btn" onclick="downloadPublic()">⬇ Generar publico.json</button></div><div id="pubMsg"></div></details></div>
-  <div class="card mt"><h3>Contraseña de administrador</h3><p class="sub">Se guarda cifrada (hash PBKDF2) en la hoja Parametros de la base. Después de cambiarla, guarda la base.</p>
+  <div class="card mt"><h3>Contraseña de administrador</h3><p class="sub">${SBC?'Es la contraseña de la cuenta de administrador en Supabase. El cambio rige de inmediato.':'Se guarda cifrada (hash PBKDF2) en la hoja Parametros de la base. Después de cambiarla, guarda la base.'}</p>
    <div class="fgrid"><label class="fld">Contraseña actual<input type="password" id="pw0" autocomplete="current-password"></label><label class="fld">Nueva contraseña<input type="password" id="pw1" autocomplete="new-password"></label><label class="fld">Repetir nueva<input type="password" id="pw2" autocomplete="new-password"></label></div>
-   <div class="row mt"><button class="btn pri" onclick="changePw()">Cambiar contraseña</button>${DB.params['Clave administrador']?'':'<span class="pill warn">Usando la contraseña inicial: cámbiala</span>'}</div></div>
+   <div class="row mt"><button class="btn pri" onclick="changePw()">Cambiar contraseña</button>${SBC||DB.params['Clave administrador']?'':'<span class="pill warn">Usando la contraseña inicial: cámbiala</span>'}</div></div>
   <div class="card mt"><h3>Referencia de años anteriores</h3><p class="sub">Tasas acumuladas oficiales por mes que el informe usa como línea de comparación (año anterior al de los indicadores). Al cerrar un año, agrega sus 12 meses aquí.</p>
    <div class="row" style="margin-bottom:8px"><label class="fld" style="flex-direction:row;align-items:center;gap:8px">Año <select id="refY" onchange="renderBase()">${[...new Set((DB.ref||[]).map(r=>r.y).concat([CUT.getFullYear()-1]))].sort((a,b)=>b-a).map(y=>`<option ${String(y)===String(REF_Y)?'selected':''}>${y}</option>`).join('')}</select></label></div>
    <div class="tw"><table><thead><tr><th class="l">Tasa</th>${MES3.map(m=>`<th>${m}</th>`).join('')}</tr></thead><tbody>
@@ -2318,6 +2492,16 @@ function openLogin(next){
   <div id="lgMsg"></div><div class="row" style="justify-content:flex-end;margin-top:14px"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button class="btn pri" type="submit">Ingresar</button></div></form>`);
   setTimeout(()=>{const i=$('lgPw');if(i)i.focus()},50);
   $('lgForm').onsubmit=async ev=>{ev.preventDefault();const pw=$('lgPw').value;
+    if(SBC){$('lgMsg').innerHTML='<p class="small">Verificando…</p>';
+      try{
+        if(next==='__publish'&&ADMIN&&DB&&SRC.kind!=='pub'){if(!(await sbSignIn(SBC.adminEmail,pw))){$('lgMsg').innerHTML='<div class="msg bad">Contraseña incorrecta</div>';return}closeModal();publishAll();return}
+        const r=await sbAdminLogin(pw);
+        if(r==='bad'){$('lgMsg').innerHTML='<div class="msg bad">Contraseña incorrecta</div>';return}
+        $('gate').classList.add('hidden');document.body.classList.remove('gated');
+        if(r==='empty'){setAdmin(true);closeModal();sbImport(pw);return}
+        setAdmin(true);closeModal();toast('Sesión iniciada · base de Supabase cargada');updateStatus();go(typeof next==='string'&&RENDER[next]?next:PAGE);
+      }catch(e){$('lgMsg').innerHTML=`<div class="msg bad">No pude conectar con Supabase: ${esc(e.message)}</div>`}
+      return}
     if(!IS_LOCAL||!DB||SRC.kind==='pub'){$('lgMsg').innerHTML='<p class="small">Verificando…</p>';
       const r=await loadCloud(pw,true);
       if(r==='ok'){setAdmin(true);closeModal();toast('Sesión iniciada · base de trabajo cargada');updateStatus();go(typeof next==='string'?next:PAGE);return}
@@ -2329,9 +2513,10 @@ function openLogin(next){
     const d=store.get('dven_draft');if(d&&confirm('Hay cambios sin guardar de una sesión anterior en este navegador. ¿Recuperarlos?')){try{const o=JSON.parse(d);setDB(reviveDB(o.db),Object.assign({},o.src,{label:(o.src&&o.src.label||'Base')+' + cambios locales'}),true)}catch(e){}}
     updateStatus();if(!DB){$('welcome').classList.remove('hidden')}go(typeof next==='string'?next:PAGE)};
 }
-function logout(){if(DIRTY&&!confirm(SRC.kind==='cloud'?'Hay cambios sin publicar y se perderán. ¿Cerrar sesión?':'Hay cambios sin guardar. Quedarán en este navegador para la próxima sesión. ¿Cerrar sesión?'))return;if(SRC.kind==='cloud')DIRTY=false;ADMIN_PW=null;ss.del('dven_apw');setAdmin(false);if(!IS_LOCAL&&SRC.kind!=='pub'){location.reload();return}updateStatus();if(ADMIN_PAGES.includes(PAGE))PAGE='resumen';render();toast('Sesión cerrada')}
+function logout(){if(DIRTY&&!confirm(SRC.kind==='cloud'?'Hay cambios sin publicar y se perderán. ¿Cerrar sesión?':'Hay cambios sin guardar. Quedarán en este navegador para la próxima sesión. ¿Cerrar sesión?'))return;if(SRC.kind==='cloud')DIRTY=false;ADMIN_PW=null;ss.del('dven_apw');setAdmin(false);if(SBC){sbLogout();location.reload();return}if(!IS_LOCAL&&SRC.kind!=='pub'){location.reload();return}updateStatus();if(ADMIN_PAGES.includes(PAGE))PAGE='resumen';render();toast('Sesión cerrada')}
 async function changePw(){
   const a=$('pw1').value,b=$('pw2').value,cur=$('pw0').value;
+  if(SBC){if(a.length<12){toast('La nueva contraseña debe tener al menos 12 caracteres',5000);return}if(a!==b){toast('Las contraseñas nuevas no coinciden',4000);return}return sbChangePw(cur,a)}
   if(!(await checkPw(cur,adminHash()))){toast('La contraseña actual no es correcta',4000);return}
   if(a.length<12){toast('La nueva contraseña debe tener al menos 12 caracteres (protege la base en la nube)',5000);return}
   if(a!==b){toast('Las contraseñas nuevas no coinciden',4000);return}
@@ -2408,7 +2593,13 @@ function render(){
 async function openLocal(file){try{const db=readBase(await readFile(file));setDB(db,{kind:'file',label:file.name},false);saveCache();toast('Base cargada: '+file.name)}catch(e){toast(e.message,6000);$('welcomeMsg').textContent=e.message}}
 async function boot(){
   document.body.classList.toggle('remote',!IS_LOCAL);
+  await sbInit();
   setAdmin(ss.get('dven_admin')==='1');
+  if(SBC){document.body.classList.add('sb');
+    if(ADMIN&&sbIsAdmin()&&await sbToken()){try{const r=await sbLoadBase();if(r==='ok')return;if(r==='empty'){sbImport('');return}}catch(e){toast('No pude leer la base en Supabase: '+e.message,7000)}}
+    if(ADMIN&&!sbIsAdmin())setAdmin(false);
+    if(!ADMIN){await sbViewer();return}
+  }
   if(canFS()){try{const h=await idb.get('fh');if(h)FH=h}catch(e){}}
   const pub=async()=>{try{const r=await fetch(BASE_PATH+'?t='+Date.now(),{cache:'no-store'});if(r.ok){setDB(readBase(await r.arrayBuffer()),{kind:'web',label:'Base publicada'},false);if(ADMIN)saveCache();return true}}catch(e){}return false};
   if(!ADMIN){ // visitantes: solo el archivo público (sin datos sensibles)
