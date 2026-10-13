@@ -164,7 +164,7 @@ body.gated .app{filter:blur(3px);pointer-events:none}
 .cap{font-size:8.5pt;line-height:1.25;text-align:center}.hero-a .cap{text-align:left}
 .hero-b{text-align:center;border-left:1px dashed #C4C8CE}
 .big2{font-size:30pt;font-weight:800;color:#1F2328;line-height:1.1}
-.cnt{display:grid;grid-template-columns:1fr 1fr 1.05fr;gap:3mm}
+.cnt{display:grid;grid-template-columns:.8fr .8fr .8fr 1.5fr;gap:2.2mm}.cnt .pcu-r span{white-space:nowrap;font-size:6.6pt;padding:1mm 1.8mm}.cnt .pcu-t{white-space:nowrap}.cnt .cbox{padding:2.5mm 1.5mm;font-size:8pt}.cnt .cbox .num{font-size:52pt}.cbox.es .num{color:#B5541B}
 .cbox{background:#F1F2F4;border-radius:2mm;padding:3mm;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;font-size:8.5pt;line-height:1.25}
 .cbox .num{font-size:64pt;font-weight:800;line-height:.95;color:#1F2328;margin-bottom:1.5mm}.cbox b{color:#1F2328}
 .pcu-t{font-size:8.5pt;font-weight:700;color:#1F2328;margin-bottom:1.5mm}
@@ -295,6 +295,19 @@ body.gated .app{filter:blur(3px);pointer-events:none}
 .spin{width:34px;height:34px;border:4px solid #F1D3C2;border-top-color:var(--brand);border-radius:50%;margin:auto;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
 .gate-adm{display:block;margin-top:16px;font-size:12px;color:#7A8290;cursor:pointer;text-decoration:underline}.gate-adm:hover{color:var(--brand)}
 .kpi-split{display:flex;gap:22px;align-items:baseline}.kpi-split>span{display:inline-flex;align-items:baseline;gap:6px}.kpi-split small{font-size:13px;font-weight:600;color:var(--muted)}
+.chart.corp{height:340px}
+.donut{position:relative;height:190px;margin-top:6px}
+.dleg{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:12.5px;color:var(--ink2)}.dleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}.dleg b{color:var(--ink);margin-left:3px}.dleg span{color:var(--muted);margin-left:3px}
+.corp-hh{display:grid;gap:10px;margin-top:10px}.corp-hh div{display:flex;align-items:baseline;gap:8px;padding:10px 12px;background:#FAFAFA;border-radius:8px}.corp-hh span{font-size:12px;color:var(--muted);flex:1}.corp-hh b{font-size:20px;font-weight:800}.corp-hh small{color:var(--muted);font-weight:600;min-width:36px;text-align:right}.corp-hh .tot{background:#1F2328;color:#fff}.corp-hh .tot span{color:#C9CDD2}
+.g-corp{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;row-gap:4mm}
+.slide .cc{display:flex;flex-direction:column;min-height:0}.slide .cc .chw{min-height:0}
+.slide .ctot{justify-content:flex-start}.ctot-g{display:grid;grid-template-columns:1fr 1fr;gap:4mm;flex:none;margin-top:6mm}.rdon{position:relative;height:42mm}
+.slide .dleg{font-size:8pt;gap:8px;margin-top:1mm}.ctot-hh{font-size:8pt;color:#4A5260;margin-top:5mm;text-align:center}.slide .ctot .lg{margin-top:4mm!important;justify-content:center}
+.pill.es{background:#1F2328;color:#fff;font-size:10px}
+.esdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:0}
+.evacc{display:flex;flex-direction:column;gap:5px;max-height:190px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;font-size:13px}.evacc label{display:flex;gap:6px;align-items:center}
+.evmed input{width:100%;padding:5px 7px;border:1px solid var(--line);border-radius:6px;font-family:inherit;min-width:110px}.evmed td{vertical-align:middle}
+.invf{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;font-size:13px}
 @media print{
   @page{size:A4 landscape;margin:0}
   .deck{overflow:visible;padding:0}
@@ -338,12 +351,15 @@ body.gated .app{filter:blur(3px);pointer-events:none}
       <a data-p="propios"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Personal propio</a>
       <a data-p="eecc"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V4h8v3"/></svg>Empresas contratistas</a>
       <a data-p="accidentes"><svg viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/></svg>Accidentes</a>
+      <a data-p="eventos"><svg viewBox="0 0 24 24"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>Eventos significativos</a>
       <a data-p="mapa"><svg viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></svg>Mapa de accidentes</a>
       <a data-p="proyecciones"><svg viewBox="0 0 24 24"><path d="M3 20l6-7 4 4 8-10"/><path d="M15 7h6v6"/></svg>Proyecciones</a>
+      <a data-p="corporativo"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Indicadores corporativos</a>
       <a data-p="informe"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg>Informe semanal</a>
       <div class="sec admin-only">Datos · administrador</div>
       <a data-p="carga-propios" class="admin-only"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/></svg>Carga Propios</a>
       <a data-p="carga-eecc" class="admin-only"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/></svg>Carga EECC</a>
+      <a data-p="carga-corp" class="admin-only"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/></svg>Carga corporativa</a>
       <a data-p="base" class="admin-only"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>Base y configuración</a>
       <a id="navLogin" class="viewer-only" onclick="openLogin()"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Acceso administrador</a>
       <a id="navLogout" class="admin-only" onclick="logout()"><svg viewBox="0 0 24 24"><path d="M15 12H3M7 8l-4 4 4 4"/><path d="M13 4h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/></svg>Cerrar sesión admin</a>
@@ -375,11 +391,14 @@ body.gated .app{filter:blur(3px);pointer-events:none}
       <section id="p-propios" class="page"></section>
       <section id="p-eecc" class="page"></section>
       <section id="p-accidentes" class="page"></section>
+      <section id="p-eventos" class="page"></section>
       <section id="p-mapa" class="page"></section>
       <section id="p-proyecciones" class="page"></section>
+      <section id="p-corporativo" class="page"></section>
       <section id="p-informe" class="page"></section>
       <section id="p-carga-propios" class="page"></section>
       <section id="p-carga-eecc" class="page"></section>
+      <section id="p-carga-corp" class="page"></section>
       <section id="p-base" class="page"></section>
     </div>
   </div>
@@ -452,10 +471,18 @@ function readBase(buf){
   db.ceco=rows('CECO').filter(r=>g(r,'CECO')).map(r=>({ceco:String(g(r,'CECO')).trim().toUpperCase(),nombre:g(r,'Nombre CECO')||'',gerencia:(g(r,'Gerencia')||'Sin asignar').trim(),orden:num(g(r,'Orden Gerencia'))||99,area:(g(r,'Área Instalación')||'Sin asignar').trim(),activo:g(r,'Activo')||'SI',obs:g(r,'Observación')||''}));
   db.prop=rows('HH_Propios').filter(r=>g(r,'CECO')&&g(r,'Año')).map(r=>({y:+g(r,'Año'),m:+g(r,'Mes'),ceco:normCeco(g(r,'CECO')),dotH:num(g(r,'Dot H')),dotM:num(g(r,'Dot M')),hhH:num(g(r,'HH H')),hhM:num(g(r,'HH M')),fuente:g(r,'Fuente')||''}));
   db.eecc=rows('HH_EECC').filter(r=>g(r,'CECO')&&g(r,'Año')).map(r=>({y:+g(r,'Año'),m:+g(r,'Mes'),empresa:String(g(r,'Empresa')||'').trim(),rut:g(r,'RUT')||'',contrato:String(g(r,'N° Contrato')??''),nomContrato:g(r,'Nombre Contrato')||'',ceco:normCeco(g(r,'CECO')),dotH:num(g(r,'Dot H')),hhH:num(g(r,'HH H')),dotM:num(g(r,'Dot M')),hhM:num(g(r,'HH M')),fuente:g(r,'Fuente')||''}));
-  db.acc=rows('Accidentes').filter(r=>g(r,'Fecha')!=null).map(r=>({id:g(r,'ID')||'',fecha:pDate(g(r,'Fecha')),hora:g(r,'Hora')||'',turno:g(r,'Turno')||'',cls:String(g(r,'Clasificación')||'').trim().toUpperCase(),tipo:/prop|codelco/i.test(g(r,'Tipo Personal')||'')?'Propio':'EECC',empresa:g(r,'Empresa')||'',contrato:String(g(r,'N° Contrato')??''),ceco:normCeco(g(r,'CECO')),cargo:g(r,'Cargo')||'',lugar:g(r,'Lugar / Proceso')||'',tacc:g(r,'Tipo Accidente')||'',lesion:g(r,'Tipo Lesión')||'',cuerpo:g(r,'Parte Cuerpo')||'',rc:g(r,'Riesgo Crítico')||'',desc:g(r,'Descripción')||'',ini:pDate(g(r,'Fecha Inicio Reposo')),alta:pDate(g(r,'Fecha Alta')),rep:/^s/i.test(g(r,'En Reposo')||'')?'SI':'NO',dpm:numOrNull(g(r,'DP Total (manual)')),dc:num(g(r,'Días Cargo')),obs:g(r,'Observación')||'',zona:String(g(r,'Zona Mapa')||'').trim(),mx:numOrNull(g(r,'Mapa X %')),my:numOrNull(g(r,'Mapa Y %'))})).filter(a=>a.fecha);
+  db.acc=rows('Accidentes').filter(r=>g(r,'Fecha')!=null).map(r=>({id:g(r,'ID')||'',fecha:pDate(g(r,'Fecha')),hora:g(r,'Hora')||'',turno:g(r,'Turno')||'',cls:String(g(r,'Clasificación')||'').trim().toUpperCase(),tipo:/prop|codelco/i.test(g(r,'Tipo Personal')||'')?'Propio':'EECC',empresa:g(r,'Empresa')||'',contrato:String(g(r,'N° Contrato')??''),ceco:normCeco(g(r,'CECO')),cargo:g(r,'Cargo')||'',lugar:g(r,'Lugar / Proceso')||'',tacc:g(r,'Tipo Accidente')||'',lesion:g(r,'Tipo Lesión')||'',cuerpo:g(r,'Parte Cuerpo')||'',rc:g(r,'Riesgo Crítico')||'',desc:g(r,'Descripción')||'',ini:pDate(g(r,'Fecha Inicio Reposo')),alta:pDate(g(r,'Fecha Alta')),rep:/^s/i.test(g(r,'En Reposo')||'')?'SI':'NO',dpm:numOrNull(g(r,'DP Total (manual)')),dc:num(g(r,'Días Cargo')),obs:g(r,'Observación')||'',zona:String(g(r,'Zona Mapa')||'').trim(),esId:String(g(r,'Evento Significativo')||'').trim(),mx:numOrNull(g(r,'Mapa X %')),my:numOrNull(g(r,'Mapa Y %'))})).filter(a=>a.fecha);
   db.hist=rows('HH_Historico').filter(r=>g(r,'Año')).map(r=>{const p=numOrNull(g(r,'HH Propios')),e=numOrNull(g(r,'HH EECC'));let t=numOrNull(g(r,'HH Total'));if(t==null&&p!=null&&e!=null)t=p+e;return {y:+g(r,'Año'),m:+g(r,'Mes'),p,e,t,fuente:g(r,'Fuente')||''}});
   db.ref=rows('Referencia_Anual').filter(r=>g(r,'Año')&&g(r,'Mes')).map(r=>({y:+g(r,'Año'),m:+g(r,'Mes'),tf:numOrNull(g(r,'TF Acumulada')),tg:numOrNull(g(r,'TG Acumulada')),tft:numOrNull(g(r,'TFT Acumulada')),fuente:g(r,'Fuente')||''}));
   db.zonas=rows('Zonas').filter(r=>g(r,'Zona')).map((r,i)=>({id:String(g(r,'ID')||'Z'+String(i+1).padStart(2,'0')),nombre:String(g(r,'Zona')).trim(),pts:String(g(r,'Polígono')||'').split(';').map(p=>p.split(',').map(Number)).filter(p=>p.length===2&&p.every(v=>!isNaN(v))),areas:g(r,'Áreas asociadas')||'',cecos:g(r,'CECO asociados')||'',obs:g(r,'Observación')||''}));
+  {const med=new Map();rows('Medidas').forEach(r=>{const id=String(g(r,'Evento')||'').trim();if(!id||!g(r,'Medida Correctiva'))return;if(!med.has(id))med.set(id,[]);med.get(id).push({desc:String(g(r,'Medida Correctiva')),resp:g(r,'Responsable Cierre')||'',plazo:pDate(g(r,'Plazo')),cierre:pDate(g(r,'Fecha Cierre'))})});
+   db.ev=rows('Eventos').filter(r=>g(r,'ID')&&g(r,'Fecha')!=null).map(r=>{const id=String(g(r,'ID')).trim();let inv=[];try{inv=g(r,'Archivos Investigación')?JSON.parse(g(r,'Archivos Investigación')):[]}catch(e){}
+     return{id,fecha:pDate(g(r,'Fecha')),hora:g(r,'Hora')||'',tipo:g(r,'Tipo')||'',titulo:g(r,'Título')||'',rc:g(r,'Riesgo Crítico')||'',ceco:normCeco(g(r,'CECO')||''),empresa:g(r,'Empresa')||'',zona:String(g(r,'Zona Mapa')||'').trim(),desc:g(r,'Descripción')||'',estado:g(r,'Estado')||'Abierto',cierre:pDate(g(r,'Fecha Cierre')),link:g(r,'Enlace Investigación')||'',inv,medidas:med.get(id)||[]}}).filter(e=>e.fecha)}
+  {const by=new Map();rows('Corporativo').forEach(r=>{const c=pDate(g(r,'Corte'));if(!c)return;const k=iso(c);
+     if(!by.has(k))by.set(k,{corte:c,desde:pDate(g(r,'Desde'))||fromDn(dn(c)-6),fuente:g(r,'Fuente')||'',maxTF:numOrNull(g(r,'TF Máx')),maxTG:numOrNull(g(r,'TG Máx')),divs:[],tot:{}});const o=by.get(k);
+     if(/total/i.test(g(r,'Tipo')||'')){const s={Propios:'P',Contratistas:'C',Global:'G'}[String(g(r,'Clave')).trim()];if(s){o.tot['hh'+s]=num(g(r,'HH'));o.tot['ctp'+s]=num(g(r,'CTP'));o.tot['stp'+s]=num(g(r,'STP'))}}
+     else o.divs.push({key:String(g(r,'Clave')||''),div:String(g(r,'Nombre')||g(r,'Clave')||''),actp:numOrNull(g(r,'CTP')),astp:numOrNull(g(r,'STP')),tf:numOrNull(g(r,'TF')),tg:numOrNull(g(r,'TG')),dp:numOrNull(g(r,'Días Perdidos')),tft:numOrNull(g(r,'TFT')),acc:numOrNull(g(r,'Acc Totales')),hp:numOrNull(g(r,'HP Millones'))})});
+   db.corp=[...by.values()]}
   if(wb.Sheets['LEEME'])db.leeme=XLSX.utils.sheet_to_json(wb.Sheets['LEEME'],{header:1,defval:''});
   return db;
 }
@@ -589,7 +616,7 @@ const keyLabel=k=>k?`${MESES[k%100-1]} ${Math.floor(k/100)}`:'—';
 
 /* ===== periodo seleccionado (Acumulado año / Mes / Desde–hasta) para los módulos ===== */
 let SEL={mode:'year',y:null,m:null,from:null,to:null,yy:null};
-const YEAR_PAGES=['accidentes','mapa'];
+const YEAR_PAGES=['accidentes','eventos','mapa'];
 function monthsOf(s,e){const out=[];if(e<s)return out;let d=fromDn(s),y=d.getFullYear(),m=d.getMonth()+1;
   while(true){const ms=dn(mkD(y,m,1)),me=dn(mkD(y,m,dim(y,m)));if(ms>e)break;out.push({y,m,s:Math.max(ms,s),e:Math.min(me,e),full:ms>=s&&me<=e});m++;if(m>12){m=1;y++}}return out}
 function selRange(){
@@ -632,8 +659,10 @@ function buildPublic(inclEmp,inclAcc){
       ceco:DB.ceco.map(c=>({ceco:c.ceco,nombre:c.nombre,gerencia:c.gerencia,orden:c.orden,area:c.area,activo:c.activo,obs:''})),
       prop:DB.prop.map(r=>({y:r.y,m:r.m,ceco:r.ceco,dotH:r.dotH,dotM:r.dotM,hhH:r.hhH,hhM:r.hhM,fuente:''})),
       eecc:DB.eecc.map(r=>({y:r.y,m:r.m,empresa:inclEmp?r.empresa:'',rut:'',contrato:inclEmp?r.contrato:'',nomContrato:inclEmp?r.nomContrato:'',ceco:r.ceco,dotH:r.dotH,hhH:r.hhH,dotM:r.dotM,hhM:r.hhM,fuente:''})),
-      acc:DB.acc.map(a=>({id:a.id,fecha:a.fecha,hora:inclAcc?a.hora:'',turno:inclAcc?a.turno:'',cls:a.cls,tipo:a.tipo,empresa:inclAcc?a.empresa:'',contrato:inclAcc?a.contrato:'',ceco:a.ceco,cargo:inclAcc?a.cargo:'',lugar:inclAcc?a.lugar:'',tacc:a.tacc,lesion:inclAcc?a.lesion:'',cuerpo:a.cuerpo,rc:inclAcc?a.rc:'',desc:inclAcc?a.desc:'',ini:a.ini,alta:a.alta,rep:a.rep,dpm:a.dpm,dc:a.dc,obs:'',zona:a.zona||'',mx:a.mx??null,my:a.my??null})),
+      acc:DB.acc.map(a=>({id:a.id,fecha:a.fecha,hora:inclAcc?a.hora:'',turno:inclAcc?a.turno:'',cls:a.cls,tipo:a.tipo,empresa:inclAcc?a.empresa:'',contrato:inclAcc?a.contrato:'',ceco:a.ceco,cargo:inclAcc?a.cargo:'',lugar:inclAcc?a.lugar:'',esId:a.esId||'',tacc:a.tacc,lesion:inclAcc?a.lesion:'',cuerpo:a.cuerpo,rc:inclAcc?a.rc:'',desc:inclAcc?a.desc:'',ini:a.ini,alta:a.alta,rep:a.rep,dpm:a.dpm,dc:a.dc,obs:'',zona:a.zona||'',mx:a.mx??null,my:a.my??null})),
       zonas:(DB.zonas||[]).map(z=>({id:z.id,nombre:z.nombre,pts:z.pts,areas:'',cecos:'',obs:''})),
+      ev:(DB.ev||[]).map(e=>({id:e.id,fecha:e.fecha,hora:inclAcc?e.hora:'',tipo:e.tipo,titulo:e.titulo,rc:inclAcc?e.rc:'',ceco:e.ceco,empresa:inclAcc?e.empresa:'',zona:e.zona,desc:inclAcc?e.desc:'',estado:e.estado,cierre:e.cierre,link:e.link||'',inv:(e.inv||[]).map(f=>({name:f.name,type:f.type,size:f.size,path:f.path,key:f.key,fecha:f.fecha})),medidas:(e.medidas||[]).map(m=>({desc:m.desc,resp:m.resp,plazo:m.plazo,cierre:m.cierre}))})),
+      corp:(DB.corp||[]).map(c=>({corte:c.corte,desde:c.desde,fuente:'',maxTF:c.maxTF,maxTG:c.maxTG,divs:c.divs,tot:c.tot})),
       hist:DB.hist,ref:DB.ref||[],leeme:null}};
 }
 
@@ -779,7 +808,7 @@ function tablaAcc(list,withTipo=true,editable=false){
   if(!list.length)return '<p class="small">Sin accidentes registrados en el periodo.</p>';
   const cd=dn(CUT),ed=editable&&ADMIN,showEmp=list.some(a=>a.empresa&&a.tipo==='EECC');
   const cut=(s,n)=>{s=String(s||'');return s.length>n?esc(s.slice(0,n-1))+'…':esc(s)};
-  return `<div class="tw"><table class="tacc"><thead><tr><th class="l">Fecha</th><th class="l">Clasif.</th>${withTipo?'<th class="l">Personal</th>':''}${showEmp?'<th class="l">Empresa</th>':''}<th class="l">Gerencia / Superint.</th><th class="l">Riesgo crítico</th><th class="l">Tipo de accidente</th><th>DP</th><th class="l">Estado</th><th></th></tr></thead><tbody>${list.map(a=>`<tr class="acc-row" onclick="showAcc('${esc(a.id)}')" title="Ver detalle del accidente"><td class="l">${fdate(a.fecha)}</td><td class="l"><span class="pill ${a.cls==='STP'?'neu':'bad'}">${esc(a.cls)}</span></td>${withTipo?`<td class="l">${a.tipo==='Propio'?'Codelco':'EECC'}</td>`:''}${showEmp?`<td class="l w">${cut(a.tipo==='Propio'?'Codelco':a.empresa,28)}</td>`:''}<td class="l w">${cut(gShort(a.g),30)}</td><td class="l w">${cut(a.rc||'—',30)}</td><td class="l w">${cut(a.tacc||'—',34)}</td><td>${N0(accDPTotal(a,cd))}</td><td class="l">${a.rep==='SI'?'<span class="pill warn">En reposo</span>':a.alta?'Alta '+fdate(a.alta):''}${ADMIN&&/confirmar/i.test(a.obs)?' <span class="pill warn" title="'+esc(a.obs)+'">Revisar</span>':''}</td><td class="acts"><button class="btn sm" onclick="event.stopPropagation();showAcc('${esc(a.id)}')">Ver</button>${ed?`<button class="btn sm" onclick="event.stopPropagation();editAcc('${esc(a.id)}')">Editar</button>`:''}</td></tr>`).join('')}</tbody></table></div><p class="small">Haz clic en un accidente para ver su detalle completo.</p>`;
+  return `<div class="tw"><table class="tacc"><thead><tr><th class="l">Fecha</th><th class="l">Clasif.</th>${withTipo?'<th class="l">Personal</th>':''}${showEmp?'<th class="l">Empresa</th>':''}<th class="l">Gerencia / Superint.</th><th class="l">Riesgo crítico</th><th class="l">Tipo de accidente</th><th>DP</th><th class="l">Estado</th><th></th></tr></thead><tbody>${list.map(a=>`<tr class="acc-row" onclick="showAcc('${esc(a.id)}')" title="Ver detalle del accidente"><td class="l">${fdate(a.fecha)}</td><td class="l"><span class="pill ${a.cls==='STP'?'neu':'bad'}">${esc(a.cls)}</span>${a.esId?' <span class="pill es" title="Evento significativo '+esc(a.esId)+'">ES</span>':''}</td>${withTipo?`<td class="l">${a.tipo==='Propio'?'Codelco':'EECC'}</td>`:''}${showEmp?`<td class="l w">${cut(a.tipo==='Propio'?'Codelco':a.empresa,28)}</td>`:''}<td class="l w">${cut(gShort(a.g),30)}</td><td class="l w">${cut(a.rc||'—',30)}</td><td class="l w">${cut(a.tacc||'—',34)}</td><td>${N0(accDPTotal(a,cd))}</td><td class="l">${a.rep==='SI'?'<span class="pill warn">En reposo</span>':a.alta?'Alta '+fdate(a.alta):''}${ADMIN&&/confirmar/i.test(a.obs)?' <span class="pill warn" title="'+esc(a.obs)+'">Revisar</span>':''}</td><td class="acts"><button class="btn sm" onclick="event.stopPropagation();showAcc('${esc(a.id)}')">Ver</button>${ed?`<button class="btn sm" onclick="event.stopPropagation();editAcc('${esc(a.id)}')">Editar</button>`:''}</td></tr>`).join('')}</tbody></table></div><p class="small">Haz clic en un accidente para ver su detalle completo.</p>`;
 }
 const DIAS_S=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 function showAcc(id){
@@ -789,7 +818,7 @@ function showAcc(id){
   const e=v=>v==null||v===''?'':esc(v);
   openModal(`<div class="ad-head"><div><div class="ad-id">${esc(a.id)}</div><h3 style="margin:0">${esc(a.tacc||'Accidente')}</h3><div class="small">${DIAS_S[a.fecha.getDay()]} ${fdate(a.fecha)}${a.hora?' · '+esc(a.hora)+' h':''}</div></div><span class="pill ${a.cls==='STP'?'neu':'bad'}" style="font-size:13px;padding:4px 12px">${esc(a.cls)}</span></div>
   <div class="ad-sec">Cuándo</div><div class="ad-grid">${f('Calificación',e(a.cls))}${f('Fecha',fdate(a.fecha))}${f('Año',a.fecha.getFullYear())}${f('Mes',MESES[a.fecha.getMonth()])}${f('Día',DIAS_S[a.fecha.getDay()])}${f('Hora',e(a.hora))}${f('Turno',e(a.turno))}</div>
-  <div class="ad-sec">Quién y dónde</div><div class="ad-grid">${f('Personal',a.tipo==='Propio'?'Codelco (propio)':'Empresa contratista')}${f('Empresa',a.tipo==='Propio'?'Codelco':e(a.empresa))}${f('N° contrato',e(a.contrato))}${f('Cargo',e(a.cargo))}${f('CECO',e(a.ceco)+(info.nombre&&a.ceco?' · '+esc(info.nombre):''))}${f('Gerencia / Dirección / Superint.',e(x.g||info.gerencia))}${f('Área de instalación',e(x.a||info.area))}${f('Lugar / proceso',e(a.lugar))}${f('Instalación (mapa)',e(a.zona))}</div>
+  <div class="ad-sec">Quién y dónde</div><div class="ad-grid">${f('Personal',a.tipo==='Propio'?'Codelco (propio)':'Empresa contratista')}${f('Empresa',a.tipo==='Propio'?'Codelco':e(a.empresa))}${f('N° contrato',e(a.contrato))}${f('Cargo',e(a.cargo))}${f('CECO',e(a.ceco)+(info.nombre&&a.ceco?' · '+esc(info.nombre):''))}${f('Gerencia / Dirección / Superint.',e(x.g||info.gerencia))}${f('Área de instalación',e(x.a||info.area))}${f('Lugar / proceso',e(a.lugar))}${f('Instalación (mapa)',e(a.zona))}${a.esId&&evById(a.esId)?f('Evento significativo',`<a style="cursor:pointer;color:var(--brand-d)" onclick="showEv('${esc(a.esId)}')">${esc(a.esId)} · ver evento</a>`):''}</div>
   ${a.zona&&zByName(a.zona)?`<div style="max-width:520px">${miniMap(a.zona)}</div>`:''}
   <div class="ad-sec">Qué pasó</div><div class="ad-grid">${f('Tipo de accidente',e(a.tacc))}${f('Riesgo crítico',e(a.rc))}${f('Tipo de lesión',e(a.lesion))}${f('Parte del cuerpo',e(a.cuerpo))}</div>
   ${a.desc?`<div class="ad-desc">${esc(a.desc)}</div>`:''}
@@ -935,16 +964,17 @@ function contratosDe(emp){
   return [...m.entries()];
 }
 function fillContratos(){const e=document.querySelector('#accForm [name=empresa]');const dl=$('dlCon');if(!e||!dl)return;dl.innerHTML=contratosDe(e.value).map(([c,n])=>`<option value="${esc(c)}">${esc(n)}</option>`).join('')}
-const ACC_FIELDS=[['fecha','Fecha accidente','date'],['hora','Hora','text'],['turno','Turno','text'],['cls','Clasificación','sel:CTP,STP,FATAL,NAT'],['tipo','Tipo personal','sel:Propio,EECC'],['empresa','Empresa','emp'],['contrato','N° Contrato','con'],['ceco','CECO','ceco'],['cargo','Cargo','text'],['lugar','Lugar / Proceso','text'],['zona','Zona del mapa','zona'],['tacc','Tipo accidente','list'],['lesion','Tipo lesión','list'],['cuerpo','Parte del cuerpo','list'],['rc','Riesgo crítico','text'],['ini','Fecha inicio reposo','date'],['alta','Fecha alta','date'],['rep','En reposo','sel:NO,SI'],['dpm','DP total (manual)','number'],['dc','Días cargo','number'],['desc','Descripción','area'],['obs','Observación','area']];
-function editAcc(id){
+const ACC_FIELDS=[['fecha','Fecha accidente','date'],['hora','Hora','text'],['turno','Turno','text'],['cls','Clasificación','sel:CTP,STP,FATAL,NAT'],['tipo','Tipo personal','sel:Propio,EECC'],['empresa','Empresa','emp'],['contrato','N° Contrato','con'],['ceco','CECO','ceco'],['cargo','Cargo','text'],['lugar','Lugar / Proceso','text'],['zona','Zona del mapa','zona'],['esId','Evento significativo','es'],['tacc','Tipo accidente','list'],['lesion','Tipo lesión','list'],['cuerpo','Parte del cuerpo','list'],['rc','Riesgo crítico','text'],['ini','Fecha inicio reposo','date'],['alta','Fecha alta','date'],['rep','En reposo','sel:NO,SI'],['dpm','DP total (manual)','number'],['dc','Días cargo','number'],['desc','Descripción','area'],['obs','Observación','area']];
+function editAcc(id,pre){
   if(needWorkBase())return;
-  const a=id?DB.acc.find(x=>x.id===id):{fecha:today(),cls:'STP',tipo:'EECC',rep:'NO',dc:0};
+  const a=id?DB.acc.find(x=>x.id===id):Object.assign({fecha:today(),cls:'STP',tipo:'EECC',rep:'NO',dc:0},pre||{});
   const PH=/^\((por confirmar|por completar|sin información)\)$/i;
   const inp=([k,l,t])=>{const v0=a[k],ph=typeof v0==='string'&&PH.test(v0.trim())?v0.trim():'',v=ph?'':v0;
     if(t==='date')return `<label class="fld">${l}<input type="date" name="${k}" value="${v?iso(v):''}"></label>`;
     if(t.startsWith('sel:'))return `<label class="fld">${l}<select name="${k}">${t.slice(4).split(',').map(o=>`<option ${v===o?'selected':''}>${o}</option>`).join('')}</select></label>`;
     if(t==='list'){const L=LISTAS[k];const extra=v&&!L.includes(v);return `<label class="fld">${l}<select name="${k}"><option value="">— Seleccionar —</option>${L.map(o=>`<option ${v===o?'selected':''}>${esc(o)}</option>`).join('')}${extra?`<option selected value="${esc(v)}">${esc(String(v).slice(0,60))} (valor anterior)</option>`:''}</select></label>`}
     if(t==='zona')return zonaField(a);
+    if(t==='es')return esField(a);
     if(t==='emp')return `<label class="fld">${l}<input name="${k}" list="dlEmp" value="${esc(v||'')}" placeholder="${esc(ph?ph+' · escribe para buscar':'Escribe para buscar…')}" autocomplete="off" oninput="fillContratos()" onchange="fillContratos()"></label>`;
     if(t==='con')return `<label class="fld">${l}<input name="${k}" list="dlCon" value="${esc(v||'')}" autocomplete="off"></label>`;
     if(t==='ceco')return `<label class="fld">${l}<input name="${k}" list="dlCeco" value="${esc(v||'')}"></label>`;
@@ -967,6 +997,7 @@ function editAcc(id){
     o.ceco=normCeco(o.ceco);
     if(!o.fecha){alert('Falta la fecha del accidente');return}
     if(!id){const n=Math.max(0,...DB.acc.map(x=>parseInt(String(x.id).replace(/\D/g,''))||0))+1;o.id='A'+String(n).padStart(4,'0');DB.acc.push(o)}
+    linkAccEv(o);
     if(o.ceco&&!M.cm.has(o.ceco))toast('Ojo: el CECO '+o.ceco+' no está en el maestro; quedará como "Sin asignar".',5000);
     markDirty('Accidente '+(id?'actualizado':'registrado'));closeModal();};
 }
@@ -1060,7 +1091,7 @@ Chart.register(valLabels);
 function refAnual(y){const r={};(DB.ref||[]).filter(x=>x.y===y).forEach(x=>r[x.m]=x);return r}
 function serieAcum(y,uptoM,cd){const out=[];const s=dn(mkD(y,1,1));for(let m=1;m<=12;m++){if(m>uptoM){out.push(null);continue}const e=Math.min(dn(mkD(y,m,dim(y,m))),cd);out.push(indic(s,e,null,cd))}return out}
 const gShort=g=>String(g||'').replace('Dirección de Seguridad y Salud Ocupacional','Dir. SSO').replace('Mantenimiento y Proyectos','Mant. y Proyectos').replace(/Superintendencia de /g,'Sup. ').replace(/Gerencia de /g,'Ger. ').replace(/Gerencia /g,'Ger. ').replace(' División Ventanas','').replace('Sustentabilidad y Asuntos Externos','Sustentabilidad');
-let REP_OPT={proy:true,det:true,mode:'div',hhSin:true};
+let REP_OPT={proy:true,det:true,corp:true,mode:'div',hhSin:true};
 function renderInforme(){
   const DIV=REP_OPT.mode==='div';                 // informe para la División: sin HH ni detalle de accidentes
   const p=periods(),Y=indic(...p.year,null),sa=sinAcc(null),X=proyModel();
@@ -1089,14 +1120,16 @@ function renderInforme(){
     const hc=DIV?'':'<th>HH</th>',hv=x=>DIV?'':`<td class="n">${N0(x.hh)}</td>`;
     return `<table class="rtab"><thead><tr><th>Gerencia / Superintendencia</th>${hc}<th>CTP</th><th>STP</th><th>DP</th><th>TF</th><th>TG</th><th>TFT</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.g)}</td>${hv(r.x)}<td class="n">${r.x.ctp+r.x.fat}</td><td class="n">${r.x.stp}</td><td class="n">${N0(r.x.dp)}</td><td class="n">${N2(r.x.tf)}</td><td class="n">${N1(r.x.tg)}</td><td class="n">${N2(r.x.tft)}</td></tr>`).join('')}<tr class="t"><td>División Ventanas</td>${hv(Y)}<td class="n">${Y.ctp+Y.fat}</td><td class="n">${Y.stp}</td><td class="n">${N0(Y.dp)}</td><td class="n">${N2(Y.tf)}</td><td class="n">${N1(Y.tg)}</td><td class="n">${N2(Y.tft)}</td></tr></tbody></table>`})();
   // últimos 3 accidentes (primera página): sin nombres, empresas ni descripciones
+  const EVY=evYear(p.y,p.cd),EVL=EVY.filter(e=>e.tipo===ES_TIPOS[0]).length,EVW=EVY.filter(e=>{const d=dn(e.fecha);return d>=p.week[0]&&d<=p.week[1]}).length;
+  const NACC=EVY.length?3:8;
   const last3=accY.slice().reverse().slice(0,3);
   const ult=`<div class="ult"><div class="ult-t">Últimos accidentes ${p.y}</div>${last3.length?last3.map(a=>`<div class="ult-r"><div class="ult-d"><b>${pad(a.fecha.getDate())}</b><span>${MES3[a.fecha.getMonth()]}</span></div><span class="rp ${a.cls==='STP'?'neu':'bad'}">${a.cls}</span><div class="ult-x"><b>${esc(a.tacc||'Tipo de accidente por informar')}</b><span><b class="ult-e">${a.tipo==='Propio'?'Codelco':esc(a.empresa&&!/confirmar|completar/i.test(a.empresa)?a.empresa:'Empresa contratista')}</b> · ${esc(gShort(a.g))}${a.cuerpo&&a.cuerpo.length<25?' · '+esc(a.cuerpo):''}</span></div></div>`).join(''):'<div class="small">Sin accidentes en el año</div>'}
-    <div class="ult-w">Semana ${semTxt}: <b>${W.ctp+W.fat} CTP</b> · <b>${W.stp} STP</b></div></div>`;
+    <div class="ult-w">Semana ${semTxt}: <b>${W.ctp+W.fat} CTP</b> · <b>${W.stp} STP</b>${EVW?` · <b>${EVW} ES</b>`:''}</div></div>`;
   const pct=v=>Math.round(v*100);
   const showHHsin=!DIV||REP_OPT.hhSin;
   let h=`<div class="row no-print" style="margin-bottom:14px;justify-content:space-between;gap:14px;align-items:center">
     <div class="row" style="gap:14px"><div class="seg"><button class="${DIV?'on':''}" onclick="REP_OPT.mode='div';renderInforme()">Informe para la División</button><button class="${DIV?'':'on'}" onclick="REP_OPT.mode='ger';renderInforme()">Informe de gestión (con HH)</button></div>
-    <label><input type="checkbox" ${REP_OPT.det?'checked':''} onchange="REP_OPT.det=this.checked;renderInforme()"> Página de detalle</label><label><input type="checkbox" ${REP_OPT.proy?'checked':''} onchange="REP_OPT.proy=this.checked;renderInforme()"> Página de proyecciones</label>
+    <label><input type="checkbox" ${REP_OPT.det?'checked':''} onchange="REP_OPT.det=this.checked;renderInforme()"> Página de detalle</label><label><input type="checkbox" ${REP_OPT.proy?'checked':''} onchange="REP_OPT.proy=this.checked;renderInforme()"> Página de proyecciones</label>${corpSnap()?`<label><input type="checkbox" ${REP_OPT.corp?'checked':''} onchange="REP_OPT.corp=this.checked;renderInforme()"> Página corporativa</label>`:''}
     ${DIV?`<label><input type="checkbox" ${REP_OPT.hhSin?'checked':''} onchange="REP_OPT.hhSin=this.checked;renderInforme()"> Mostrar "horas sin accidentes CTP"</label>`:''}</div>
     <button class="btn pri" onclick="window.print()">⬇ Generar PDF</button></div>
   <p class="small no-print" style="margin:-6px 0 12px">${DIV?'Para enviar a toda la División: sin HH trabajadas, sin detalle de accidentes, sin nombres, empresas ni descripciones.':'Para gerencias: incluye HH trabajadas y el detalle de los últimos 8 accidentes (sin nombres, empresas ni descripciones).'} Semana: ${semTxt}.</p>
@@ -1111,6 +1144,7 @@ function renderInforme(){
       <div class="cnt">
         <div class="cbox"><div class="num">${Y.ctp+Y.fat}</div><div><b>accidentes CTP${Y.fat?' / fatales':''}</b><br>durante el año ${p.y}</div></div>
         <div class="cbox"><div class="num">${Y.stp}</div><div><b>accidentes STP</b><br>durante el año ${p.y}</div></div>
+        <div class="cbox es"><div class="num">${EVY.length}</div><div><b>eventos significativos</b><br>${EVY.length?(EVL?EVL+' con lesiones':'sin lesiones'):'durante el año '+p.y}</div></div>
         <div class="pcu"><div class="pcu-t">Parte del cuerpo afectada</div>${pcRows.map(([k,v])=>`<div class="pcu-r"><span>${k}</span><b>${v}</b></div>`).join('')||'<div class="small">Sin accidentes</div>'}</div>
       </div>
       <div class="tiles">
@@ -1128,10 +1162,11 @@ function renderInforme(){
    <div class="sl-body g-det">
     <div class="col" style="grid-column:1/-1"><div class="st">Indicadores por periodo · Codelco y Colaboradores (EECC)</div>${perT}</div>
     <div class="col"><div class="st">Indicadores ${p.y} por Gerencia / Superintendencia</div>${gerT}${DIV?'':`<div class="st">Comentarios</div><textarea class="rcom" placeholder="Escribe aquí los comentarios del informe…" oninput="store.set('dven_coment_${REP_OPT.mode}',this.value)">${esc(com)}</textarea>`}</div>
-    <div class="col">${DIV?`<div class="st">Comentarios</div><textarea class="rcom big" placeholder="Escribe aquí los comentarios del informe…" oninput="store.set('dven_coment_${REP_OPT.mode}',this.value)">${esc(com)}</textarea>`:`<div class="st">Accidentes ${p.y}${accY.length>8?' (últimos 8)':''}</div>
-      <table class="rtab"><thead><tr><th>Fecha</th><th>Clasif.</th><th>Empresa</th><th>Gerencia</th><th>Tipo de accidente</th><th>Parte del cuerpo</th><th>DP</th></tr></thead><tbody>${accRows(accY.slice().reverse().slice(0,8))||'<tr><td colspan="7">Sin accidentes</td></tr>'}</tbody></table>`}
+    <div class="col">${DIV?`${evRepTable(p.y,p.cd,5)}<div class="st">Comentarios</div><textarea class="rcom ${EVY.length?'':'big'}" placeholder="Escribe aquí los comentarios del informe…" oninput="store.set('dven_coment_${REP_OPT.mode}',this.value)">${esc(com)}</textarea>`:`<div class="st">Accidentes ${p.y}${accY.length>NACC?' (últimos '+NACC+')':''}</div>
+      <table class="rtab"><thead><tr><th>Fecha</th><th>Clasif.</th><th>Empresa</th><th>Gerencia</th><th>Tipo de accidente</th><th>Parte del cuerpo</th><th>DP</th></tr></thead><tbody>${accRows(accY.slice().reverse().slice(0,NACC))||'<tr><td colspan="7">Sin accidentes</td></tr>'}</tbody></table>${evRepTable(p.y,p.cd,3)}`}
     </div>
    </div>${foot(pg)}</section>`}
+  if(REP_OPT.corp&&corpSnap()){pg++;h+=corpSlide(head,foot,pg,DIV)}
   if(REP_OPT.proy){pg++;h+=`<section class="slide">${head('Proyección de accidentabilidad','Escenarios al cierre de '+p.y+(DIV?'':' · '+N0(X.hhRem)+' HH restantes del año'))}
    <div class="sl-body g-proy">
     <div class="col">
@@ -1159,6 +1194,7 @@ function renderInforme(){
   const ln=(l,d,c,x)=>line(l,d,c,Object.assign({pointRadius:3,borderWidth:2.5,spanGaps:true},x||{}));
   mkChart('rTFT',{type:'line',data:{labels:labs,datasets:[ln(String(p.y-1),prev.map(r=>r&&r.tft!=null?r.tft:null),RC.gray,{labelBelow:true}),ln(String(p.y),cur.map(x=>x?x.tft:null),RC.main)]},options:baseOpt(N2)});
   mkChart('rTG',{type:'line',data:{labels:labs,datasets:[ln(String(p.y-1),prev.map(r=>r&&r.tg!=null?r.tg:null),RC.gray,{labelBelow:true}),ln(String(p.y),cur.map(x=>x?x.tg:null),RC.main)]},options:baseOpt(v=>N0(v))});
+  if(REP_OPT.corp)corpSlideCharts();
   if(REP_OPT.proy){
     const real=[],a0=[],aH=[];for(let m=1;m<=12;m++){const e=dn(mkD(p.y,m,dim(p.y,m)));
       if(m<p.m){real.push(cur[m-1].tf);a0.push(null);aH.push(null)}else if(m===p.m){real.push(Y.tf);a0.push(Y.tf);aH.push(Y.tf)}
@@ -1217,12 +1253,15 @@ function mapFilterOk(a){if(MAPST.tipo&&a.tipo!==MAPST.tipo)return false;
 function mapStats(){
   const S=selRange(),cd=dn(CUT);
   const list=M.acc.filter(a=>a.dn>=S.s&&a.dn<=S.e&&a.dn<=cd&&mapFilterOk(a));
-  const by=new Map();zonas().forEach(z=>by.set(z.id,{z,list:[],n:0,ctp:0,stp:0,dp:0}));
+  const by=new Map();zonas().forEach(z=>by.set(z.id,{z,list:[],n:0,ctp:0,stp:0,dp:0,evs:[],ne:0}));
+  (DB.ev||[]).forEach(e=>{if(!e.fecha)return;const d=dn(e.fecha);if(d<S.s||d>S.e||d>cd)return;const z=e.zona?zByName(e.zona):null;const s=z&&by.get(z.id);if(s){s.evs.push(e);s.ne++}});
   const sin=[];
   list.forEach(a=>{const z=a.zona?zByName(a.zona):null;const s=z&&by.get(z.id);if(!s){sin.push(a);return}s.list.push(a);s.n++;if(a.cls==='STP')s.stp++;else s.ctp++;s.dp+=accDPTotal(a,cd)});
   return{S,list,by,sin,cd};
 }
-const mval=s=>MAPST.metric==='dp'?s.dp:s.n;
+const mval=s=>MAPST.metric==='dp'?s.dp:MAPST.metric==='ev'?s.ne:MAPST.metric==='all'?s.n+s.ne:s.n;
+const MLBL={n:['accidente','accidentes'],dp:['día perdido','días perdidos'],ev:['evento significativo','eventos significativos'],all:['accidente o evento','accidentes y eventos']};
+const mlbl=(v)=>{const l=MLBL[MAPST.metric]||MLBL.n;return v===1?l[0]:l[1]};
 
 function renderMapa(){
   const st=mapStats();const E=MAPST.edit&&ADMIN&&SRC.kind!=='pub';if(!E)MAPST.edit=false;
@@ -1234,13 +1273,13 @@ function renderMapa(){
    ${E?`<button class="btn pri" onclick="MAPST.edit=false;MAPST.draw=null;MAPST.ez=null;renderMapa()">✓ Terminar edición</button>`:`<div class="row" style="gap:8px">
     <label class="fld">Personal<select onchange="MAPST.tipo=this.value;renderMapa()"><option value="">Todos</option><option value="Propio" ${MAPST.tipo==='Propio'?'selected':''}>Codelco</option><option value="EECC" ${MAPST.tipo==='EECC'?'selected':''}>EECC</option></select></label>
     <label class="fld">Clasificación<select onchange="MAPST.cls=this.value;renderMapa()">${[['CTPSTP','CTP + STP + Fatal'],['CTP','CTP + Fatal'],['STP','STP']].map(([v,l])=>`<option value="${v}" ${MAPST.cls===v?'selected':''}>${l}</option>`).join('')}</select></label>
-    <label class="fld">Color de instalaciones<select onchange="MAPST.metric=this.value;renderMapa()"><option value="n">N° de accidentes</option><option value="dp" ${MAPST.metric==='dp'?'selected':''}>Días perdidos</option></select></label>
+    <label class="fld">Color de instalaciones<select onchange="MAPST.metric=this.value;renderMapa()"><option value="n">N° de accidentes</option><option value="dp" ${MAPST.metric==='dp'?'selected':''}>Días perdidos</option><option value="ev" ${MAPST.metric==='ev'?'selected':''}>Eventos significativos</option><option value="all" ${MAPST.metric==='all'?'selected':''}>Accidentes + eventos</option></select></label>
     <button class="btn admin-only" style="align-self:flex-end" onclick="mapEdit()">✏ Editar instalaciones</button></div>`}
   </div>
   <p class="sub" style="margin:8px 0 0">${E?'Dibuja y ajusta las instalaciones sobre el plano. Los cambios quedan en la hoja "Zonas" de la base al guardarla.':`${esc(st.S.label)} · ${N0(st.list.length)} accidentes · ${N0(st.list.length-st.sin.length)} con instalación asignada `}</p>
   <div class="maplay mt"><div>
    <div class="mapwrap${E&&MAPST.draw?' drawing':''}" id="mapW"><div class="mapz">${mapImg(view)}${view==='plano'?mapLayer(st,mx,E):''}</div>${ZBTNS}<div class="maptip" id="mapTip"></div></div>
-   ${view==='plano'&&!E?`<div class="row mlegend"><span class="small">${MAPST.metric==='dp'?'Días perdidos':'Accidentes'} por instalación</span><span class="small">0</span><i style="background:linear-gradient(90deg,${MRAMP.join(',')})"></i><span class="small">${N0(mx)}</span>
+   ${view==='plano'&&!E?`<div class="row mlegend"><span class="small">${cap(mlbl(2))} por instalación</span><span class="small">0</span><i style="background:linear-gradient(90deg,${MRAMP.join(',')})"></i><span class="small">${N0(mx)}</span>
      <span class="small" style="margin-left:14px"><label><input type="checkbox" ${MAPST.labels?'checked':''} onchange="MAPST.labels=this.checked;renderMapa()"> Todos los nombres</label></span>
      <span class="small" style="margin-left:10px">Pasa el mouse sobre una instalación para ver sus datos · clic para el detalle</span></div>`:''}
    ${view==='aerea'?'<p class="small">Vista aérea de referencia. Las instalaciones y los accidentes se muestran en el plano.</p>':''}
@@ -1257,7 +1296,7 @@ function mapLayer(st,mx,E){
     const c=centroid(z.pts),on=E?MAPST.ez===z.id:MAPST.sel===z.id,v=E?0:mval(s);
     if(!E&&MAPST.labels&&!on)over+=`<div class="mz-lab" style="left:${c[0]}%;top:${c[1]}%">${esc(z.nombre)}<b>${N0(v)}</b></div>`;
     else over+=`<div class="mz-pin ${v>0?'on':''} ${on?'sel':''}" data-zp="${z.id}" style="left:${c[0]}%;top:${c[1]}%"></div>`;
-    if(on)over+=`<div class="mz-call ${c[1]<14?'below':''}" style="left:${c[0]}%;top:${c[1]}%"><b>${esc(z.nombre)}</b>${E?'':`<span>${N0(v)} ${MAPST.metric==='dp'?'días perdidos':v===1?'accidente':'accidentes'}</span>`}</div>`});
+    if(on)over+=`<div class="mz-call ${c[1]<14?'below':''}" style="left:${c[0]}%;top:${c[1]}%"><b>${esc(z.nombre)}</b>${E?'':`<span>${N0(v)} ${mlbl(v)}</span>`}</div>`});
   if(E&&MAPST.draw){const p=MAPST.draw.pts;if(p.length)svg+=`<polyline points="${ptsStr(p)}" class="mdraw"/>`;
     p.forEach((q,i)=>over+=`<div class="mh ${i===0?'first':''}" data-dh="${i}" style="left:${q[0]}%;top:${q[1]}%" title="${i===0&&p.length>2?'Clic aquí para cerrar la instalación':''}"></div>`)}
   else if(E&&MAPST.ez){const z=zonas().find(x=>x.id===MAPST.ez);if(z){z.pts.forEach((q,i)=>{const n=z.pts[(i+1)%z.pts.length];over+=`<div class="mh mid" data-mid="${i}" style="left:${(q[0]+n[0])/2}%;top:${(q[1]+n[1])/2}%" title="Arrastra para agregar un vértice"></div>`});
@@ -1268,11 +1307,11 @@ function mapTipAt(w,e,html){const t=w&&w.querySelector('.maptip');if(!t)return;i
 function bindMap(st){
   const w=$('mapW');if(!w)return;
   w.querySelectorAll('polygon[data-z]').forEach(p=>{const s=st.by.get(p.dataset.z);
-    p.addEventListener('mousemove',e=>mapTipAt(w,e,`<b>${esc(s.z.nombre)}</b><br>${N0(s.n)} accidente${s.n===1?'':'s'} · CTP ${s.ctp} · STP ${s.stp}<br>${N0(s.dp)} días perdidos`));
+    p.addEventListener('mousemove',e=>mapTipAt(w,e,`<b>${esc(s.z.nombre)}</b><br>${N0(s.n)} accidente${s.n===1?'':'s'} · CTP ${s.ctp} · STP ${s.stp}<br>${N0(s.dp)} días perdidos${s.ne?`<br>${s.ne} evento${s.ne>1?'s':''} significativo${s.ne>1?'s':''}`:''}`));
     p.addEventListener('mouseleave',()=>mapTipAt(w));
     p.addEventListener('click',e=>{e.stopPropagation();MAPST.sel=MAPST.sel===s.z.id?null:s.z.id;renderMapa()})});
   w.querySelectorAll('.mz-pin[data-zp]').forEach(d=>{const s=st.by.get(d.dataset.zp);if(!s)return;
-    d.addEventListener('mousemove',e=>mapTipAt(w,e,`<b>${esc(s.z.nombre)}</b><br>${N0(s.n)} accidente${s.n===1?'':'s'} · CTP ${s.ctp} · STP ${s.stp}`));d.addEventListener('mouseleave',()=>mapTipAt(w));
+    d.addEventListener('mousemove',e=>mapTipAt(w,e,`<b>${esc(s.z.nombre)}</b><br>${N0(s.n)} accidente${s.n===1?'':'s'} · CTP ${s.ctp} · STP ${s.stp}${s.ne?` · ES ${s.ne}`:''}`));d.addEventListener('mouseleave',()=>mapTipAt(w));
     d.addEventListener('click',e=>{e.stopPropagation();MAPST.sel=MAPST.sel===s.z.id?null:s.z.id;renderMapa()})});
   w.querySelectorAll('.mdot[data-a]').forEach(d=>{const a=M.acc.find(x=>x.id===d.dataset.a);if(!a)return;
     d.addEventListener('mousemove',e=>mapTipAt(w,e,`<b>${fdate(a.fecha)} · ${esc(a.cls)}</b><br>${esc(a.tacc||'Accidente')}${a.zona?'<br>'+esc(a.zona):''}`));
@@ -1288,15 +1327,16 @@ function mapSidePanel(st,mx){
     const pr=s.list.filter(a=>a.tipo==='Propio').length;
     return `<div class="row" style="justify-content:space-between;align-items:flex-start"><div><div class="small">Instalación</div><h3 style="margin:0">${esc(s.z.nombre)}</h3></div><div class="row" style="gap:6px"><button class="btn sm" onclick="zoomZone('${s.z.id}')" title="Acercar el mapa a esta zona">🔍 Acercar</button><button class="btn sm" onclick="MAPST.sel=null;renderMapa()">✕</button></div></div>
     <p class="small" style="margin:4px 0 10px">${esc(st.S.label)}</p>
-    <div class="mkpis"><div><b>${N0(s.n)}</b><span>Accidentes</span></div><div><b>${N0(s.ctp)}</b><span>CTP + Fatal</span></div><div><b>${N0(s.stp)}</b><span>STP</span></div><div><b>${N0(s.dp)}</b><span>Días perdidos</span></div></div>
+    <div class="mkpis"><div><b>${N0(s.n)}</b><span>Accidentes</span></div><div><b>${N0(s.ctp)}</b><span>CTP + Fatal</span></div><div><b>${N0(s.stp)}</b><span>STP</span></div><div><b>${N0(s.dp)}</b><span>Días perdidos</span></div><div><b>${N0(s.ne)}</b><span>Eventos significativos</span></div></div>
     <p class="small" style="margin:10px 0">${s.n?`Codelco ${pr} · EECC ${s.n-pr}<br>`:''}Último accidente en la instalación: <b>${last?fdate(last.fecha)+' ('+N0(cd-last.dn)+' días)':'sin registro'}</b><br>Último CTP en la instalación: <b>${lastC?fdate(lastC.fecha)+' ('+N0(cd-lastC.dn)+' días)':'sin registro'}</b></p>
     ${top.length?`<div class="ad-sec">Tipos de accidente</div>${top.map(([k,v])=>`<div class="zr nohov"><span class="w">${esc(k)}</span><i class="bar" style="width:${v/top[0][1]*100}%"></i><b>${v}</b></div>`).join('')}`:''}
+    ${s.evs.length?`<div class="ad-sec">Eventos significativos del periodo</div>${s.evs.slice().sort((a,b)=>b.fecha-a.fecha).map(e=>`<div class="zacc" onclick="showEv('${esc(e.id)}')"><span class="pill" style="background:${ES_COL[e.tipo]||'#999'};color:#fff">ES</span><div><b>${fdate(e.fecha)}</b> · ${esShort(e.tipo)}<br><span class="small">${esc(String(e.titulo||'—').slice(0,60))}</span></div></div>`).join('')}`:''}
     <div class="ad-sec">Accidentes del periodo</div>${s.list.length?s.list.slice().reverse().map(a=>`<div class="zacc" onclick="showAcc('${esc(a.id)}')"><span class="pill ${a.cls==='STP'?'neu':'bad'}">${esc(a.cls)}</span><div><b>${fdate(a.fecha)}</b> · ${a.tipo==='Propio'?'Codelco':esc(a.empresa||'EECC')}<br><span class="small">${esc(a.tacc||'—')}</span></div></div>`).join(''):'<p class="small">Sin accidentes en el periodo.</p>'}`;
   }
   const rows=[...st.by.values()].sort((a,b)=>mval(b)-mval(a)||a.z.nombre.localeCompare(b.z.nombre,'es'));
   const conAcc=rows.filter(s=>mval(s)>0),TOP=8;
   const row=s=>{const v=mval(s);return `<div class="zr" data-q="${esc(norm(s.z.nombre))}" onclick="MAPST.view='plano';MAPST.sel='${s.z.id}';renderMapa()"><span class="w">${esc(s.z.nombre)}</span><i class="bar" style="width:${mx?v/mx*100:0}%;background:${v?rampColor(mx?v/mx:0):'transparent'}"></i><b>${v?N0(v):'<span class="muted">0</span>'}</b></div>`};
-  const lbl=MAPST.metric==='dp'?'días perdidos':'accidentes';
+  const lbl=mlbl(2);
   return `<h3>Instalaciones con más ${lbl}</h3><p class="small" style="margin:2px 0 8px">${conAcc.length} de ${rows.length} instalaciones con ${lbl} en el periodo. Haz clic en una para ver su detalle.</p>
   ${MAPST.all?`<input class="zsearch" placeholder="Buscar instalación…" oninput="zFilter(this,'zAll')"><div class="zscroll" id="zAll">${rows.map(row).join('')}</div>
     <button class="btn sm mt" onclick="MAPST.all=false;renderMapa()">Mostrar solo las principales</button>`
@@ -1399,7 +1439,7 @@ function zonaField(a){
    <button type="button" class="btn sm" onclick="togglePick()">🗺 Elegir en el plano</button><span class="small" id="pickInfo"></span></div>
    <input type="hidden" name="mx" value="${a.mx??''}"><input type="hidden" name="my" value="${a.my??''}"><div id="accPick" class="hidden"></div>${zs.length?'':'<span class="small">Aún no hay instalaciones dibujadas en el mapa.</span>'}</div>`}
 function togglePick(){
-  const box=$('accPick'),f=$('accForm');if(!box||!f)return;
+  const box=$('accPick'),f=$('accForm')||$('evForm');if(!box||!f)return;
   if(!box.classList.contains('hidden')){box.classList.add('hidden');return}
   const sel=$('accZona');
   box.innerHTML=miniMap(sel.value,'pickW')+'<p class="small" style="margin:6px 0 0">Haz clic sobre la instalación donde ocurrió el accidente para seleccionarla.</p>';
@@ -1530,6 +1570,327 @@ function renderSim(){
 }
 function simAdd(cls,dp){const X=simModel();const k=X.months.length?X.months[0].k:X.k0;SIM.acc.push({k,tipo:'EECC',cls,dp:cls==='CTP'?dp:0,dc:cls==='FATAL'?DC_FATAL:0});renderSim()}
 function simCls(i,c,dp){const a=SIM.acc[i];a.cls=c;if(c==='CTP'&&!a.dp)a.dp=dp;if(c!=='CTP')a.dp=0;if(c==='FATAL'&&!(a.dc>0))a.dc=DC_FATAL;if(c!=='FATAL'&&a.dc===DC_FATAL)a.dc=0;renderSim()}
+
+/* ================= INDICADORES CORPORATIVOS (Codelco) =================
+   Archivo semanal "Tasa_Frecuencia_Global_Corporativa_….xlsx": se leen solo las hojas ind_frec, ind_grav,
+   ind_frec_tot y total_acc. Cada carga es una foto del acumulado del año al corte (miércoles); la semana
+   corporativa va de jueves a miércoles. Se guarda en la hoja "Corporativo" de la base. */
+const CORP_NAMES={DRT:'Radomiro Tomic',DCH:'Chuquicamata',DMH:'Ministro Hales',DGM:'Gabriela Mistral',DSAL:'Salvador',DAN:'Andina',DVEN:'Ventanas',DET:'El Teniente',VP:'VP Proyectos',CASAMATRIZ:'Casa Matriz',CODELCO:'Codelco',DPRO:'DPRO',CM:'Casa Matriz'};
+const corpKey=n=>{const k=String(n||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z]/g,'');
+  const alias={SALVADOR:'DSAL',DSA:'DSAL',CHUQUICAMATA:'DCH',ELTENIENTE:'DET',TENIENTE:'DET',ANDINA:'DAN',VENTANAS:'DVEN',DVE:'DVEN',MINISTROHALES:'DMH',GABRIELAMISTRAL:'DGM',RADOMIROTOMIC:'DRT',VICEPRESIDENCIADEPROYECTOS:'VP',VPROYECTOS:'VP',VDEPROYECTOS:'VP'};return alias[k]||k};
+const corpName=k=>CORP_NAMES[k]||k;
+const wedOnOrBefore=d=>{let x=dn(d);while(fromDn(x).getDay()!==3)x--;return fromDn(x)};
+function corpList(){return (DB.corp||[]).slice().sort((a,b)=>b.corte-a.corte)}
+let CORP_SEL=null;
+function corpSnap(){const l=corpList();if(!l.length)return null;
+  if(CORP_SEL){const s=l.find(c=>iso(c.corte)===CORP_SEL);if(s)return s}
+  return l.find(c=>dn(c.corte)<=dn(CUT))||l[l.length-1]}
+const corpWeekTxt=c=>{const d=c.desde||fromDn(dn(c.corte)-6);return `${DIAS[d.getDay()]} ${fdate(d)} al ${DIAS[c.corte.getDay()]} ${fdate(c.corte)}`};
+
+/* ---------- lectura del archivo corporativo ---------- */
+function parseCorp(buf,fname){
+  const wb=XLSX.read(buf,{type:'array'});
+  const sh=n=>{const k=wb.SheetNames.find(s=>norm(s).replace(/\s/g,'')===n);return k?XLSX.utils.sheet_to_json(wb.Sheets[k],{header:1,defval:null,raw:true}):null};
+  const need=['ind_frec','ind_grav','ind_frec_tot','total_acc'],miss=need.filter(n=>!sh(n));
+  if(miss.length)throw new Error('Al archivo le faltan las hojas: '+miss.join(', '));
+  const table=n=>{const a=sh(n);const hr=a.findIndex(r=>r&&r.some(c=>/^(division|detalle)$/i.test(norm(c))));if(hr<0)throw new Error('Hoja '+n+': no encontré el encabezado "División"');
+    const H=a[hr].map(norm);return{H,rows:a.slice(hr+1).filter(r=>r&&r[0]!=null&&String(r[0]).trim()!=='')}};
+  const col=(H,re,def)=>{const i=H.findIndex(h=>re.test(h));return i>=0?i:def};
+  const D=new Map();const get=k=>{if(!D.has(k))D.set(k,{key:k,div:corpName(k)});return D.get(k)};
+  let maxTF=null,maxTG=null;
+  {const {H,rows}=table('ind_frec');const cT=col(H,/^tfg?$/,2),cC=col(H,/^actp/,1),cS=col(H,/^astp/,3),cM=col(H,/^max/,4);
+    rows.forEach(r=>{const d=get(corpKey(r[0]));d.tf=numOrNull(r[cT]);d.actp=numOrNull(r[cC]);d.astp=numOrNull(r[cS]);if(maxTF==null)maxTF=numOrNull(r[cM])})}
+  {const {H,rows}=table('ind_grav');const cT=col(H,/^tg/,1),cM=col(H,/^max/,2),cD=col(H,/^dias/,3),cH=col(H,/^hp/,5);
+    rows.forEach(r=>{const d=get(corpKey(r[0]));d.tg=numOrNull(r[cT]);d.dp=numOrNull(r[cD]);d.hp=numOrNull(r[cH]);if(maxTG==null)maxTG=numOrNull(r[cM])})}
+  {const {H,rows}=table('ind_frec_tot');const cT=col(H,/^tft/,1),cA=col(H,/^accidentes/,2),cH=col(H,/^hp/,3);
+    rows.forEach(r=>{const d=get(corpKey(r[0]));d.tft=numOrNull(r[cT]);d.acc=numOrNull(r[cA]);if(d.hp==null)d.hp=numOrNull(r[cH])})}
+  const tot={};{const {H,rows}=table('total_acc');const cP=col(H,/^propio/,1),cC=col(H,/^ctta|^contrat/,2),cG=col(H,/^global|^total/,3);
+    rows.forEach(r=>{const k=norm(r[0]);const t=k==='hh'?'hh':k==='ctp'?'ctp':k==='stp'?'stp':null;if(!t)return;tot[t+'P']=num(r[cP]);tot[t+'C']=num(r[cC]);tot[t+'G']=num(r[cG])})}
+  if(tot.hhG==null)throw new Error('Hoja total_acc: no encontré las filas HH, CTP y STP');
+  const fd=detectDate(fname);const corte=wedOnOrBefore(fromDn(dn(fd||today())-5));
+  return{divs:[...D.values()],tot,maxTF:maxTF??0.55,maxTG:maxTG??40,corte,fname};
+}
+function detectDate(s){const m=String(s||'').match(/(\d{1,2})[-_.](\d{1,2})[-_.](20\d{2})/);return m?mkD(+m[3],+m[2],+m[1]):null}
+
+/* ---------- página de carga (administrador) ---------- */
+let PEND_C=null;
+function renderCargaC(){
+  $('p-carga-corp').innerHTML=`<div class="card"><h3>Carga semanal · Indicadores corporativos</h3><p class="sub">Archivo <b>Tasa_Frecuencia_Global_Corporativa_….xlsx</b> que llega los lunes. Se leen solo las hojas <b>ind_frec</b>, <b>ind_grav</b>, <b>ind_frec_tot</b> y <b>total_acc</b> (acumulado del año al corte). La semana corporativa va de <b>jueves a miércoles</b>; si ya existe una carga con el mismo corte, se reemplaza.</p>
+  <div class="drop" id="dropC">Arrastra aquí el archivo corporativo o haz clic para buscarlo</div><div id="prevC"></div></div>
+  <div class="card mt"><h3>Semanas cargadas</h3>${corpList().length?`<div class="tw"><table><thead><tr><th class="l">Semana corporativa</th><th>TF Codelco</th><th>TG Codelco</th><th>TFT Codelco</th><th>TF Ventanas</th><th class="l">Fuente</th><th></th></tr></thead><tbody>${corpList().map(c=>{const co=c.divs.find(d=>d.key==='CODELCO')||{},ve=c.divs.find(d=>d.key==='DVEN')||{};return `<tr><td class="l">${corpWeekTxt(c)}</td><td>${N2(co.tf)}</td><td>${N1(co.tg)}</td><td>${N2(co.tft)}</td><td>${N2(ve.tf)}</td><td class="l small">${esc(c.fuente||'')}</td><td><button class="btn sm" onclick="delCorp('${iso(c.corte)}')">Eliminar</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="small">Aún no hay semanas cargadas.</p>'}</div>`;
+  dropZone('dropC',async f=>{try{PEND_C=parseCorp(await readFile(f),f.name);prevCorp()}catch(e){$('prevC').innerHTML=`<div class="msg bad">${esc(e.message)}</div>`}});
+}
+function suggestDesde(corte){const prev=(DB.corp||[]).filter(c=>dn(c.corte)<dn(corte)).sort((a,b)=>b.corte-a.corte)[0];
+  const gap=prev?dn(corte)-dn(prev.corte):99;return gap>=3&&gap<=12?fromDn(dn(prev.corte)+1):fromDn(dn(corte)-6)}
+const dname=d=>DIAS[d.getDay()];
+function prevCorp(){const x=PEND_C;if(!x.desde)x.desde=suggestDesde(x.corte);const desde=x.desde;
+  const exists=(DB.corp||[]).some(c=>iso(c.corte)===iso(x.corte));
+  const len=dn(x.corte)-dn(desde)+1,prev=(DB.corp||[]).filter(c=>dn(c.corte)<dn(x.corte)&&iso(c.corte)!==iso(x.corte)).sort((a,b)=>b.corte-a.corte)[0];
+  const gap=prev?dn(desde)-dn(prev.corte)-1:0,bad=len<1;
+  const warns=[bad?'<span class="pill bad">"Desde" es posterior a "Hasta"</span>':'',!bad&&len!==7?`<span class="pill warn">Semana de ${len} días (ajustada por festivo)</span>`:'',
+    prev&&gap>0&&gap<20?`<span class="pill warn">Quedan ${gap} día(s) sin cubrir: la semana anterior terminó el ${fdate(prev.corte)}</span>`:'',prev&&gap<0?`<span class="pill warn">Se repiten ${-gap} día(s) con la semana anterior (terminó el ${fdate(prev.corte)})</span>`:''].filter(Boolean).join(' ');
+  $('prevC').innerHTML=`<div class="row mt" style="align-items:flex-end;gap:12px;flex-wrap:wrap"><label class="fld">Desde<input type="date" id="corpFrom" value="${iso(desde)}" onchange="const d=pDate(this.value);if(d){PEND_C.desde=d;prevCorp()}"></label>
+   <label class="fld">Hasta (corte)<input type="date" id="corpCut" value="${iso(x.corte)}" onchange="const d=pDate(this.value);if(d){PEND_C.corte=d;PEND_C.desde=suggestDesde(d);prevCorp()}"></label>
+   <div class="small" style="padding-bottom:8px">Semana corporativa: <b>${bad?'—':dname(desde)+' '+fdate(desde)+' al '+dname(x.corte)+' '+fdate(x.corte)}</b> · acumulado ${x.corte.getFullYear()} ${exists?'<span class="pill warn">Reemplaza la carga existente</span>':'<span class="pill ok">Nueva</span>'}</div>
+   <button class="btn pri" onclick="commitCorp()" ${bad?'disabled':''}>Incorporar a la base</button></div>
+   ${warns?`<div class="row" style="gap:6px;margin-top:8px">${warns}</div>`:''}
+   <p class="small">Normalmente la semana va de jueves a miércoles. Si un festivo la adelanta o la atrasa, corrige "Desde" y "Hasta" con las fechas reales del informe corporativo; la semana siguiente partirá automáticamente al día siguiente de este corte.</div>
+  <div class="msg ok">${esc(x.fname)} · ${x.divs.length} divisiones · Máximo tolerable TF ${N2(x.maxTF)} · TG ${N0(x.maxTG)}</div>
+  <div class="tw mt"><table><thead><tr><th class="l">División</th><th>CTP</th><th>STP</th><th>TF</th><th>Días perdidos</th><th>TG</th><th>Acc. totales</th><th>TFT</th><th>HH (millones)</th></tr></thead><tbody>
+  ${x.divs.map(d=>`<tr class="${d.key==='CODELCO'?'b':''}"><td class="l">${esc(d.div)}${d.div!==d.key?` <span class="small">(${esc(d.key)})</span>`:''}</td><td>${N0(d.actp)}</td><td>${N0(d.astp)}</td><td>${N2(d.tf)}</td><td>${N0(d.dp)}</td><td>${N1(d.tg)}</td><td>${N0(d.acc)}</td><td>${N2(d.tft)}</td><td>${N2(d.hp)}</td></tr>`).join('')}</tbody></table></div>
+  <div class="tw mt"><table><thead><tr><th class="l">Total Codelco (total_acc)</th><th>Propios</th><th>Contratistas</th><th>Global</th></tr></thead><tbody>
+  ${[['HH','hh'],['CTP','ctp'],['STP','stp']].map(([l,k])=>`<tr><td class="l">${l}</td><td>${N0(x.tot[k+'P'])}</td><td>${N0(x.tot[k+'C'])}</td><td>${N0(x.tot[k+'G'])}</td></tr>`).join('')}</tbody></table></div>`}
+function commitCorp(){const x=PEND_C;if(!x)return;const k=iso(x.corte);
+  if((DB.corp||[]).some(c=>iso(c.corte)===k)&&!confirm('Ya existe la semana con corte '+fdate(x.corte)+'. ¿Reemplazarla?'))return;
+  DB.corp=(DB.corp||[]).filter(c=>iso(c.corte)!==k).concat([{corte:x.corte,desde:x.desde||fromDn(dn(x.corte)-6),fuente:x.fname,maxTF:x.maxTF,maxTG:x.maxTG,divs:x.divs,tot:x.tot}]);
+  PEND_C=null;CORP_SEL=null;markDirty('Indicadores corporativos al '+fdate(x.corte)+' incorporados');renderCargaC()}
+function delCorp(k){if(!confirm('¿Eliminar la semana con corte '+k.split('-').reverse().join('-')+'?'))return;DB.corp=(DB.corp||[]).filter(c=>iso(c.corte)!==k);markDirty('Semana corporativa eliminada')}
+
+/* ---------- gráficos ---------- */
+const CC={codelco:'#1F2328',dven:'#E75300',other:'#B9BEC4',max:'#B42318',prop:'#0099A8',ctta:'#5F6368'};
+const corpColor=k=>k==='CODELCO'?CC.codelco:k==='DVEN'?CC.dven:CC.other;
+const hbarLbl={id:'hbarLbl',afterDatasetsDraw(ch){const o=ch.options.plugins.hbarLbl;if(!o)return;const ctx=ch.ctx;ctx.save();ctx.font=`600 ${o.size||11}px Poppins,Segoe UI,Arial`;ctx.textBaseline='middle';ctx.fillStyle='#1F2328';
+  ch.getDatasetMeta(0).data.forEach((b,i)=>{const v=ch.data.datasets[0].data[i];if(v==null)return;ctx.textAlign='left';ctx.fillText(FMTK[o.fk](v),b.x+5,b.y)});ctx.restore()}};
+const maxLine={id:'maxLine',afterDatasetsDraw(ch){const o=ch.options.plugins.maxLine;if(!o||o.value==null)return;const x=ch.scales.x.getPixelForValue(o.value),a=ch.chartArea;if(x<a.left||x>a.right)return;
+  const ctx=ch.ctx;ctx.save();ctx.strokeStyle=CC.max;ctx.lineWidth=1.6;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(x,a.top);ctx.lineTo(x,a.bottom);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=CC.max;ctx.font=`600 ${o.size||10}px Poppins,Segoe UI,Arial`;ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText('Máx. '+FMTK[o.fk](o.value),x,a.top-2);ctx.restore()}};
+const donutCenter={id:'donutCenter',afterDatasetsDraw(ch){const o=ch.options.plugins.donutCenter;if(!o)return;const m=ch.getDatasetMeta(0).data[0];if(!m)return;const ctx=ch.ctx;ctx.save();ctx.textAlign='center';ctx.fillStyle='#1F2328';
+  ctx.font=`800 ${o.big||22}px Poppins,Segoe UI,Arial`;ctx.textBaseline='bottom';ctx.fillText(o.value,m.x,m.y+(o.big||22)*0.45);ctx.font=`500 ${o.small||10}px Poppins,Segoe UI,Arial`;ctx.fillStyle='#6B7280';ctx.textBaseline='top';ctx.fillText(o.label,m.x,m.y+(o.big||22)*0.5);ctx.restore()}};
+const FMTK={n2:v=>N2(v),n1:v=>N1(v),n0:v=>N0(v)};
+function corpBar(id,c,k,fk,maxV,opt={}){const fmt=FMTK[fk];
+  const rows=c.divs.filter(d=>d[k]!=null).sort((a,b)=>b[k]-a[k]);
+  const hi=Math.max(...rows.map(d=>d[k]),maxV||0);
+  mkChart(id,{type:'bar',plugins:[hbarLbl,maxLine],data:{labels:rows.map(d=>d.div),datasets:[{data:rows.map(d=>d[k]),backgroundColor:rows.map(d=>corpColor(d.key)),borderRadius:3,barPercentage:.78,categoryPercentage:.9}]},
+    options:{indexAxis:'y',layout:{padding:{right:opt.padR||46,top:14}},plugins:{legend:{display:false},tooltip:{callbacks:{label:t=>' '+fmt(t.raw)}},hbarLbl:{fk,size:opt.size||11},maxLine:{value:maxV,fk,size:opt.size?opt.size-1:10}},
+      scales:{x:{beginAtZero:true,suggestedMax:hi*1.05,ticks:{font:{size:opt.size?opt.size-2:10},callback:v=>fmt(v)},grid:{color:COL.grid}},y:{grid:{display:false},ticks:{font:{size:opt.size||11},color:'#1F2328',callback:function(v){const l=this.getLabelForValue(v);return l}}}}}});
+}
+function corpDonut(id,p,c,label,opt={}){
+  mkChart(id,{type:'doughnut',plugins:[donutCenter],data:{labels:['Propios','Contratistas'],datasets:[{data:[p,c],backgroundColor:[CC.prop,CC.ctta],borderColor:'#fff',borderWidth:2}]},
+    options:{cutout:'64%',plugins:{legend:{display:false},tooltip:{callbacks:{label:t=>` ${t.label}: ${N0(t.raw)} (${p+c?Math.round(t.raw/(p+c)*100):0}%)`}},donutCenter:{value:N0(p+c),label,big:opt.big||24,small:opt.small||10}},scales:{x:{display:false},y:{display:false}}}});
+}
+const pctS=(a,t)=>t?Math.round(a/t*100)+'%':'—';
+function donutLegend(p,c){const t=p+c;return `<div class="dleg"><div><i style="background:${CC.prop}"></i>Propios <b>${N0(p)}</b> <span>${pctS(p,t)}</span></div><div><i style="background:${CC.ctta}"></i>Contratistas <b>${N0(c)}</b> <span>${pctS(c,t)}</span></div></div>`}
+
+/* ---------- módulo ---------- */
+function renderCorp(){
+  const c=corpSnap(),box=$('p-corporativo');
+  if(!c){box.innerHTML=`<div class="card"><h3>Indicadores corporativos</h3><p class="sub">Aún no hay semanas corporativas cargadas.</p>${ADMIN?'<button class="btn pri" onclick="go(\'carga-corp\')">Ir a Carga corporativa</button>':''}</div>`;return}
+  const co=c.divs.find(d=>d.key==='CODELCO')||{},ve=c.divs.find(d=>d.key==='DVEN')||{};
+  const rank=k=>{const r=c.divs.filter(d=>d.key!=='CODELCO'&&d[k]!=null).sort((a,b)=>a[k]-b[k]);const i=r.findIndex(d=>d.key==='DVEN');return i<0?'':`puesto ${i+1} de ${r.length} (1 = menor índice)`};
+  const pill=(v,m,f)=>v==null||m==null?'':v<=m?`<span class="pill ok">✓ bajo máx. ${f(m)}</span>`:`<span class="pill bad">▲ sobre máx. ${f(m)}</span>`;
+  const l=corpList(),t=c.tot;
+  box.innerHTML=`<div class="card"><div class="row" style="justify-content:space-between;gap:10px"><div><h3 style="margin:0">Codelco · acumulado ${c.corte.getFullYear()}</h3><p class="sub" style="margin:2px 0 0">Semana corporativa: ${corpWeekTxt(c)} · Fuente: Gerencia Corporativa de Seguridad y Salud Ocupacional</p></div>
+    <label class="fld">Semana<select onchange="CORP_SEL=this.value;renderCorp()">${l.map(x=>`<option value="${iso(x.corte)}" ${x===c?'selected':''}>${fdate(x.desde||fromDn(dn(x.corte)-6))} al ${fdate(x.corte)}</option>`).join('')}</select></label></div></div>
+  <div class="grid g4 mt">
+   ${kpi('TF Codelco',N2(co.tf),pill(co.tf,c.maxTF,N2)+`<br>Ventanas: <b>${N2(ve.tf)}</b> · ${rank('tf')}`,'hero')}
+   ${kpi('TG Codelco',N1(co.tg),pill(co.tg,c.maxTG,v=>N0(v))+`<br>Ventanas: <b>${N1(ve.tg)}</b> · ${rank('tg')}`,'hero')}
+   ${kpi('TFT Codelco',N2(co.tft),`CTP + STP + fatales<br>Ventanas: <b>${N2(ve.tft)}</b> · ${rank('tft')}`,'hero')}
+   ${kpi('Accidentes Codelco',N0((t.ctpG||0)+(t.stpG||0)),`<b>${N0(t.ctpG)}</b> CTP · <b>${N0(t.stpG)}</b> STP<br>${N2((t.hhG||0)/1e6)} millones de HH`)}
+  </div>
+  <div class="grid g3 mt">
+   <div class="card"><h3>Índice de frecuencia (TF)</h3><p class="sub">CTP + fatales por millón de HH · acumulado</p>${corpLeg()}<div class="chart corp"><canvas id="cTF"></canvas></div></div>
+   <div class="card"><h3>Índice de gravedad (TG)</h3><p class="sub">Días perdidos por millón de HH · acumulado</p>${corpLeg()}<div class="chart corp"><canvas id="cTG"></canvas></div></div>
+   <div class="card"><h3>Índice de frecuencia total (TFT)</h3><p class="sub">CTP + STP + fatales por millón de HH · acumulado</p>${corpLeg(true)}<div class="chart corp"><canvas id="cTFT"></canvas></div></div>
+  </div>
+  <div class="grid g3 mt">
+   <div class="card"><h3>Accidentes CTP Codelco</h3><p class="sub">Propios y contratistas · acumulado</p><div class="donut"><canvas id="cDC"></canvas></div>${donutLegend(t.ctpP||0,t.ctpC||0)}</div>
+   <div class="card"><h3>Accidentes STP Codelco</h3><p class="sub">Propios y contratistas · acumulado</p><div class="donut"><canvas id="cDS"></canvas></div>${donutLegend(t.stpP||0,t.stpC||0)}</div>
+   <div class="card"><h3>Horas hombre Codelco</h3><p class="sub">Acumulado del año</p>
+    <div class="corp-hh"><div><span>Propios</span><b>${N0(t.hhP)}</b><small>${pctS(t.hhP,t.hhG)}</small></div><div><span>Contratistas</span><b>${N0(t.hhC)}</b><small>${pctS(t.hhC,t.hhG)}</small></div><div class="tot"><span>Total</span><b>${N0(t.hhG)}</b></div></div></div>
+  </div>
+  ${l.length>1?`<div class="card mt"><h3>Evolución semanal · TF acumulada</h3><p class="sub">Codelco y Ventanas en cada semana cargada</p>${legend([[CC.codelco,'Codelco'],[CC.dven,'Ventanas'],[CC.max,'Máximo tolerable',1]])}<div class="chart"><canvas id="cEv"></canvas></div></div>`:''}`;
+  corpBar('cTF',c,'tf','n2',c.maxTF);corpBar('cTG',c,'tg','n0',c.maxTG);corpBar('cTFT',c,'tft','n2',null);
+  corpDonut('cDC',t.ctpP||0,t.ctpC||0,'CTP');corpDonut('cDS',t.stpP||0,t.stpC||0,'STP');
+  if(l.length>1){const s=l.slice().reverse();const v=(x,k)=>{const d=x.divs.find(z=>z.key===k);return d?d.tf:null};
+    mkChart('cEv',{type:'line',data:{labels:s.map(x=>fdate(x.corte).slice(0,5)),datasets:[line('Codelco',s.map(x=>v(x,'CODELCO')),CC.codelco),line('Ventanas',s.map(x=>v(x,'DVEN')),CC.dven),line('Máximo',s.map(x=>x.maxTF),CC.max,{borderDash:[5,4],pointRadius:0})]},options:{scales:{y:{beginAtZero:true}}}})}
+}
+function corpLeg(noMax){return `<div class="legend"><span><i style="background:${CC.codelco}"></i>Codelco</span><span><i style="background:${CC.dven}"></i>Ventanas</span><span><i style="background:${CC.other}"></i>Otras divisiones</span>${noMax?'':`<span><i style="background:transparent;border-top:2px dashed ${CC.max};height:0;border-radius:0"></i>Máximo tolerable</span>`}</div>`}
+
+/* ---------- página del informe semanal ---------- */
+function corpSlide(head,foot,pg,DIV){
+  const c=corpSnap();if(!c)return '';const t=c.tot;
+  return `<section class="slide">${head('Indicadores corporativos','Codelco · acumulado '+c.corte.getFullYear()+' · semana corporativa '+corpWeekTxt(c))}
+   <div class="sl-body g-corp">
+    <div class="cc"><div class="chh-t"><b>Índice de frecuencia</b> (CTP + fatales)</div><div class="chw"><canvas id="rcTF"></canvas></div></div>
+    <div class="cc"><div class="chh-t"><b>Índice de gravedad</b></div><div class="chw"><canvas id="rcTG"></canvas></div></div>
+    <div class="cc"><div class="chh-t"><b>Índice de frecuencia total</b> (CTP + STP + fatales)</div><div class="chw"><canvas id="rcTFT"></canvas></div></div>
+    <div class="cc ctot"><div class="chh-t"><b>Accidentes Codelco</b> · propios y contratistas</div>
+      <div class="ctot-g"><div><div class="rdon"><canvas id="rcDC"></canvas></div>${donutLegend(t.ctpP||0,t.ctpC||0)}</div><div><div class="rdon"><canvas id="rcDS"></canvas></div>${donutLegend(t.stpP||0,t.stpC||0)}</div></div>
+      ${`<div class="ctot-hh">HH Codelco: <b>${N0(t.hhG)}</b> · Propios ${N0(t.hhP)} (${pctS(t.hhP,t.hhG)}) · Contratistas ${N0(t.hhC)} (${pctS(t.hhC,t.hhG)})</div>`}
+      <div class="lg" style="margin-top:2mm"><i style="background:${CC.codelco}"></i>Codelco<i style="background:${CC.dven}"></i>Ventanas<i style="background:${CC.other}"></i>Otras divisiones<i style="background:${CC.max}"></i>Máximo tolerable</div>
+    </div>
+   </div>${foot(pg)}</section>`;
+}
+function corpSlideCharts(){const c=corpSnap();if(!c||!$('rcTF'))return;const o={size:9,padR:34};
+  corpBar('rcTF',c,'tf','n2',c.maxTF,o);corpBar('rcTG',c,'tg','n0',c.maxTG,o);corpBar('rcTFT',c,'tft','n2',null,o);
+  corpDonut('rcDC',c.tot.ctpP||0,c.tot.ctpC||0,'CTP',{big:16,small:8});corpDonut('rcDS',c.tot.stpP||0,c.tot.stpC||0,'STP',{big:16,small:8})}
+
+/* ================= EVENTOS SIGNIFICATIVOS =================
+   Registro propio (hoja "Eventos" + hoja "Medidas"). Se vincula con Accidentes por el campo esId del accidente.
+   Medidas correctivas e investigación: visibles en la plataforma (clave de lectura); nunca en los informes semanales.
+   Archivos de investigación: se suben cifrados (AES-256, clave aleatoria por archivo guardada en la base) a data/inv/. */
+const ES_TIPOS=['Evento significativo Con Lesiones','Evento significativo Sin Lesión','Evento significativo Sin personas Expuestas','Evento significativo de Pérdida'];
+const ES_CORTO={'Evento significativo Con Lesiones':'Con lesiones','Evento significativo Sin Lesión':'Sin lesión','Evento significativo Sin personas Expuestas':'Sin personas expuestas','Evento significativo de Pérdida':'De pérdida'};
+const ES_COL={'Evento significativo Con Lesiones':'#E75300','Evento significativo Sin Lesión':'#0099A8','Evento significativo Sin personas Expuestas':'#5F6368','Evento significativo de Pérdida':'#1F2328'};
+const ES_EST=['Abierto','En investigación','Cerrado'];
+const esShort=t=>ES_CORTO[t]||t||'—';
+const evs=()=>DB.ev||(DB.ev=[]);
+const evById=id=>evs().find(e=>e.id===id);
+const evAccs=e=>DB.acc.filter(a=>a.esId&&a.esId===e.id);
+const medEstado=m=>m.cierre?'Cerrada':m.plazo&&dn(m.plazo)<dn(today())?'Vencida':'Pendiente';
+const medPill=m=>{const s=medEstado(m);return `<span class="pill ${s==='Cerrada'?'ok':s==='Vencida'?'bad':'warn'}">${s}</span>`};
+function evInRange(e,S){const d=dn(e.fecha);return d>=S.s&&d<=S.e}
+let EV_F={tipo:'',est:''};
+
+/* ---------- módulo ---------- */
+function renderEv(){
+  const S=selRange(),box=$('p-eventos');
+  let list=evs().filter(e=>e.fecha&&evInRange(e,S));
+  const all=list.slice();
+  if(EV_F.tipo)list=list.filter(e=>e.tipo===EV_F.tipo);if(EV_F.est)list=list.filter(e=>(e.estado||'Abierto')===EV_F.est);
+  list.sort((a,b)=>b.fecha-a.fecha);
+  const cnt=t=>all.filter(e=>e.tipo===t).length;
+  const meds=evs().flatMap(e=>(e.medidas||[]).map(m=>({e,m})));const mV=meds.filter(x=>medEstado(x.m)==='Vencida').length,mP=meds.filter(x=>medEstado(x.m)==='Pendiente').length;
+  const abiertos=evs().filter(e=>(e.estado||'Abierto')!=='Cerrado').length;
+  box.innerHTML=`<div class="grid g5">
+   ${kpi('Eventos significativos '+S.short,N0(all.length),esc(S.label),'hero')}
+   ${ES_TIPOS.map(t=>kpi(esShort(t),N0(cnt(t)),`<span class="esdot" style="background:${ES_COL[t]}"></span>${t.replace('Evento significativo ','ES ')}`)).join('')}
+  </div>
+  <div class="grid g3 mt">
+   ${kpi('Eventos abiertos o en investigación',N0(abiertos),'Todos los años')}
+   ${kpi('Medidas correctivas pendientes',N0(mP),'Dentro de plazo')}
+   ${kpi('Medidas correctivas vencidas',N0(mV),mV?'<span class="pill bad">Revisar responsables</span>':'Todo al día')}
+  </div>
+  <div class="card mt"><h3>Eventos significativos por mes</h3><p class="sub">${esc(S.label)}</p>${legend(ES_TIPOS.map(t=>[ES_COL[t],esShort(t)]))}<div class="chart"><canvas id="chEv"></canvas></div></div>
+  <div class="card mt"><div class="row" style="justify-content:space-between"><h3>Registro de eventos significativos</h3><button class="btn pri admin-only" onclick="editEv(null)">＋ Registrar evento</button></div>
+   <div class="row" style="margin:10px 0">
+    <label class="fld">Tipo<select onchange="EV_F.tipo=this.value;renderEv()"><option value="">Todos</option>${ES_TIPOS.map(t=>`<option value="${esc(t)}" ${EV_F.tipo===t?'selected':''}>${esShort(t)}</option>`).join('')}</select></label>
+    <label class="fld">Estado<select onchange="EV_F.est=this.value;renderEv()"><option value="">Todos</option>${ES_EST.map(t=>`<option ${EV_F.est===t?'selected':''}>${t}</option>`).join('')}</select></label>
+   </div>
+   ${list.length?`<div class="tw"><table class="tacc"><thead><tr><th class="l">Fecha</th><th class="l">ID</th><th class="l">Tipo</th><th class="l">Título</th><th class="l">Instalación</th><th class="l">Gerencia</th><th class="l">Accidente</th><th class="l">Estado</th><th class="l ">Medidas</th><th></th></tr></thead><tbody>
+   ${list.map(e=>{const ac=evAccs(e),md=e.medidas||[],mv=md.filter(m=>medEstado(m)==='Vencida').length,mc=md.filter(m=>m.cierre).length;return `<tr class="acc-row" onclick="showEv('${esc(e.id)}')"><td class="l">${fdate(e.fecha)}</td><td class="l">${esc(e.id)}</td><td class="l"><span class="pill" style="background:${ES_COL[e.tipo]||'#999'};color:#fff">${esShort(e.tipo)}</span></td><td class="l w">${esc(String(e.titulo||'—').slice(0,60))}</td><td class="l">${esc(e.zona||'—')}</td><td class="l w">${esc(gShort(M.info(e.ceco||'').gerencia))}</td><td class="l">${ac.map(a=>`<span class="pill ${a.cls==='STP'?'neu':'bad'}">${esc(a.cls)}</span>`).join(' ')||'—'}</td><td class="l">${esc(e.estado||'Abierto')}</td><td class="l">${md.length?`${mc}/${md.length} cerradas${mv?` <span class="pill bad">${mv} vencida${mv>1?'s':''}</span>`:''}`:'—'}</td><td class="acts"><button class="btn sm" onclick="event.stopPropagation();showEv('${esc(e.id)}')">Ver</button><button class="btn sm admin-only" onclick="event.stopPropagation();editEv('${esc(e.id)}')">Editar</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="small">Sin eventos significativos en el periodo.</p>'}
+  </div>`;
+  const ms=S.months;mkChart('chEv',{type:'bar',data:{labels:ms.map(x=>x.lab),datasets:ES_TIPOS.map(t=>bar(esShort(t),ms.map(x=>all.filter(e=>e.tipo===t&&e.fecha.getFullYear()===x.y&&e.fecha.getMonth()+1===x.m).length),ES_COL[t],{stack:'a'}))},options:{scales:{x:{stacked:true},y:{stacked:true,ticks:{precision:0}}}}});
+}
+/* ---------- ficha ---------- */
+function showEv(id){
+  const e=evById(id);if(!e)return;const ac=evAccs(e);const adm=ADMIN&&SRC.kind!=='pub';
+  const f=(l,v)=>`<div class="af"><span>${l}</span><b>${v==null||v===''?'<i class="muted">—</i>':v}</b></div>`;
+  const info=M.info(e.ceco||'');
+  openModal(`<div class="ad-head"><div><div class="ad-id">${esc(e.id)}</div><h3 style="margin:0">${esc(e.titulo||'Evento significativo')}</h3><div class="small">${DIAS_S[e.fecha.getDay()]} ${fdate(e.fecha)}${e.hora?' · '+esc(e.hora)+' h':''}</div></div><span class="pill" style="background:${ES_COL[e.tipo]||'#999'};color:#fff;font-size:12px;padding:4px 10px">${esShort(e.tipo)}</span></div>
+  <div class="ad-sec">Evento</div><div class="ad-grid">${f('Tipo',esc(e.tipo))}${f('Estado',esc(e.estado||'Abierto'))}${f('Fecha de cierre',e.cierre?fdate(e.cierre):'')}${f('Riesgo crítico',esc(e.rc||''))}${f('Empresa',esc(e.empresa||''))}${f('Gerencia / Superint.',esc(e.ceco?info.gerencia:''))}${f('CECO',esc(e.ceco||''))}${f('Instalación (mapa)',esc(e.zona||''))}</div>
+  ${e.desc?`<div class="ad-desc">${esc(e.desc)}</div>`:''}
+  ${e.zona&&zByName(e.zona)?`<div style="max-width:520px;margin-top:8px">${miniMap(e.zona)}</div>`:''}
+  <div class="ad-sec">Accidentes vinculados</div>${ac.length?ac.map(a=>`<div class="zacc" onclick="showAcc('${esc(a.id)}')"><span class="pill ${a.cls==='STP'?'neu':'bad'}">${esc(a.cls)}</span><div><b>${esc(a.id)} · ${fdate(a.fecha)}</b><br><span class="small">${esc(a.tacc||'—')} · ${a.tipo==='Propio'?'Codelco':esc(a.empresa||'EECC')}</span></div></div>`).join(''):'<p class="small">Sin accidentes vinculados.</p>'}
+  ${(e.inv||[]).length||e.link||(e.medidas||[]).length||adm?`<div class="ad-sec">Investigación</div>${invList(e,false)}${e.link?`<p class="small">Enlace: <a href="${esc(e.link)}" target="_blank" rel="noopener">${esc(e.link)}</a></p>`:''}
+  <div class="ad-sec">Medidas correctivas</div>${(e.medidas||[]).length?`<div class="tw"><table><thead><tr><th class="l">Medida</th><th class="l">Responsable</th><th class="l">Plazo</th><th class="l">Cierre</th><th class="l">Estado</th></tr></thead><tbody>${e.medidas.map(m=>`<tr><td class="l wrap">${esc(m.desc)}</td><td class="l">${esc(m.resp||'')}</td><td class="l">${m.plazo?fdate(m.plazo):'—'}</td><td class="l">${m.cierre?fdate(m.cierre):'—'}</td><td class="l">${medPill(m)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="small">Sin medidas registradas.</p>'}`:''}
+  <div class="row" style="justify-content:flex-end;margin-top:16px">${adm?`<button class="btn" onclick="editEv('${esc(e.id)}')">Editar</button>`:''}<button class="btn pri" onclick="closeModal()">Cerrar</button></div>`);
+}
+/* ---------- formulario ---------- */
+let EVD=null; // borrador del formulario (medidas e investigación)
+function editEv(id,pre){
+  if(needWorkBase())return;
+  const e=id?evById(id):Object.assign({fecha:today(),tipo:ES_TIPOS[0],estado:'Abierto',medidas:[],inv:[]},pre||{});
+  EVD={id,medidas:JSON.parse(JSON.stringify(e.medidas||[])).map(m=>({desc:m.desc,resp:m.resp,plazo:m.plazo?pDate(String(m.plazo).slice(0,10)):null,cierre:m.cierre?pDate(String(m.cierre).slice(0,10)):null})),inv:(e.inv||[]).slice(),newId:null};
+  const fd=e.fecha?dn(e.fecha):dn(today());
+  const linked=new Set(id?evAccs(e).map(a=>a.id):[]);
+  const cand=DB.acc.filter(a=>linked.has(a.id)||(!a.esId&&Math.abs(a.dn-fd)<=30)).sort((a,b)=>b.dn-a.dn);
+  openModal(`<h3>${id?'Editar evento '+esc(id):'Registrar evento significativo'}</h3><form id="evForm"><div class="fgrid">
+   <label class="fld">Fecha<input type="date" name="fecha" value="${e.fecha?iso(e.fecha):''}" required></label>
+   <label class="fld">Hora<input name="hora" value="${esc(e.hora||'')}" placeholder="hh:mm"></label>
+   <label class="fld">Tipo<select name="tipo">${ES_TIPOS.map(t=>`<option ${e.tipo===t?'selected':''}>${t}</option>`).join('')}</select></label>
+   <label class="fld full">Título<input name="titulo" value="${esc(e.titulo||'')}" placeholder="Ej. Derrame de ácido en estanque de almacenamiento" required></label>
+   <label class="fld">Riesgo crítico<input name="rc" value="${esc(e.rc||'')}"></label>
+   <label class="fld">CECO<input name="ceco" list="dlCecoE" value="${esc(e.ceco||'')}"></label>
+   <label class="fld">Empresa (si aplica)<input name="empresa" list="dlEmpE" value="${esc(e.empresa||'')}" autocomplete="off"></label>
+   ${zonaField(e)}
+   <label class="fld full">Descripción<textarea name="desc" rows="3">${esc(e.desc||'')}</textarea></label>
+   <label class="fld">Estado<select name="estado">${ES_EST.map(t=>`<option ${(e.estado||'Abierto')===t?'selected':''}>${t}</option>`).join('')}</select></label>
+   <label class="fld">Fecha de cierre del evento<input type="date" name="cierre" value="${e.cierre?iso(e.cierre):''}"></label>
+   <label class="fld">Enlace a la investigación (opcional)<input name="link" value="${esc(e.link||'')}" placeholder="https://… (SharePoint)"></label>
+  </div>
+  <datalist id="dlCecoE">${DB.ceco.map(c=>`<option value="${c.ceco}">${esc(c.nombre)}</option>`).join('')}</datalist><datalist id="dlEmpE"><option value="Codelco">${empresasList().map(x=>`<option value="${esc(x)}">`).join('')}</datalist>
+  <div class="ad-sec">Accidentes vinculados (si hubo lesionados)</div>
+  <div class="evacc">${cand.length?cand.slice(0,12).map(a=>`<label><input type="checkbox" name="acc" value="${esc(a.id)}" ${linked.has(a.id)?'checked':''}> <b>${fdate(a.fecha)}</b> · <span class="pill ${a.cls==='STP'?'neu':'bad'}">${esc(a.cls)}</span> ${esc(a.tacc||'—')} · ${a.tipo==='Propio'?'Codelco':esc(a.empresa||'EECC')}</label>`).join(''):'<p class="small">No hay accidentes sin vincular cerca de esta fecha.</p>'}</div>
+  <button type="button" class="btn sm" onclick="evNewAcc()">＋ Crear accidente con los datos de este evento</button>
+  <div class="ad-sec">Medidas correctivas <span class="small">(no salen en los informes semanales)</span></div><div id="evMed"></div>
+  <button type="button" class="btn sm" onclick="evMedAdd()">＋ Agregar medida</button>
+  <div class="ad-sec">Investigación <span class="small">(PDF o PowerPoint · se guarda cifrada · no sale en los informes semanales)</span></div><div id="evInv"></div>
+  <label class="btn sm" style="cursor:pointer">📎 Adjuntar archivo<input type="file" accept=".pdf,.ppt,.pptx,.doc,.docx" multiple class="hidden" onchange="evInvAdd(this)"></label>
+  <div class="row" style="justify-content:flex-end;margin-top:14px">${id?`<button type="button" class="btn" style="margin-right:auto;color:var(--bad)" onclick="delEv('${esc(id)}')">Eliminar</button>`:''}<button type="button" class="btn" onclick="closeModal()">Cancelar</button><button type="submit" class="btn pri">Guardar</button></div></form>`);
+  evMedRender();evInvRender();
+  $('evForm').onsubmit=ev=>{ev.preventDefault();saveEv(true)};
+}
+function evCollect(){
+  const f=$('evForm');if(!f)return null;const fd=new FormData(f);
+  document.querySelectorAll('#evMed [data-i]').forEach(r=>{const m=EVD.medidas[+r.dataset.i];m.desc=r.querySelector('[data-k=desc]').value.trim();m.resp=r.querySelector('[data-k=resp]').value.trim();m.plazo=pDate(r.querySelector('[data-k=plazo]').value);m.cierre=pDate(r.querySelector('[data-k=cierre]').value)});
+  return{fecha:pDate(fd.get('fecha')),hora:String(fd.get('hora')||'').trim(),tipo:fd.get('tipo'),titulo:String(fd.get('titulo')||'').trim(),rc:String(fd.get('rc')||'').trim(),ceco:normCeco(fd.get('ceco')||''),empresa:String(fd.get('empresa')||'').trim(),
+    zona:String(fd.get('zona')||'').trim(),desc:String(fd.get('desc')||'').trim(),estado:fd.get('estado'),cierre:pDate(fd.get('cierre')),link:String(fd.get('link')||'').trim(),accs:fd.getAll('acc'),
+    medidas:EVD.medidas.filter(m=>m.desc),inv:EVD.inv};
+}
+function saveEv(close){
+  const v=evCollect();if(!v)return null;if(!v.fecha){alert('Falta la fecha del evento');return null}if(!v.titulo){alert('Falta el título del evento');return null}
+  let e=EVD.id?evById(EVD.id):null;
+  if(!e){const n=Math.max(0,...evs().map(x=>parseInt(String(x.id).replace(/\D/g,''))||0))+1;e={id:'ES-'+String(n).padStart(4,'0')};evs().push(e);EVD.id=e.id}
+  const accs=v.accs;delete v.accs;Object.assign(e,v);
+  DB.acc.forEach(a=>{if(a.esId===e.id&&!accs.includes(a.id))a.esId='';if(accs.includes(a.id))a.esId=e.id});
+  if(close){closeModal();markDirty('Evento '+e.id+' guardado')}
+  return e;
+}
+function evNewAcc(){const e=saveEv(false);if(!e)return;markDirty();
+  editAcc(null,{fecha:e.fecha,hora:e.hora,empresa:e.empresa||'',tipo:/^codelco$/i.test(e.empresa||'')?'Propio':'EECC',ceco:e.ceco,zona:e.zona,rc:e.rc,desc:e.desc,esId:e.id,cls:'CTP'})}
+function delEv(id){const e=evById(id);if(!e)return;if(!confirm('¿Eliminar el evento '+id+'? Los accidentes vinculados se mantienen, solo se desvinculan.'))return;
+  DB.acc.forEach(a=>{if(a.esId===id)a.esId=''});DB.ev=evs().filter(x=>x!==e);(e.inv||[]).forEach(f=>invRemote(f,'delete'));closeModal();markDirty('Evento eliminado')}
+/* medidas */
+function evMedRender(){const b=$('evMed');if(!b)return;
+  b.innerHTML=EVD.medidas.length?`<div class="tw"><table class="evmed"><thead><tr><th class="l">Medida correctiva</th><th class="l">Responsable del cierre</th><th class="l">Plazo</th><th class="l">Fecha de cierre</th><th class="l">Estado</th><th></th></tr></thead><tbody>${EVD.medidas.map((m,i)=>`<tr data-i="${i}"><td class="l"><input data-k="desc" value="${esc(m.desc||'')}" placeholder="Descripción de la medida"></td><td class="l"><input data-k="resp" value="${esc(m.resp||'')}" placeholder="Nombre / cargo"></td><td class="l"><input type="date" data-k="plazo" value="${m.plazo?iso(m.plazo):''}"></td><td class="l"><input type="date" data-k="cierre" value="${m.cierre?iso(m.cierre):''}"></td><td class="l">${medPill(m)}</td><td><button type="button" class="btn sm" onclick="evCollect();EVD.medidas.splice(${i},1);evMedRender()">✕</button></td></tr>`).join('')}</tbody></table></div>`:'<p class="small">Sin medidas registradas.</p>'}
+function evMedAdd(){evCollect();EVD.medidas.push({desc:'',resp:'',plazo:null,cierre:null});evMedRender();const r=document.querySelectorAll('#evMed [data-k=desc]');if(r.length)r[r.length-1].focus()}
+/* investigación: archivos cifrados en el repositorio */
+const INV_MAX=25*1024*1024;
+function invList(e,edit){const L=edit?EVD.inv:(e.inv||[]);return L.length?L.map((f,i)=>`<div class="invf"><span>📄 <b>${esc(f.name)}</b> <span class="small">${N1(f.size/1048576)} MB · ${f.fecha?fdate(pDate(String(f.fecha).slice(0,10))):''}</span></span><span><button type="button" class="btn sm" onclick="invOpen('${esc(edit?'':e.id)}',${i},${edit?1:0})">Abrir</button>${edit?`<button type="button" class="btn sm" onclick="invDel(${i})">✕</button>`:''}</span></div>`).join(''):'<p class="small">Sin archivos adjuntos.</p>'}
+function evInvRender(){const b=$('evInv');if(b)b.innerHTML=invList(null,true)}
+async function evInvAdd(inp){
+  const files=[...inp.files];inp.value='';if(!files.length)return;
+  const g=ghConf();if(!g.token){toast('Primero conecta este equipo con GitHub (Base y configuración) para subir archivos',7000);return}
+  for(const f of files){
+    if(f.size>INV_MAX){toast(`"${f.name}" pesa ${N1(f.size/1048576)} MB: el máximo es 25 MB. Guárdalo como PDF o usa el enlace a SharePoint.`,8000);continue}
+    const b=$('evInv');b.insertAdjacentHTML('beforeend',`<p class="small" id="upl">Subiendo y cifrando ${esc(f.name)}…</p>`);
+    try{
+      const raw=new Uint8Array(await f.arrayBuffer());const key=crypto.getRandomValues(new Uint8Array(32)),iv=crypto.getRandomValues(new Uint8Array(12));
+      const k=await crypto.subtle.importKey('raw',key,'AES-GCM',false,['encrypt']);const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},k,raw));
+      const out=new Uint8Array(4+12+ct.length);out.set(new TextEncoder().encode('DVE1'),0);out.set(iv,4);out.set(ct,16);
+      const evid=EVD.id||'nuevo';const path=`data/inv/${evid}_${Date.now()}_${Math.random().toString(36).slice(2,8)}.bin`;
+      const r=await fetch(ghApi(g,path),{method:'PUT',headers:{Authorization:'Bearer '+g.token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({message:'Investigación cifrada '+evid,content:u8b64(out),branch:g.branch||'main'})});
+      if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error('GitHub '+r.status+': '+(j.message||''))}
+      EVD.inv.push({name:f.name,type:f.type||'',size:f.size,path,key:u8b64(key),fecha:iso(today())});toast('Archivo adjuntado: '+f.name);
+    }catch(e){toast('No se pudo subir '+f.name+': '+e.message,8000)}
+    const u=$('upl');if(u)u.remove();evInvRender();
+  }
+}
+function invDel(i){if(!confirm('¿Quitar este archivo del evento?'))return;const f=EVD.inv.splice(i,1)[0];invRemote(f,'delete');evInvRender()}
+async function invRemote(f,op){try{const g=ghConf();if(!g.token||!f||!f.path)return;const m=await ghMeta(g,f.path);if(!m)return;
+  await fetch(ghApi(g,f.path),{method:'DELETE',headers:{Authorization:'Bearer '+g.token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({message:'Quita investigación',sha:m.sha,branch:g.branch||'main'})})}catch(e){}}
+async function invOpen(evId,i,edit){
+  const f=edit?EVD.inv[i]:(evById(evId).inv||[])[i];if(!f)return;
+  try{toast('Descargando y descifrando '+f.name+'…');const g=ghConf();let buf;
+    if(g.token){const r=await fetch(ghApi(g,f.path)+'?ref='+encodeURIComponent(g.branch||'main'),{headers:{Authorization:'Bearer '+g.token,Accept:'application/vnd.github.raw'},cache:'no-store'});if(!r.ok)throw new Error('GitHub '+r.status);buf=new Uint8Array(await r.arrayBuffer())}
+    else{const r=await fetch(f.path,{cache:'no-store'});if(!r.ok)throw new Error('Archivo no disponible ('+r.status+')');buf=new Uint8Array(await r.arrayBuffer())}
+    const k=await crypto.subtle.importKey('raw',b64d(f.key),'AES-GCM',false,['decrypt']);const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:buf.slice(4,16)},k,buf.slice(16));
+    const url=URL.createObjectURL(new Blob([pt],{type:f.type||'application/octet-stream'}));
+    if(/pdf/i.test(f.type)||/\.pdf$/i.test(f.name))window.open(url,'_blank');else{const a=document.createElement('a');a.href=url;a.download=f.name;document.body.appendChild(a);a.click();a.remove()}
+  }catch(e){toast('No se pudo abrir el archivo: '+e.message,7000)}
+}
+/* ---------- accidentes: campo "Evento significativo" ---------- */
+function esField(a){const cur=a.esId||'';
+  return `<label class="fld">Evento significativo<select name="esId"><option value="">— No —</option>${evs().slice().sort((x,y)=>y.fecha-x.fecha).slice(0,40).map(e=>`<option value="${esc(e.id)}" ${cur===e.id?'selected':''}>${esc(e.id)} · ${fdate(e.fecha)} · ${esc(String(e.titulo||'').slice(0,30))}</option>`).join('')}<option value="__new">＋ Declarar como nuevo evento significativo</option></select></label>`}
+function linkAccEv(o){
+  if(o.esId==='__new'){const n=Math.max(0,...evs().map(x=>parseInt(String(x.id).replace(/\D/g,''))||0))+1;
+    const e={id:'ES-'+String(n).padStart(4,'0'),fecha:o.fecha,hora:o.hora,tipo:ES_TIPOS[0],titulo:o.tacc?('Accidente: '+o.tacc):'Accidente con lesiones',rc:o.rc,ceco:o.ceco,empresa:o.tipo==='Propio'?'Codelco':o.empresa,zona:o.zona,desc:o.desc,estado:'Abierto',medidas:[],inv:[]};
+    evs().push(e);o.esId=e.id;setTimeout(()=>toast('Evento significativo '+e.id+' creado y vinculado · complétalo en Eventos significativos',7000),300)}
+}
+/* ---------- informe semanal ---------- */
+function evYear(y,cd){return evs().filter(e=>e.fecha&&e.fecha.getFullYear()===y&&dn(e.fecha)<=cd).sort((a,b)=>b.fecha-a.fecha)}
+function evRepTable(y,cd,n){n=n||5;const l=evYear(y,cd);if(!l.length)return '';return `<div class="st">Eventos significativos ${y}${l.length>n?' (últimos '+n+' de '+l.length+')':''}</div><table class="rtab"><thead><tr><th>Fecha</th><th>Tipo</th><th>Instalación</th><th>Evento</th></tr></thead><tbody>${l.slice(0,n).map(e=>`<tr><td>${fdate(e.fecha)}</td><td><span class="rp" style="background:${ES_COL[e.tipo]};color:#fff">${esShort(e.tipo)}</span></td><td>${esc(e.zona||'—')}</td><td class="w">${esc(String(e.titulo||'—').slice(0,55))}</td></tr>`).join('')}</tbody></table>`}
 
 /* ================= BASE DE TRABAJO EN LA NUBE + "GUARDAR Y PUBLICAR" =================
    data/base.json   : base completa, comprimida y cifrada (AES-256-GCM) con la contraseña de administrador.
@@ -1915,11 +2276,19 @@ function buildWorkbook(){
   const ee=DB.eecc.slice().sort((a,b)=>a.y-b.y||a.m-b.m||a.empresa.localeCompare(b.empresa));
   sheet('HH_EECC',['Año','Mes','Empresa','RUT','N° Contrato','Nombre Contrato','CECO','Dot H','HH H','Dot M','HH M','Dot Total','HH Total','Tipo Contrato','Fuente'],[7,6,34,13,13,44,9,8,11,8,11,10,12,13,30],ee.map((r,i)=>[r.y,r.m,r.empresa,r.rut,r.contrato,r.nomContrato,r.ceco,r.dotH,r.hhH,r.dotM,r.hhM,{f:`H${i+2}+J${i+2}`,v:r.dotH+r.dotM},{f:`I${i+2}+K${i+2}`,v:r.hhH+r.hhM},{f:`IF(G${i+2}="FC450","Inversión","Operación")`,v:r.ceco==='FC450'?'Inversión':'Operación'},r.fuente]));
   const ac=DB.acc.slice().sort((a,b)=>a.fecha-b.fecha);
-  sheet('Accidentes',['ID','Fecha','Año','Mes','Hora','Turno','Clasificación','Tipo Personal','Empresa','N° Contrato','CECO','Cargo','Lugar / Proceso','Tipo Accidente','Tipo Lesión','Parte Cuerpo','Riesgo Crítico','Descripción','Fecha Inicio Reposo','Fecha Alta','En Reposo','DP Total (manual)','Días Cargo','Observación','Zona Mapa','Mapa X %','Mapa Y %'],[6,11,6,5,7,6,9,9,22,12,8,20,22,18,18,14,16,50,11,11,8,9,8,50,24,9,9],
-    ac.map((a,i)=>[a.id,a.fecha,{f:`IF(B${i+2}="","",YEAR(B${i+2}))`,v:a.fecha.getFullYear()},{f:`IF(B${i+2}="","",MONTH(B${i+2}))`,v:a.fecha.getMonth()+1},a.hora,a.turno,a.cls,a.tipo,a.empresa,a.contrato,a.ceco,a.cargo,a.lugar,a.tacc,a.lesion,a.cuerpo,a.rc,a.desc,a.ini,a.alta,a.rep,a.dpm,a.dc||0,a.obs,a.zona||'',a.mx??null,a.my??null]));
+  sheet('Accidentes',['ID','Fecha','Año','Mes','Hora','Turno','Clasificación','Tipo Personal','Empresa','N° Contrato','CECO','Cargo','Lugar / Proceso','Tipo Accidente','Tipo Lesión','Parte Cuerpo','Riesgo Crítico','Descripción','Fecha Inicio Reposo','Fecha Alta','En Reposo','DP Total (manual)','Días Cargo','Observación','Zona Mapa','Mapa X %','Mapa Y %','Evento Significativo'],[6,11,6,5,7,6,9,9,22,12,8,20,22,18,18,14,16,50,11,11,8,9,8,50,24,9,9,12],
+    ac.map((a,i)=>[a.id,a.fecha,{f:`IF(B${i+2}="","",YEAR(B${i+2}))`,v:a.fecha.getFullYear()},{f:`IF(B${i+2}="","",MONTH(B${i+2}))`,v:a.fecha.getMonth()+1},a.hora,a.turno,a.cls,a.tipo,a.empresa,a.contrato,a.ceco,a.cargo,a.lugar,a.tacc,a.lesion,a.cuerpo,a.rc,a.desc,a.ini,a.alta,a.rep,a.dpm,a.dc||0,a.obs,a.zona||'',a.mx??null,a.my??null,a.esId||'']));
   sheet('HH_Historico',['Año','Mes','HH Propios','HH EECC','HH Total','Fuente'],[7,6,14,14,14,50],DB.hist.map((h,i)=>[h.y,h.m,h.p,h.e,h.p!=null&&h.e!=null?{f:`C${i+2}+D${i+2}`,v:h.p+h.e}:h.t,h.fuente]));
   sheet('Referencia_Anual',['Año','Mes','TF Acumulada','TG Acumulada','TFT Acumulada','Fuente'],[7,6,13,13,13,50],(DB.ref||[]).map(r=>[r.y,r.m,r.tf,r.tg,r.tft,r.fuente]));
   sheet('Zonas',['ID','Zona','Áreas asociadas','CECO asociados','Observación','Polígono'],[6,30,40,24,30,80],(DB.zonas||[]).map(z=>[z.id,z.nombre,z.areas,z.cecos,z.obs,z.pts.map(p=>p[0]+','+p[1]).join(';')]));
+  sheet('Eventos',['ID','Fecha','Hora','Tipo','Título','Riesgo Crítico','CECO','Empresa','Zona Mapa','Descripción','Estado','Fecha Cierre','Enlace Investigación','Archivos Investigación'],[9,11,7,34,40,18,8,22,24,60,14,11,40,40],
+    (DB.ev||[]).slice().sort((a,b)=>a.fecha-b.fecha).map(e=>[e.id,e.fecha,e.hora||'',e.tipo,e.titulo||'',e.rc||'',e.ceco||'',e.empresa||'',e.zona||'',e.desc||'',e.estado||'Abierto',e.cierre||null,e.link||'',(e.inv||[]).length?JSON.stringify(e.inv):'']));
+  sheet('Medidas',['Evento','N°','Medida Correctiva','Responsable Cierre','Plazo','Fecha Cierre','Estado'],[9,5,60,28,11,11,10],
+    (DB.ev||[]).flatMap(e=>(e.medidas||[]).map((m,i)=>[e.id,i+1,m.desc,m.resp||'',m.plazo||null,m.cierre||null,medEstado(m)])));
+  {const R=[];(DB.corp||[]).slice().sort((a,b)=>a.corte-b.corte).forEach(c=>{
+     c.divs.forEach(d=>R.push([c.corte,c.desde,'División',d.key,d.div,null,d.actp,d.astp,d.tf,d.tg,d.dp,d.tft,d.acc,d.hp,c.maxTF,c.maxTG,c.fuente||'']));
+     [['Propios','P'],['Contratistas','C'],['Global','G']].forEach(([n,s])=>R.push([c.corte,c.desde,'Total',n,'Codelco · '+n,c.tot['hh'+s],c.tot['ctp'+s],c.tot['stp'+s],null,null,null,null,null,null,c.maxTF,c.maxTG,c.fuente||'']))});
+   sheet('Corporativo',['Corte','Desde','Tipo','Clave','Nombre','HH','CTP','STP','TF','TG','Días Perdidos','TFT','Acc Totales','HP Millones','TF Máx','TG Máx','Fuente'],[11,11,9,11,22,13,7,7,8,8,10,8,9,9,8,8,40],R)}
   // Control
   const y=+P('Año en curso',CUT.getFullYear());const cr=[];
   for(let m=1;m<=12;m++){const r=m+3;const pp=DB.prop.filter(x=>x.y===y&&x.m===m),e2=DB.eecc.filter(x=>x.y===y&&x.m===m);const sm=(a,k)=>a.reduce((s,x)=>s+x[k],0);
@@ -1999,12 +2368,12 @@ async function downloadPublic(){
 }
 /* ================= ESTADO, BORRADOR E INICIO ================= */
 function serializeDB(){return JSON.stringify(DB,(k,v)=>v)}
-function reviveDB(s){const o=JSON.parse(s);const D=['fecha','ini','alta'];o.acc.forEach(a=>D.forEach(k=>{a[k]=a[k]?pDate(String(a[k]).slice(0,10)):null}));return o}
+function reviveDB(s){const o=JSON.parse(s);const D=['fecha','ini','alta'];o.acc.forEach(a=>D.forEach(k=>{a[k]=a[k]?pDate(String(a[k]).slice(0,10)):null}));const PD=v=>v?pDate(String(v).slice(0,10)):null;(o.ev||[]).forEach(e=>{e.fecha=PD(e.fecha);e.cierre=PD(e.cierre);(e.medidas||[]).forEach(m=>{m.plazo=PD(m.plazo);m.cierre=PD(m.cierre)})});(o.corp||[]).forEach(c=>{c.corte=pDate(String(c.corte).slice(0,10));c.desde=c.desde?pDate(String(c.desde).slice(0,10)):fromDn(dn(c.corte)-6)});return o}
 function markDirty(t){if(SRC&&SRC.kind==='pub'){needWorkBase();return}DIRTY=true;if(SRC.kind!=='cloud'&&!store.set('dven_draft',JSON.stringify({when:new Date().toISOString(),src:SRC,db:serializeDB()})))toast('No se pudo guardar el borrador en el navegador');rebuild();updateStatus();render();if(t)toast(t+(SRC.kind==='cloud'?' · recuerda Guardar y publicar':' · recuerda guardar la base'))}
 function discardDraft(){if(!confirm('¿Descartar los cambios no guardados y volver a la última base guardada?'))return;store.del('dven_draft');DIRTY=false;boot()}
 const REF_2025={tft:[0,0,0,1.13,1.82,2.22,2.56,2.82,2.81,3.13,3.22,3.95],tg:[129,66.8,41.6,32.6,26.3,21.4,18.3,16.3,13.5,16,14.8,25.8]};
 function seedRef(db){db.ref=db.ref||[];if(!db.ref.some(r=>r.y===2025)){for(let m=1;m<=12;m++)db.ref.push({y:2025,m,tf:null,tg:REF_2025.tg[m-1],tft:REF_2025.tft[m-1],fuente:'Informe Indicadores de Seguridad 28.09.2026 (valores oficiales 2025)'});return true}return false}
-function setDB(db,src,dirty){db.zonas=db.zonas||[];db.params=db.params||{};const migr=migrateMap(db);if(migr&&ADMIN&&src.kind!=='pub'){dirty=true;setTimeout(()=>toast('Instalaciones adaptadas al nuevo plano · revísalas en el mapa y pulsa Guardar y publicar',9000),400)}const seeded=seedRef(db)&&ADMIN;DB=db;SRC=src;DIRTY=!!dirty||seeded;if(seeded)store.set('dven_draft',JSON.stringify({when:new Date().toISOString(),src,db:serializeDB()}));else if(!dirty)store.del('dven_draft');
+function setDB(db,src,dirty){db.zonas=db.zonas||[];db.corp=db.corp||[];db.ev=db.ev||[];db.params=db.params||{};const migr=migrateMap(db);if(migr&&ADMIN&&src.kind!=='pub'){dirty=true;setTimeout(()=>toast('Instalaciones adaptadas al nuevo plano · revísalas en el mapa y pulsa Guardar y publicar',9000),400)}const seeded=seedRef(db)&&ADMIN;DB=db;SRC=src;DIRTY=!!dirty||seeded;if(seeded)store.set('dven_draft',JSON.stringify({when:new Date().toISOString(),src,db:serializeDB()}));else if(!dirty)store.del('dven_draft');
   if(DB.params['Año en curso']==null)DB.params['Año en curso']=CUT.getFullYear();
   rebuild();updateStatus();$('welcome').classList.add('hidden');render()}
 function updateStatus(){
@@ -2014,9 +2383,9 @@ function updateStatus(){
   bn.innerHTML=SRC.kind==='cloud'?'⚠ Hay cambios que aún no están publicados. <button class="btn sm pri" onclick="publishAll()">☁ Guardar y publicar</button>'
     :'⚠ Hay cambios que aún no están guardados en tu archivo de base. <button class="btn sm" onclick="saveBase()">💾 Guardar base</button><button class="btn sm pri" onclick="publishAll()">☁ Guardar y publicar</button>';
 }
-const TITLES={resumen:'Consolidado divisional',propios:'Personal propio',eecc:'Empresas contratistas',accidentes:'Accidentes',mapa:'Mapa de accidentes',proyecciones:'Proyecciones','informe':'Informe semanal','carga-propios':'Carga de datos · Propios','carga-eecc':'Carga de datos · EECC',base:'Base y configuración'};
-const RENDER={resumen:renderResumen,propios:renderPropios,eecc:renderEecc,accidentes:renderAcc,mapa:renderMapa,proyecciones:renderProy,informe:renderInforme,'carga-propios':renderCargaP,'carga-eecc':renderCargaE,base:renderBase};
-const ADMIN_PAGES=['carga-propios','carga-eecc','base'];
+const TITLES={resumen:'Consolidado divisional',propios:'Personal propio',eecc:'Empresas contratistas',accidentes:'Accidentes',eventos:'Eventos significativos',mapa:'Mapa de accidentes',proyecciones:'Proyecciones',corporativo:'Indicadores corporativos','carga-corp':'Carga de datos · Corporativo','informe':'Informe semanal','carga-propios':'Carga de datos · Propios','carga-eecc':'Carga de datos · EECC',base:'Base y configuración'};
+const RENDER={resumen:renderResumen,propios:renderPropios,eecc:renderEecc,accidentes:renderAcc,eventos:renderEv,mapa:renderMapa,proyecciones:renderProy,corporativo:renderCorp,'carga-corp':renderCargaC,informe:renderInforme,'carga-propios':renderCargaP,'carga-eecc':renderCargaE,base:renderBase};
+const ADMIN_PAGES=['carga-propios','carga-eecc','carga-corp','base'];
 function go(p){if(!RENDER[p])p='resumen';if(ADMIN_PAGES.includes(p)&&!ADMIN){openLogin(p);return}PAGE=p;try{history.replaceState(null,'','#'+p)}catch(e){}render();$('side').classList.remove('open');window.scrollTo(0,0)}
 function render(){
   if(ADMIN_PAGES.includes(PAGE)&&!ADMIN)PAGE='resumen';
@@ -2028,7 +2397,7 @@ function render(){
   }
   document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.p===PAGE));
   $('pageTitle').textContent=TITLES[PAGE];
-  $('perSel').classList.toggle('hidden',!['resumen','propios','eecc','accidentes','mapa'].includes(PAGE));
+  $('perSel').classList.toggle('hidden',!['resumen','propios','eecc','accidentes','eventos','mapa'].includes(PAGE));
   {const ys=$('perYear'),show=DB&&YEAR_PAGES.includes(PAGE)&&SEL.mode==='year';ys.classList.toggle('hidden',!show);
    if(show){const cy=CUT.getFullYear(),y0=Math.min(cy,...M.acc.map(a=>a.y));let o='';for(let y=cy;y>=y0;y--)o+=`<option value="${y}" ${(SEL.yy||cy)===y?'selected':''}>${y}</option>`;ys.innerHTML=o}}
   document.querySelectorAll('.page').forEach(s=>s.classList.toggle('hidden',s.id!=='p-'+PAGE||!DB));
