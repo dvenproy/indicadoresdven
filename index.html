@@ -673,10 +673,15 @@ Chart.defaults.plugins.legend.display=false;
 Chart.defaults.plugins.tooltip.backgroundColor='#1F2328';Chart.defaults.plugins.tooltip.padding=10;
 Chart.defaults.plugins.tooltip.callbacks.label=c=>` ${c.dataset.label}: ${Math.abs(c.parsed.y)<50&&c.parsed.y%1!==0?N2(c.parsed.y):N0(c.parsed.y)}`;
 Chart.defaults.interaction={mode:'index',intersect:false};
+/* nitidez: en pantalla se usa la resolución real del monitor; al imprimir/PDF, 3x */
+let PRINT_HI=false;
+const chartDpr=()=>PRINT_HI?Math.max(3,window.devicePixelRatio||1):(window.devicePixelRatio||1);
+function chartsDpr(hi){PRINT_HI=hi;Object.values(charts).forEach(c=>{try{c.options.devicePixelRatio=chartDpr();c.resize()}catch(e){}})}
+function printHi(){chartsDpr(true);setTimeout(()=>{window.print()},60)}
 function mkChart(id,cfg){
   if(charts[id]){charts[id].destroy();delete charts[id]}
   const el=$(id);if(!el)return;
-  cfg.options=Object.assign({responsive:true,maintainAspectRatio:false,animation:false,devicePixelRatio:Math.max(window.devicePixelRatio||1,3)},cfg.options||{});
+  cfg.options=Object.assign({responsive:true,maintainAspectRatio:false,animation:false,devicePixelRatio:chartDpr()},cfg.options||{});
   const sc=cfg.options.scales||(cfg.options.scales={});
   for(const ax of ['x','y']){sc[ax]=Object.assign({grid:{color:ax==='y'?COL.grid:'transparent'},border:{display:false}},sc[ax]||{})}
   charts[id]=new Chart(el,cfg);
@@ -1131,7 +1136,7 @@ function renderInforme(){
     <div class="row" style="gap:14px"><div class="seg"><button class="${DIV?'on':''}" onclick="REP_OPT.mode='div';renderInforme()">Informe para la División</button><button class="${DIV?'':'on'}" onclick="REP_OPT.mode='ger';renderInforme()">Informe de gestión (con HH)</button></div>
     <label><input type="checkbox" ${REP_OPT.det?'checked':''} onchange="REP_OPT.det=this.checked;renderInforme()"> Página de detalle</label><label><input type="checkbox" ${REP_OPT.proy?'checked':''} onchange="REP_OPT.proy=this.checked;renderInforme()"> Página de proyecciones</label>${corpSnap()?`<label><input type="checkbox" ${REP_OPT.corp?'checked':''} onchange="REP_OPT.corp=this.checked;renderInforme()"> Página corporativa</label>`:''}
     ${DIV?`<label><input type="checkbox" ${REP_OPT.hhSin?'checked':''} onchange="REP_OPT.hhSin=this.checked;renderInforme()"> Mostrar "horas sin accidentes CTP"</label>`:''}</div>
-    <button class="btn pri" onclick="window.print()">⬇ Generar PDF</button></div>
+    <button class="btn pri" onclick="printHi()">⬇ Generar PDF</button></div>
   <p class="small no-print" style="margin:-6px 0 12px">${DIV?'Para enviar a toda la División: sin HH trabajadas, sin detalle de accidentes, sin nombres, empresas ni descripciones.':'Para gerencias: incluye HH trabajadas y el detalle de los últimos 8 accidentes (sin nombres, empresas ni descripciones).'} Semana: ${semTxt}.</p>
   <div class="deck" id="deck">
   <section class="slide">${head(title,'al '+cap(DIAS[CUT.getDay()])+' '+CUT.getDate()+' de '+MESES[CUT.getMonth()])}
@@ -2636,7 +2641,7 @@ $('cutDate').addEventListener('change',e=>{const d=pDate(e.target.value);if(d){C
 $('fileAny').addEventListener('change',e=>{const f=e.target.files[0];if(f){if(DIRTY&&!confirm('Tienes cambios sin guardar. ¿Reemplazar por este archivo?'))return;openLocal(f)}e.target.value=''});
 (()=>{const z=$('welcomeDrop');z.onclick=()=>pickBase();z.ondragover=e=>{e.preventDefault();z.classList.add('over')};z.ondragleave=()=>z.classList.remove('over');z.ondrop=e=>{e.preventDefault();z.classList.remove('over');const f=e.dataTransfer.files[0];if(f)openLocal(f)}})();
 PAGE=(location.hash||'#resumen').slice(1);if(!RENDER[PAGE])PAGE='resumen';
-let _title=document.title;window.addEventListener('beforeprint',()=>{_title=document.title;if(PAGE==='informe')document.title=(REP_OPT.mode==='div'?'Indicadores de Seguridad Divisionales ':'Indicadores de Seguridad ')+fdate(CUT);Object.values(charts).forEach(c=>c.resize())});window.addEventListener('afterprint',()=>{document.title=_title;Object.values(charts).forEach(c=>c.resize())});
+let _title=document.title;window.addEventListener('beforeprint',()=>{_title=document.title;if(PAGE==='informe')document.title=(REP_OPT.mode==='div'?'Indicadores de Seguridad Divisionales ':'Indicadores de Seguridad ')+fdate(CUT);chartsDpr(true)});window.addEventListener('afterprint',()=>{document.title=_title;chartsDpr(false)});
 boot();
 
 </script>
