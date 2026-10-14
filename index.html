@@ -92,6 +92,7 @@ tr.open .caret{transform:rotate(90deg)}
 .drop:hover,.drop.over{border-color:var(--brand);background:var(--brand-l)}
 .msg{padding:9px 12px;border-radius:8px;font-size:13px;margin-top:10px}
 .msg.ok{background:var(--ok-bg);color:var(--ok)}.msg.bad{background:var(--bad-bg);color:var(--bad)}.alits{display:flex;flex-direction:column;gap:4px}.alit{font-size:13px}.alit .pill{min-width:96px;display:inline-block;text-align:center;margin-right:4px}
+.sexT th{text-align:right}.sexT tr.tot td{background:#FAFAFB;border-top:1px solid var(--line)}
 .msg.warn{background:var(--warn-bg);color:var(--warn)}
 .chart{position:relative;height:280px}
 .chart.tall{height:340px}
@@ -570,6 +571,13 @@ function hhRange(s,e,f){ // s,e: day numbers inclusive
   }
   return{hh,est,missing};
 }
+/* HH por sexo en un rango de días, solo con meses cargados (sin estimaciones) */
+function hhSex(s,e,f){let H=0,Mu=0,meses=0;if(e<s)return{h:0,m:0,t:0,meses};
+  let d=fromDn(s),y=d.getFullYear(),m=d.getMonth()+1;const tipos=f&&f.tipo?[f.tipo]:['Propio','EECC'];
+  while(true){const ms=dn(mkD(y,m,1)),me=dn(mkD(y,m,dim(y,m)));if(ms>e)break;const a=Math.max(s,ms),b=Math.min(e,me);
+    if(b>=a){const fr=(b-a+1)/dim(y,m);let any=false;for(const t of tipos){const mf=monthFull(t,y,m);if(mf.src!=='det'||mf.est)continue;any=true;for(const r of mf.rows)if(rowOk(r,f)){H+=r.hhH*fr;Mu+=r.hhM*fr}}if(any)meses++}
+    m++;if(m>12){m=1;y++}}
+  return{h:H,m:Mu,t:H+Mu,meses}}
 function dotMonth(y,m,f){
   const tipos=f&&f.tipo?[f.tipo]:['Propio','EECC'];let H=0,Mu=0,est=false;
   for(const t of tipos){const mf=monthFull(t,y,m);if(mf.src!=='det')continue;est=est||mf.est;for(const r of mf.rows)if(rowOk(r,f)){H+=r.dotH;Mu+=r.dotM}}
@@ -776,7 +784,8 @@ function renderResumen(){
    <div class="card"><h3>Tasa de Frecuencia acumulada · ${S0.short}</h3><p class="sub">(CTP + Fatales) × 10⁶ / HH, acumulada desde ${fdate(fromDn(S0.s))} al cierre de cada mes</p>${legend([[COL.ink,'Global'],[COL.prop,'Propios'],[COL.eecc,'EECC'],[COL.meta,'Meta',1]])}<div class="chart"><canvas id="chTF"></canvas></div></div>
    <div class="card"><h3>Horas persona por mes</h3><p class="sub">Propios y EECC${S.some(x=>x.mm.est)?' · el último mes incluye estimación':''}</p>${legend([[COL.prop,'Propios'],[COL.eecc,'EECC']])}<div class="chart"><canvas id="chHH"></canvas></div></div>
   </div>
-  <div class="card mt"><h3>Indicadores por Gerencia · ${S0.label}</h3><p class="sub">Propios + EECC. Haz clic en una gerencia para ver sus CECO.</p>${tablaGerencias({},null,'tGer')}</div>`;
+  <div class="card mt"><h3>Indicadores por Gerencia · ${S0.label}</h3><p class="sub">Propios + EECC. Haz clic en una gerencia para ver sus CECO.</p>${tablaGerencias({},null,'tGer')}</div>
+  <div class="card mt"><h3>Hombres y mujeres · dotación y horas persona</h3><p class="sub">Codelco y empresas contratistas, separando Inversión (CECO FC450) y Operación</p>${sexTable([['Codelco (propios)',{},'Propio'],['EECC · Inversión',{tc:'Inversión'},'EECC'],['EECC · Operación',{tc:'Operación'},'EECC'],['Total EECC',{},'EECC',true],['Total División',{},null,true]],S0)}</div>`;
   $('p-resumen').innerHTML=h;
   const labs=S.map(x=>x.lab);
   const tfP=serieMensual({tipo:'Propio'}).map(x=>x.ac.tf),tfE=serieMensual({tipo:'EECC'}).map(x=>x.ac.tf);
@@ -848,6 +857,30 @@ function showAcc(id){
   <div class="row" style="justify-content:flex-end;margin-top:16px">${ADMIN?`<button class="btn" onclick="editAcc('${esc(a.id)}')">Editar</button>`:''}<button class="btn pri" onclick="closeModal()">Cerrar</button></div>`);
 }
 
+/* ================= HOMBRES Y MUJERES ================= */
+const pctM=(m,t)=>t>0?N1(m/t*100)+'%':'—';
+function sexTable(defs,S0){
+  // defs: [[etiqueta, filtro, tipo para dotación ('Propio'|'EECC'|null), negrita]]
+  const ed=fromDn(S0.e),k=ed.getFullYear()*100+ed.getMonth()+1;
+  const lk={Propio:lastLoadedLE('Propio',k),EECC:lastLoadedLE('EECC',k)};
+  const dot=(f,tp)=>{const tps=tp?[tp]:['Propio','EECC'];const o={h:0,m:0,t:0};tps.forEach(t=>{const kk=lk[t];if(!kk)return;const d=dotMonth(Math.floor(kk/100),kk%100,Object.assign({},f,{tipo:t}));o.h+=d.h;o.m+=d.m;o.t+=d.t});return o};
+  const rows=defs.map(([lab,f,tp,b])=>{const d=dot(f,tp),hh=hhSex(S0.s,S0.e,Object.assign({},f,tp?{tipo:tp}:{}));return{lab,d,hh,b}});
+  const meses=Math.max(0,...rows.map(r=>r.hh.meses));
+  const td=(v,b)=>`<td class="n">${b?'<b>':''}${v}${b?'</b>':''}</td>`;
+  return `<div class="tw"><table class="sexT"><thead><tr><th class="l" rowspan="2"></th><th colspan="4">Dotación${(()=>{const u=new Set(defs.flatMap(d=>d[2]?[d[2]]:['Propio','EECC']));const L=[u.has('Propio')&&lk.Propio?'Propios '+keyLabel(lk.Propio):'',u.has('EECC')&&lk.EECC?(u.size>1?'EECC ':'')+keyLabel(lk.EECC):''].filter(Boolean);return L.length?' · '+L.join(' · '):''})()}</th><th colspan="4">Horas persona · ${esc(S0.short||S0.label)}</th></tr>
+   <tr><th>Hombres</th><th>Mujeres</th><th>Total</th><th>% mujeres</th><th>Hombres</th><th>Mujeres</th><th>Total</th><th>% mujeres</th></tr></thead><tbody>
+   ${rows.map(r=>`<tr${r.b?' class="tot"':''}><td class="l">${r.b?'<b>':''}${esc(r.lab)}${r.b?'</b>':''}</td>${td(N0(r.d.h),r.b)}${td(N0(r.d.m),r.b)}${td(N0(r.d.t),r.b)}${td(pctM(r.d.m,r.d.t),r.b)}${td(N0(r.hh.h),r.b)}${td(N0(r.hh.m),r.b)}${td(N0(r.hh.t),r.b)}${td(pctM(r.hh.m,r.hh.t),r.b)}</tr>`).join('')}
+   </tbody></table></div><p class="small" style="margin-top:6px">Dotación del último mes cargado. HH del periodo considerando solo meses ya cargados${meses?' ('+meses+' mes'+(meses>1?'es':'')+')':''}, sin estimaciones.</p>`;
+}
+function sexChart(id,S,defs){
+  // barras apiladas por mes: hombres y mujeres de cada grupo
+  const COLS=[[COL.c3,'#7FD0D8'],[COL.eecc,'#F6B58C'],[COL.prop,'#9DBDE3']];const ds=[];
+  defs.forEach(([lab,f],i)=>{const [ch,cm]=COLS[i%COLS.length];
+    ds.push(bar(lab+' · hombres',S.map(x=>hhSex(x.s,x.e,f).h),ch,{stack:'s'+i}));ds.push(bar(lab+' · mujeres',S.map(x=>hhSex(x.s,x.e,f).m),cm,{stack:'s'+i}))});
+  mkChart(id,{type:'bar',data:{labels:S.map(x=>x.lab),datasets:ds},options:{scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>N0(v)}}}}});
+}
+const sexLegend=defs=>{const COLS=[[COL.c3,'#7FD0D8'],[COL.eecc,'#F6B58C'],[COL.prop,'#9DBDE3']];return legend(defs.flatMap(([lab],i)=>[[COLS[i][0],lab+' · hombres'],[COLS[i][1],lab+' · mujeres']]))};
+
 /* ================= EECC ================= */
 let EECC_TAB='resumen',EECC_MES='year';
 function renderEecc(){
@@ -870,11 +903,14 @@ function renderEecc(){
   if(EECC_TAB==='resumen'){
     B.innerHTML=`<div class="grid g2"><div class="card"><h3>HH EECC por tipo de contrato</h3><p class="sub">Inversión = CECO FC450 · Operación = resto</p>${legend([[COL.c3,'Inversión'],[COL.eecc,'Operación']])}<div class="chart"><canvas id="chEH"></canvas></div></div>
     <div class="card"><h3>Dotación EECC por mes</h3><p class="sub">Personas (sin prorratear)</p>${legend([[COL.c3,'Inversión'],[COL.eecc,'Operación']])}<div class="chart"><canvas id="chED"></canvas></div></div></div>
+    <div class="card mt"><h3>Hombres y mujeres · Inversión y Operación</h3><p class="sub">Dotación y horas persona EECC por sexo</p>${sexTable([['Inversión',{tc:'Inversión'},'EECC'],['Operación',{tc:'Operación'},'EECC'],['Total EECC',{},'EECC',true]],S0)}
+     <h3 style="margin-top:16px">HH por mes · hombres y mujeres</h3>${sexLegend([['Inversión'],['Operación']])}<div class="chart"><canvas id="chESx"></canvas></div></div>
     <div class="card mt"><h3>Detalle por Gerencia y CECO · ${rlabel}</h3><p class="sub">Dotación del mes ${keyLabel(lk)} (último cargado del periodo).</p>${tablaDotGer(f,lk)}</div>
     <div class="card mt"><h3>Accidentes EECC · ${rlabel}</h3>${tablaAcc(M.acc.filter(a=>a.tipo==='EECC'&&a.dn>=S0.s&&a.dn<=S0.e&&COUNTED(a.cls)),false)}</div>`;
     const hi=[],ho=[],di=[],dO=[];S.forEach(x=>{hi.push(hhRange(x.s,x.e,{tipo:'EECC',tc:'Inversión'}).hh);ho.push(hhRange(x.s,x.e,{tipo:'EECC',tc:'Operación'}).hh);di.push(dotMonth(x.y,x.m,{tipo:'EECC',tc:'Inversión'}).t);dO.push(dotMonth(x.y,x.m,{tipo:'EECC',tc:'Operación'}).t)});
     mkChart('chEH',{type:'bar',data:{labels:labs,datasets:[bar('Inversión',hi,COL.c3,{stack:'a'}),bar('Operación',ho,COL.eecc,{stack:'a'})]},options:{scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>N0(v)}}}}});
     mkChart('chED',{type:'bar',data:{labels:labs,datasets:[bar('Inversión',di,COL.c3,{stack:'a'}),bar('Operación',dO,COL.eecc,{stack:'a'})]},options:{scales:{x:{stacked:true},y:{stacked:true}}}});
+    sexChart('chESx',S,[['Inversión',{tipo:'EECC',tc:'Inversión'}],['Operación',{tipo:'EECC',tc:'Operación'}]]);
   }
   if(EECC_TAB==='tc'||EECC_TAB==='area'){
     const key=EECC_TAB==='tc'?'tc':'a';
