@@ -90,7 +90,8 @@ tr.open .caret{transform:rotate(90deg)}
 .drop{border:2px dashed #C9CED6;border-radius:10px;padding:22px;text-align:center;color:var(--ink2);cursor:pointer;background:#FAFBFC}
 .drop:hover,.drop.over{border-color:var(--brand);background:var(--brand-l)}
 .msg{padding:9px 12px;border-radius:8px;font-size:13px;margin-top:10px}
-.msg.ok{background:var(--ok-bg);color:var(--ok)}.msg.bad{background:var(--bad-bg);color:var(--bad)}.msg.warn{background:var(--warn-bg);color:var(--warn)}
+.msg.ok{background:var(--ok-bg);color:var(--ok)}.msg.bad{background:var(--bad-bg);color:var(--bad)}.alits{display:flex;flex-direction:column;gap:4px}.alit{font-size:13px}.alit .pill{min-width:96px;display:inline-block;text-align:center;margin-right:4px}
+.msg.warn{background:var(--warn-bg);color:var(--warn)}
 .chart{position:relative;height:280px}
 .chart.tall{height:340px}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink2);margin-bottom:6px}
@@ -1957,7 +1958,6 @@ const canLic=()=>ADMIN||MOD;
 /* ---------- estado de una licencia ---------- */
 function licStatus(l,t){
   t=t||trabBy(l.rut)||{};const T=LT[l.tipo];const items=[];
-  items.push({n:'Vigencia de la licencia',t:'vig',f:l.vig||null});
   (T?T.req:[]).forEach(k=>{const R=LREQ[k];items.push(R.t==='vig'?{n:R.n,t:'vig',f:t[R.k]||null}:{n:R.n,t:'bool',ok:t[R.k]==='SI',f:R.kf?t[R.kf]||null:null})});
   items.forEach(i=>{if(i.t==='vig'){i.d=dDays(i.f);i.st=i.f==null?'falta':i.d<0?'vencido':i.d<=15?'15':i.d<=30?'30':'ok'}else i.st=i.ok?'ok':'falta'});
   const vigs=items.filter(i=>i.t==='vig'&&i.f);const prox=vigs.slice().sort((a,b)=>a.f-b.f)[0]||null;
@@ -1972,16 +1972,41 @@ const LCLS={ok:'ok',warn:'warn',warn15:'w15',bad:'bad'};
 const licPill=(l,s)=>{s=s||licStatus(l);return `<span class="pill lp-${LCLS[s.cls]}" title="${esc(s.st)}">${esc(LT[l.tipo]?LT[l.tipo].corto:l.tipo)}</span>`};
 /* ---------- alertas ---------- */
 function licAlerts(){
-  const out=[];
+  // una fila por trabajador: requisitos con vencimiento (licencia municipal, PST, altura física) a ≤30 días o vencidos, y requisitos pendientes
+  const by=new Map();const get=t=>{const k=rutKey(t.rut);if(!by.has(k))by.set(k,{t,lics:new Set(),items:new Map()});return by.get(k)};
   (LDB.lic||[]).filter(l=>l.estado==='Activa').forEach(l=>{const t=trabBy(l.rut);if(!t)return;const s=licStatus(l,t);
-    s.items.forEach(i=>{if(i.t==='vig'&&i.f&&i.d<=30)out.push({t,l,n:i.n,f:i.f,d:i.d});if(i.st==='falta')out.push({t,l,n:i.n,f:null,d:null,falta:true})})});
-  (LDB.docs||[]).forEach(d=>{if(!d.vig)return;const dd=dDays(d.vig);if(dd>30)return;const t=trabBy(d.rut);if(!t)return;
-    if(DOC_REQ[d.doc]&&licsOf(d.rut).some(l=>l.estado==='Activa'))return; // ya contado como requisito
-    out.push({t,l:null,n:d.doc+(d.nombre&&d.nombre!==d.doc?' · '+d.nombre:''),f:d.vig,d:dd,doc:true})});
-  return out.sort((a,b)=>(a.d==null?-1e9:a.d)-(b.d==null?-1e9:b.d));
+    s.items.forEach(i=>{const hit=(i.t==='vig'&&i.f&&i.d<=30)||i.st==='falta';if(!hit)return;const g=get(t);g.lics.add(l);
+      if(!g.items.has(i.n))g.items.set(i.n,{n:i.n,f:i.f||null,d:i.f?i.d:null,falta:i.st==='falta'})})});
+  (LDB.docs||[]).forEach(d=>{if(!d.vig||DOC_REQ[d.doc])return;const dd=dDays(d.vig);if(dd>30)return;const t=trabBy(d.rut);if(!t)return;const g=get(t);
+    const n=d.doc+(d.nombre&&d.nombre!==d.doc?' · '+d.nombre:'');if(!g.items.has(n))g.items.set(n,{n,f:d.vig,d:dd,falta:false})});
+  const out=[...by.values()].map(g=>{const items=[...g.items.values()].sort((a,b)=>(a.d==null?-1e9:a.d)-(b.d==null?-1e9:b.d));
+    const ds=items.filter(i=>i.d!=null).map(i=>i.d);const minD=ds.length?Math.min(...ds):null;
+    return{t:g.t,lics:[...g.lics],items,minD,worst:items.some(i=>i.falta)?-1e9:minD}});
+  return out.sort((a,b)=>a.worst-b.worst||String(a.t.nombre).localeCompare(String(b.t.nombre)));
 }
+const alItem=i=>i.falta&&!i.f?`<span class="alit"><span class="pill bad">Pendiente</span> ${esc(i.n)}</span>`:`<span class="alit"><span class="pill ${i.d<0?'bad':i.d<=15?'lp-w15':'warn'}">${i.d<0?'Vencido':i.d===0?'Vence hoy':'Vence en '+i.d+' d'}</span> ${esc(i.n)} <span class="small">${fdate(i.f)}</span></span>`;
 /* ---------- página ---------- */
 let LF={q:'',tipo:'',lic:'con',ger:'',est:''},LPAGE=100;
+const qTokens=q=>norm(q).split(' ').filter(Boolean);
+function licFilter(){
+  const tk=qTokens(LF.q);
+  let list=(LDB.trab||[]).filter(t=>t.activo!=='NO'||licsOf(t.rut).length);
+  if(LF.tipo)list=list.filter(t=>t.tipo===LF.tipo);
+  // al buscar por nombre o RUT se busca en toda la orgánica (también sin licencia), para poder agregarle una
+  if(LF.lic==='con'&&!tk.length)list=list.filter(t=>licsOf(t.rut).length);else if(LF.lic&&LT[LF.lic])list=list.filter(t=>licsOf(t.rut).some(l=>l.tipo===LF.lic));
+  if(LF.ger)list=list.filter(t=>t.ger===LF.ger);
+  if(LF.est)list=list.filter(t=>licsOf(t.rut).some(l=>{const s=licStatus(l,t);return LF.est==='alerta'?s.cls!=='ok':s.st===LF.est}));
+  if(tk.length)list=list.filter(t=>{const h=norm(t.nombre+' '+t.rut+' '+rutKey(t.rut)+' '+(t.empresa||'')+' '+(t.cargo||''));return tk.every(w=>h.includes(w))});
+  return list.sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre)));
+}
+function licListHtml(){const list=licFilter();
+  return list.length?`<div class="small" style="margin:-4px 0 6px">${N0(list.length)} trabajador${list.length===1?'':'es'}${LF.q?' para «'+esc(LF.q)+'»':''}</div><div class="tw"><table class="tacc"><thead><tr><th class="l">Nombre</th><th class="l">RUT</th><th class="l">Empresa</th><th class="l">Cargo</th><th class="l">Gerencia / Superint.</th><th class="l">Licencias</th><th></th></tr></thead><tbody>
+   ${list.slice(0,LPAGE).map(t=>{const ls=licsOf(t.rut);return `<tr class="acc-row" onclick="showTrab('${esc(rutKey(t.rut))}')"><td class="l"><b>${esc(t.nombre)}</b>${t.activo==='NO'?' <span class="pill neu">fuera de orgánica</span>':''}</td><td class="l">${esc(rutFmt(t.rut))}</td><td class="l">${esc(t.tipo==='Codelco'?'Codelco':t.empresa||'EECC')}</td><td class="l w">${esc(t.cargo||'')}</td><td class="l w">${esc(t.ger||'')}</td><td class="l">${ls.map(l=>licPill(l)).join(' ')||'<span class="small">—</span>'}</td><td class="acts"><button class="btn sm" onclick="event.stopPropagation();showTrab('${esc(rutKey(t.rut))}')">Ver</button></td></tr>`}).join('')}
+   </tbody></table></div>${list.length>LPAGE?`<div class="row mt"><button class="btn" onclick="LPAGE+=200;licListRender()">Ver más (${N0(list.length-LPAGE)} restantes)</button></div>`:''}`:`<p class="small">${LF.q?'No encontré trabajadores para «'+esc(LF.q)+'».':'Sin trabajadores para este filtro.'}</p>`}
+function licListRender(){const b=$('licList');if(b)b.innerHTML=licListHtml();const c=$('licQClr');if(c)c.style.display=LF.q?'':'none'}
+function licSearch(go){const q=$('licQ');LF.q=q?q.value.trim():'';LPAGE=100;licListRender();if(go){const L=licFilter();if(L.length===1)showTrab(rutKey(L[0].rut))}}
+function licSugg(){const dl=$('dlTrab');if(!dl)return;const tk=qTokens(($('licQ')||{}).value||'');if(!tk.length||tk.join('').length<2){dl.innerHTML='';return}
+  const L=(LDB.trab||[]).filter(t=>{const h=norm(t.nombre+' '+rutKey(t.rut));return tk.every(w=>h.includes(w))}).slice(0,12);dl.innerHTML=L.map(t=>`<option value="${esc(t.nombre)}">${esc(rutFmt(t.rut))}</option>`).join('')}
 function renderLic(){
   const P=$('p-licencias');
   if(!canLic()){P.innerHTML='<div class="card"><p>Este módulo es solo para administrador y modificador.</p></div>';return}
@@ -1989,14 +2014,6 @@ function renderLic(){
   const act=(LDB.lic||[]).filter(l=>l.estado==='Activa');const SS=act.map(l=>licStatus(l));
   const c=k=>SS.filter(s=>s.cls===k).length;
   const al=licAlerts();
-  const ql=norm(LF.q);
-  let list=(LDB.trab||[]).filter(t=>t.activo!=='NO'||licsOf(t.rut).length);
-  if(LF.tipo)list=list.filter(t=>t.tipo===LF.tipo);
-  if(LF.lic==='con')list=list.filter(t=>licsOf(t.rut).length);else if(LF.lic&&LT[LF.lic])list=list.filter(t=>licsOf(t.rut).some(l=>l.tipo===LF.lic));
-  if(LF.ger)list=list.filter(t=>t.ger===LF.ger);
-  if(LF.est)list=list.filter(t=>licsOf(t.rut).some(l=>{const s=licStatus(l,t);return LF.est==='alerta'?s.cls!=='ok':s.st===LF.est}));
-  if(ql)list=list.filter(t=>norm(t.nombre+' '+t.rut+' '+rutKey(t.rut)+' '+(t.empresa||'')+' '+(t.cargo||'')).includes(ql));
-  list.sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre)));
   const gers=[...new Set((LDB.trab||[]).map(t=>t.ger).filter(Boolean))].sort();
   P.innerHTML=`
   ${LDIRTY?`<div class="msg warn" style="margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">⚠ Hay cambios en licencias sin publicar.<button class="btn sm pri" onclick="publishLic()">☁ Guardar y publicar licencias</button></div>`:''}
@@ -2007,25 +2024,22 @@ function renderLic(){
    ${kpi('Vencen en 15 días',N0(c('warn15')),'15 días o menos','lk-w15')}
    ${kpi('Vencidas o incompletas',N0(c('bad')),'Requieren acción','lk-bad')}
   </div>
-  <div class="card mt"><div class="row" style="justify-content:space-between"><div><h3>Próximos vencimientos y pendientes</h3><p class="sub">Requisitos y documentos que vencen en 30 días o menos, ya vencidos o sin registrar</p></div><button class="btn" onclick="licAlertXlsx()">⬇ Descargar Excel</button></div>
-   ${al.length?`<div class="tw" style="max-height:340px"><table class="tacc"><thead><tr><th class="l">Trabajador</th><th class="l">Empresa</th><th class="l">Licencia</th><th class="l">Requisito / documento</th><th class="l">Vence</th><th>Días</th></tr></thead><tbody>
-   ${al.slice(0,200).map(a=>`<tr class="acc-row" onclick="showTrab('${esc(rutKey(a.t.rut))}')"><td class="l"><b>${esc(a.t.nombre)}</b><br><span class="small">${esc(rutFmt(a.t.rut))}</span></td><td class="l">${esc(a.t.tipo==='Codelco'?'Codelco':a.t.empresa||'EECC')}</td><td class="l">${a.l?licPill(a.l):'—'}</td><td class="l">${esc(a.n)}</td><td class="l">${a.f?fdate(a.f):'<span class="pill bad">Falta</span>'}</td><td><span class="pill ${a.d==null||a.d<0?'bad':a.d<=15?'lp-w15':'warn'}">${a.d==null?'—':a.d<0?'Vencido':a.d}</span></td></tr>`).join('')}
-   </tbody></table></div>`:'<p class="small">Sin vencimientos en los próximos 30 días. ✓</p>'}</div>
+  <div class="card mt"><div class="row" style="justify-content:space-between"><div><h3>Próximos vencimientos y pendientes</h3><p class="sub">Un registro por trabajador · licencia municipal, examen PST y examen de altura física que vencen en 30 días o menos o ya vencieron, y requisitos pendientes</p></div><button class="btn" onclick="licAlertXlsx()">⬇ Descargar Excel</button></div>
+   ${al.length?`<div class="tw" style="max-height:380px"><table class="tacc"><thead><tr><th class="l">Trabajador</th><th class="l">Empresa</th><th class="l">Licencias</th><th class="l">Qué vence o falta</th></tr></thead><tbody>
+   ${al.slice(0,300).map(a=>`<tr class="acc-row" onclick="showTrab('${esc(rutKey(a.t.rut))}')"><td class="l"><b>${esc(a.t.nombre)}</b><br><span class="small">${esc(rutFmt(a.t.rut))}</span></td><td class="l">${esc(a.t.tipo==='Codelco'?'Codelco':a.t.empresa||'EECC')}</td><td class="l">${a.lics.map(l=>licPill(l)).join(' ')||'—'}</td><td class="l"><div class="alits">${a.items.map(alItem).join('')}</div></td></tr>`).join('')}
+   </tbody></table></div>`:'<p class="small">Sin vencimientos en los próximos 30 días ni requisitos pendientes. ✓</p>'}</div>
   <div class="card mt"><div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px"><div><h3>Trabajadores</h3><p class="sub">Orgánica Codelco y contratistas · ${N0((LDB.trab||[]).length)} registrados</p></div>
     <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn" onclick="editTrab(null)">＋ Trabajador</button><label class="btn" style="cursor:pointer">📥 Importar orgánica<input type="file" accept=".xlsx,.xls" class="hidden" onchange="importOrg(this)"></label><button class="btn" onclick="licCardsBatch()">🪪 Tarjetas PNG</button><button class="btn" onclick="saveLicExcel()">💾 Excel de licencias</button><button class="btn pri" onclick="publishLic()">☁ Guardar y publicar</button></div></div>
    <div class="row" style="gap:10px;flex-wrap:wrap;margin:6px 0 10px">
-    <input placeholder="Buscar nombre, RUT, empresa o cargo" value="${esc(LF.q)}" oninput="LF.q=this.value;clearTimeout(window._lq);window._lq=setTimeout(renderLic,250)" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;min-width:260px" id="licQ">
+    <div class="row" style="gap:6px;align-items:center"><input id="licQ" list="dlTrab" autocomplete="off" placeholder="Buscar por nombre, apellido o RUT" value="${esc(LF.q)}" oninput="licSugg();clearTimeout(window._lq);window._lq=setTimeout(()=>licSearch(false),300)" onkeydown="if(event.key==='Enter'){event.preventDefault();clearTimeout(window._lq);licSearch(true)}" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;min-width:300px"><datalist id="dlTrab"></datalist><button class="btn pri" onclick="clearTimeout(window._lq);licSearch(true)">🔍 Buscar</button><button class="btn" id="licQClr" style="${LF.q?'':'display:none'}" onclick="$('licQ').value='';licSearch(false)">Limpiar</button></div>
     <label class="fld">Personal<select onchange="LF.tipo=this.value;renderLic()"><option value="">Todos</option><option ${LF.tipo==='Codelco'?'selected':''}>Codelco</option><option ${LF.tipo==='EECC'?'selected':''}>EECC</option></select></label>
     <label class="fld">Licencia<select onchange="LF.lic=this.value;renderLic()"><option value="">Todos (con y sin licencia)</option><option value="con" ${LF.lic==='con'?'selected':''}>Con alguna licencia</option>${Object.entries(LT).map(([k,v])=>`<option value="${k}" ${LF.lic===k?'selected':''}>${v.corto}</option>`).join('')}</select></label>
     <label class="fld">Estado<select onchange="LF.est=this.value;renderLic()"><option value="">Todos</option><option value="alerta" ${LF.est==='alerta'?'selected':''}>Con alerta</option>${['VIGENTE','VENCE ≤30 DÍAS','VENCE ≤15 DÍAS','VENCIDA','INCOMPLETA','SUSPENDIDA'].map(s=>`<option ${LF.est===s?'selected':''}>${s}</option>`).join('')}</select></label>
     <label class="fld">Gerencia / Superint.<select onchange="LF.ger=this.value;renderLic()"><option value="">Todas</option>${gers.map(g=>`<option ${LF.ger===g?'selected':''}>${esc(g)}</option>`).join('')}</select></label>
    </div>
-   ${list.length?`<div class="tw"><table class="tacc"><thead><tr><th class="l">Nombre</th><th class="l">RUT</th><th class="l">Empresa</th><th class="l">Cargo</th><th class="l">Gerencia / Superint.</th><th class="l">Licencias</th><th></th></tr></thead><tbody>
-   ${list.slice(0,LPAGE).map(t=>{const ls=licsOf(t.rut);return `<tr class="acc-row" onclick="showTrab('${esc(rutKey(t.rut))}')"><td class="l"><b>${esc(t.nombre)}</b>${t.activo==='NO'?' <span class="pill neu">fuera de orgánica</span>':''}</td><td class="l">${esc(rutFmt(t.rut))}</td><td class="l">${esc(t.tipo==='Codelco'?'Codelco':t.empresa||'EECC')}</td><td class="l w">${esc(t.cargo||'')}</td><td class="l w">${esc(t.ger||'')}</td><td class="l">${ls.map(l=>licPill(l)).join(' ')||'<span class="small">—</span>'}</td><td class="acts"><button class="btn sm" onclick="event.stopPropagation();showTrab('${esc(rutKey(t.rut))}')">Ver</button></td></tr>`}).join('')}
-   </tbody></table></div>${list.length>LPAGE?`<div class="row mt"><button class="btn" onclick="LPAGE+=200;renderLic()">Ver más (${N0(list.length-LPAGE)} restantes)</button></div>`:''}`:'<p class="small">Sin trabajadores para este filtro.</p>'}
+   <div id="licList">${licListHtml()}</div>
    <div class="row mt small" style="gap:14px"><span><span class="pill lp-ok">Vigente</span></span><span><span class="pill lp-warn">Vence ≤30 días</span></span><span><span class="pill lp-w15">Vence ≤15 días</span></span><span><span class="pill lp-bad">Vencida / incompleta / suspendida</span></span></div>
   </div>`;
-  const q=$('licQ');if(q&&document.activeElement!==q&&LF.q&&window._lqf){q.focus();q.setSelectionRange(q.value.length,q.value.length)}
 }
 /* ---------- ficha del trabajador ---------- */
 function reqRow(t,k){const R=LREQ[k];
@@ -2037,12 +2051,12 @@ function showTrab(rk){
   openModal(`<div class="ad-head"><div><div class="ad-id">${esc(rutFmt(t.rut))}</div><h3 style="margin:0">${esc(t.nombre)}</h3><div class="small">${esc(t.tipo==='Codelco'?'Codelco':t.empresa||'Contratista')} · ${esc(t.cargo||'')}</div></div><button class="btn" onclick="editTrab('${esc(rutKey(t.rut))}')">Editar datos y requisitos</button></div>
   <div class="ad-sec">Datos</div><div class="ad-grid">${[['Cargo',t.cargo],['Grupo',t.grupo],['Turno',t.turno],['Rol',t.rol],['Gerencia / Superint.',t.ger],['Empresa',t.tipo==='Codelco'?'Codelco':t.empresa]].map(([a,b])=>`<div class="af"><span>${a}</span><b>${esc(b||'—')}</b></div>`).join('')}</div>
   <div class="ad-sec">Licencias</div>
-  ${ls.length?ls.map(l=>{const s=licStatus(l,t);return `<div class="licrow"><div style="border-left:6px solid ${LT[l.tipo]?LT[l.tipo].color:'#999'};padding-left:10px"><b>${esc(LT[l.tipo]?LT[l.tipo].nombre:l.tipo)}</b> <span class="pill lp-${LCLS[s.cls]}">${esc(s.st)}</span><br><span class="small">${esc(l.id)} · Emisión ${l.emision?fdate(l.emision):'—'} · Vigencia ${l.vig?fdate(l.vig):'—'}${s.prox&&s.prox.n!=='Vigencia de la licencia'?' · próximo vencimiento: '+esc(s.prox.n)+' '+fdate(s.prox.f):''}${s.falta.length?' · falta: '+esc(s.falta.map(i=>i.n).join(', ')):''}</span></div>
+  ${ls.length?ls.map(l=>{const s=licStatus(l,t);return `<div class="licrow"><div style="border-left:6px solid ${LT[l.tipo]?LT[l.tipo].color:'#999'};padding-left:10px"><b>${esc(LT[l.tipo]?LT[l.tipo].nombre:l.tipo)}</b> <span class="pill lp-${LCLS[s.cls]}">${esc(s.st)}</span><br><span class="small">${esc(l.id)} · Emisión ${l.emision?fdate(l.emision):'—'} · Vigencia ${s.vigEf?fdate(s.vigEf)+' (por '+esc(s.prox.n)+')':(s.items.some(i=>i.t==='vig')?'pendiente (faltan fechas de requisitos)':'sin vencimiento')}${s.falta.length?' · falta: '+esc(s.falta.map(i=>i.n).join(', ')):''}</span></div>
      <div class="row" style="gap:6px"><button class="btn sm" onclick="licCardDl('${esc(l.id)}')">🪪 Tarjeta PNG</button><button class="btn sm" onclick="licQrOpen('${esc(l.id)}')">🔗 Ver QR</button><button class="btn sm" onclick="editLicencia('${esc(l.id)}')">Editar</button></div></div>`}).join(''):'<p class="small">Sin licencias.</p>'}
   <button class="btn sm" onclick="editLicencia(null,'${esc(rutKey(t.rut))}')">＋ Agregar licencia</button>
   <div class="ad-sec">Requisitos</div><div class="tw"><table><tbody>${(reqs.length?reqs:allReq).map(k=>reqRow(t,k)).join('')}</tbody></table></div>
   <div class="ad-sec">Documentación</div>
-  ${ds.length?`<div class="tw"><table><thead><tr><th class="l">Documento</th><th class="l">Vigencia</th><th class="l">Cargado</th><th></th></tr></thead><tbody>${ds.map(d=>{const i=LDB.docs.indexOf(d);const dd=dDays(d.vig);return `<tr><td class="l"><b>${esc(d.doc)}</b>${d.nombre?'<br><span class="small">'+esc(d.nombre)+'</span>':''}</td><td class="l">${d.vig?fdate(d.vig)+` <span class="pill ${dd<0?'bad':dd<=15?'lp-w15':dd<=30?'warn':'ok'}">${dd<0?'vencido':dd<=30?dd+' días':'vigente'}</span>`:'—'}</td><td class="l">${d.fecha?fdate(d.fecha):''}</td><td class="acts">${d.file?`<button class="btn sm" onclick="licDocOpen(${i})">Abrir</button>`:''}${d.link?`<a class="btn sm" href="${esc(d.link)}" target="_blank" rel="noopener">Enlace</a>`:''}<button class="btn sm" style="color:var(--bad)" onclick="licDocDel(${i})">✕</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="small">Sin documentos cargados.</p>'}
+  ${ds.length?`<div class="tw"><table><thead><tr><th class="l">Documento</th><th class="l">Vigencia</th><th class="l">Cargado</th><th></th></tr></thead><tbody>${ds.map(d=>{const i=LDB.docs.indexOf(d);const dd=dDays(d.vig);return `<tr><td class="l"><b>${esc(d.doc)}</b>${d.nombre?'<br><span class="small">'+esc(d.nombre)+'</span>':''}</td><td class="l">${d.vig?fdate(d.vig)+` <span class="pill ${dd<0?'bad':dd<=15?'lp-w15':dd<=30?'warn':'ok'}">${dd<0?'vencido':dd<=30?dd+' días':'vigente'}</span>`:'<span class="small">No vence</span>'}</td><td class="l">${d.fecha?fdate(d.fecha):''}</td><td class="acts">${d.file?`<button class="btn sm" onclick="licDocOpen(${i})">Abrir</button>`:''}${d.link?`<a class="btn sm" href="${esc(d.link)}" target="_blank" rel="noopener">Enlace</a>`:''}<button class="btn sm" style="color:var(--bad)" onclick="licDocDel(${i})">✕</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="small">Sin documentos cargados.</p>'}
   <button class="btn sm" onclick="licDocAdd('${esc(rutKey(t.rut))}')">＋ Agregar documento</button>
   <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn pri" onclick="closeModal()">Cerrar</button></div>`);
 }
@@ -2085,35 +2099,40 @@ function editLicencia(id,rk){
   openModal(`<h3>${id?'Editar licencia '+esc(id):'Nueva licencia'}</h3><p class="sub">${esc(t?t.nombre:'')} · ${esc(rutFmt(l.rut))}</p><form id="licF"><div class="fgrid">
    <label class="fld">Tipo de licencia<select name="tipo" ${id?'disabled':''}>${Object.entries(LT).map(([k,v])=>`<option value="${k}" ${l.tipo===k?'selected':''}>${v.nombre}</option>`).join('')}</select></label>
    <label class="fld">Fecha de emisión<input type="date" name="emision" value="${l.emision?iso(l.emision):''}"></label>
-   <label class="fld">Vigencia de la licencia<input type="date" name="vig" value="${l.vig?iso(l.vig):''}" required></label>
    <label class="fld">Estado<select name="estado">${LIC_EST.map(s=>`<option ${l.estado===s?'selected':''}>${s}</option>`).join('')}</select></label>
    <label class="fld full">Observación<input name="obs" value="${esc(l.obs||'')}"></label></div>
-   <p class="small">El código QR de la licencia no cambia aunque edites los datos o renueves la vigencia. Si la revocas, el QR mostrará "REVOCADA".</p>
+   <p class="small">La vigencia de la licencia se calcula sola: es la fecha del primer vencimiento entre sus requisitos (licencia municipal, examen PST o examen de altura física, según el tipo). Al renovar un examen, la vigencia se actualiza. El código QR no cambia; si revocas la licencia, el QR mostrará "REVOCADA".</p>
    <div class="row" style="justify-content:flex-end;margin-top:14px">${id?`<button type="button" class="btn" style="margin-right:auto;color:var(--bad)" onclick="delLicencia('${esc(id)}')">Eliminar</button>`:''}<button type="button" class="btn" onclick="showTrab('${esc(rutKey(l.rut))}')">Cancelar</button><button class="btn pri">Guardar</button></div></form>`);
   $('licF').onsubmit=e=>{e.preventDefault();const f=new FormData($('licF'));
     if(!id){const tp=f.get('tipo');if(licsOf(l.rut).some(x=>x.tipo===tp&&x.estado!=='Revocada')){toast('Este trabajador ya tiene esa licencia: edítala en vez de crear otra',6000);return}
       const n=Math.max(0,...LDB.lic.map(x=>parseInt(String(x.id).replace(/\D/g,''))||0))+1;Object.assign(l,{id:'LI-'+String(n).padStart(4,'0'),tipo:tp,qid:rnd62(10),qk:b64u(crypto.getRandomValues(new Uint8Array(16)))});LDB.lic.push(l)}
-    Object.assign(l,{emision:pDate(f.get('emision')),vig:pDate(f.get('vig')),estado:f.get('estado'),obs:String(f.get('obs')||'').trim()});
+    Object.assign(l,{emision:pDate(f.get('emision')),vig:null,estado:f.get('estado'),obs:String(f.get('obs')||'').trim()});
     licDirty('Licencia guardada');showTrab(rutKey(l.rut))};
 }
 function delLicencia(id){if(!confirm('¿Eliminar la licencia? Su código QR dejará de funcionar. (Para dejar constancia, mejor márcala como "Revocada".)'))return;const l=LDB.lic.find(x=>x.id===id);LDB.lic=LDB.lic.filter(x=>x.id!==id);licDirty('Licencia eliminada');showTrab(rutKey(l.rut))}
 /* ---------- documentos ---------- */
 function licDocAdd(rk){
   openModal(`<h3>Agregar documento</h3><form id="docF"><div class="fgrid">
-   <label class="fld">Tipo de documento<select name="doc">${DOC_TIPOS.map(x=>`<option>${x}</option>`).join('')}</select></label>
-   <label class="fld">Vigencia (si aplica)<input type="date" name="vig"></label>
+   <label class="fld">Tipo de documento<select name="doc" onchange="docVigToggle()">${DOC_TIPOS.map(x=>`<option>${x}</option>`).join('')}</select></label>
+   <label class="fld" id="docVigF">Vigencia<input type="date" name="vig"></label>
    <label class="fld full">Descripción<input name="nombre" placeholder="Ej. Examen ocupacional Mutual 2026"></label>
    <label class="fld full">Archivo (PDF o imagen)<input type="file" name="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"></label>
    <label class="fld full">o enlace (SharePoint)<input name="link" placeholder="https://…"></label></div>
-   <p class="small">Si el documento es un examen PST, examen de altura física o licencia municipal, su vigencia actualiza el requisito del trabajador.</p>
+   <p class="small" id="docVigH"></p>
    <div id="docM"></div><div class="row" style="justify-content:flex-end;margin-top:12px"><button type="button" class="btn" onclick="showTrab('${esc(rk)}')">Cancelar</button><button class="btn pri">Guardar</button></div></form>`);
+  docVigToggle();
   $('docF').onsubmit=async e=>{e.preventDefault();const f=new FormData($('docF'));const file=f.get('file');const t=trabBy(rk);
+    if(DOC_REQ[f.get('doc')]&&!f.get('vig')){$('docM').innerHTML='<div class="msg bad">Este documento vence: indica su fecha de vigencia</div>';return}
     const d={rut:t.rut,doc:f.get('doc'),nombre:String(f.get('nombre')||'').trim(),vig:pDate(f.get('vig')),fecha:today(),link:String(f.get('link')||'').trim(),file:null};
     if(file&&file.size){$('docM').innerHTML='<p class="small">Subiendo y cifrando…</p>';try{d.file=await encUpload(file,'data/doc/'+rutKey(t.rut))}catch(err){$('docM').innerHTML=`<div class="msg bad">${esc(err.message)}</div>`;return}}
-    if(!d.file&&!d.link&&!d.vig){$('docM').innerHTML='<div class="msg bad">Adjunta un archivo, un enlace o al menos la vigencia</div>';return}
+    if(!DOC_REQ[d.doc]&&d.doc!=='Otro')d.vig=null;
+    if(!d.file&&!d.link&&!d.vig){$('docM').innerHTML='<div class="msg bad">Adjunta el archivo o el enlace del documento</div>';return}
+    const BREQ={'Curso operación puente grúa':'cursoPG','Curso trabajo en altura':'cursoAltura','Curso específico tecle':'cursoTecle','RF 03 Izaje':'rf03','Procedimiento trabajo en altura física':'procAltura'};if(BREQ[d.doc])t[BREQ[d.doc]]='SI';
     LDB.docs.push(d);if(DOC_REQ[d.doc]&&d.vig&&(!t[DOC_REQ[d.doc]]||d.vig>t[DOC_REQ[d.doc]]))t[DOC_REQ[d.doc]]=d.vig;
     licDirty('Documento agregado');showTrab(rk)};
 }
+function docVigToggle(){const s=document.querySelector('#docF [name=doc]');if(!s)return;const v=!!DOC_REQ[s.value]||s.value==='Otro';$('docVigF').style.display=v?'':'none';
+  $('docVigH').textContent=DOC_REQ[s.value]?'Este documento vence: su vigencia actualiza el requisito del trabajador y genera alertas a 30 y 15 días.':s.value==='Otro'?'Indica vigencia solo si el documento vence.':'Este documento no vence: al guardarlo, el requisito queda como realizado.'}
 function licDocDel(i){const d=LDB.docs[i];if(!d||!confirm('¿Quitar este documento?'))return;LDB.docs.splice(i,1);if(d.file)invRemote(d.file,'delete');licDirty('Documento quitado');showTrab(rutKey(d.rut))}
 async function licDocOpen(i){const d=LDB.docs[i];if(!d||!d.file)return;const isPdf=/pdf/i.test(d.file.type||'')||/\.pdf$/i.test(d.file.name||'');let w=null;if(isPdf){try{w=window.open('about:blank','_blank')}catch(e){}}
   try{toast('Abriendo '+d.file.name+'…');const pt=await encDownload(d.file);const url=URL.createObjectURL(new Blob([pt],{type:d.file.type||'application/octet-stream'}));
@@ -2170,7 +2189,7 @@ function buildLicWb(){
   const W=[34,13,30,6,6,9,34,26,7,12,10,9,12,12,10,12,10,12,30];
   sh('Codelco',TR_H,LDB.trab.filter(t=>t.tipo==='Codelco').map(trRow),W);
   sh('EECC',TR_H,LDB.trab.filter(t=>t.tipo!=='Codelco').map(trRow),W);
-  sh('Licencias',['ID','Rut','Nombre','Tipo','Licencia','Fecha emisión','Vigencia','Estado registrado','Estado calculado','Próximo vencimiento','Fecha próximo vencimiento','Código QR','Llave QR','Observación'],LDB.lic.map(l=>{const t=trabBy(l.rut)||{};const s=licStatus(l,t);return[l.id,rutFmt(l.rut),t.nombre||'',l.tipo,LT[l.tipo]?LT[l.tipo].nombre:'',l.emision,l.vig,l.estado,s.st,s.prox?s.prox.n:'',s.prox?s.prox.f:null,l.qid,l.qk,l.obs]}),[9,13,32,6,24,11,11,11,16,30,11,13,24,30]);
+  sh('Licencias',['ID','Rut','Nombre','Tipo','Licencia','Fecha emisión','Vigencia (calculada)','Estado registrado','Estado calculado','Próximo vencimiento','Fecha próximo vencimiento','Código QR','Llave QR','Observación'],LDB.lic.map(l=>{const t=trabBy(l.rut)||{};const s=licStatus(l,t);return[l.id,rutFmt(l.rut),t.nombre||'',l.tipo,LT[l.tipo]?LT[l.tipo].nombre:'',l.emision,s.vigEf,l.estado,s.st,s.prox?s.prox.n:'',s.prox?s.prox.f:null,l.qid,l.qk,l.obs]}),[9,13,32,6,24,11,11,11,16,30,11,13,24,30]);
   sh('Documentos',['Rut','Nombre','Documento','Descripción','Vigencia','Fecha carga','Enlace','Archivo'],LDB.docs.map(d=>{const t=trabBy(d.rut)||{};return[rutFmt(d.rut),t.nombre||'',d.doc,d.nombre,d.vig,d.fecha,d.link,d.file?JSON.stringify(d.file):'']}),[13,32,26,30,11,11,40,40]);
   return XLSX.write(wb,{bookType:'xlsx',type:'array'});
 }
@@ -2198,8 +2217,9 @@ async function openLicExcel(){
   catch(e){if(e.name!=='AbortError')toast('No pude abrir el archivo: '+e.message,7000)}
 }
 function licAlertXlsx(){
-  const al=licAlerts();const ws=XLSX.utils.aoa_to_sheet([['Trabajador','RUT','Empresa','Gerencia / Superintendencia','Licencia','Requisito / documento','Vence','Días','Situación'],...al.map(a=>[a.t.nombre,rutFmt(a.t.rut),a.t.tipo==='Codelco'?'Codelco':a.t.empresa,a.t.ger,a.l?LT[a.l.tipo].nombre:'',a.n,a.f?fdate(a.f):'',a.d==null?'':a.d,a.falta?'Falta registro':a.d<0?'Vencido':a.d<=15?'Vence ≤15 días':'Vence ≤30 días'])]);
-  ws['!cols']=[34,13,24,32,24,34,11,6,16].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Vencimientos');XLSX.writeFile(wb,'Vencimientos_licencias_'+iso(today())+'.xlsx')}
+  const al=licAlerts();const ws=XLSX.utils.aoa_to_sheet([['Trabajador','RUT','Empresa','Gerencia / Superintendencia','Licencias','Vencidos','Vencen en 15 días o menos','Vencen en 16 a 30 días','Pendientes','Próximo vencimiento','Días'],...al.map(a=>{const f=c=>a.items.filter(c).map(i=>i.n+(i.f?' ('+fdate(i.f)+')':'')).join('; ');
+    return[a.t.nombre,rutFmt(a.t.rut),a.t.tipo==='Codelco'?'Codelco':a.t.empresa,a.t.ger,a.lics.map(l=>LT[l.tipo].corto).join(', '),f(i=>i.d!=null&&i.d<0),f(i=>i.d!=null&&i.d>=0&&i.d<=15),f(i=>i.d!=null&&i.d>15),f(i=>i.falta&&!i.f),a.minD!=null?fdate(a.items.find(i=>i.d===a.minD).f):'',a.minD==null?'':a.minD]})]);
+  ws['!cols']=[34,13,24,32,26,34,34,34,40,12,6].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Vencimientos');XLSX.writeFile(wb,'Vencimientos_licencias_'+iso(today())+'.xlsx')}
 /* ---------- borrador local ---------- */
 const serL=()=>JSON.stringify(LDB);
 function reviveL(s){const o=typeof s==='string'?JSON.parse(s):s;const D=v=>v?pDate(String(v).slice(0,10)):null;const db=Object.assign(lEmpty(),o);

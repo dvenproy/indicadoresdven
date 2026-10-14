@@ -53,12 +53,12 @@ async function main(){
   let st,cls,sub='';
   if(d.est==='Revocada'){st='REVOCADA';cls='bad';sub='Esta licencia fue revocada'}else if(d.est==='Suspendida'){st='SUSPENDIDA';cls='bad';sub='Licencia suspendida temporalmente'}
   else if(venc.length){st='VENCIDA';cls='bad';sub='Vencido: '+venc.map(i=>i.n).join(', ')}else if(falta.length){st='NO HABILITADA';cls='bad';sub='Pendiente: '+falta.map(i=>i.n).join(', ')}
-  else if(prox&&prox.d<=15){st='VIGENTE';cls='w15';sub=prox.n+' vence en '+prox.d+' día'+(prox.d===1?'':'s')}else if(prox&&prox.d<=30){st='VIGENTE';cls='warn';sub=prox.n+' vence en '+prox.d+' días'}else{st='VIGENTE';cls='ok';sub=prox?'Habilitada hasta el '+fd(prox.f)+(prox.n!=='Vigencia de la licencia'?' ('+prox.n+')':''):''}
-  const lv=items.find(i=>i.n==='Vigencia de la licencia');
+  else if(prox&&prox.d<=15){st='VIGENTE';cls='w15';sub=prox.n+' vence en '+prox.d+' día'+(prox.d===1?'':'s')}else if(prox&&prox.d<=30){st='VIGENTE';cls='warn';sub=prox.n+' vence en '+prox.d+' días'}else{st='VIGENTE';cls='ok';sub=prox?'Habilitada hasta el '+fd(prox.f)+' ('+prox.n+')':''}
+  const lv=prox;
   const pill=i=>i.t==='vig'?(i.st==='falta'?'<span class="pill s-bad">Sin registro</span>':i.st==='vencido'?'<span class="pill s-bad">Vencido</span>':i.st==='15'?'<span class="pill s-w15">'+i.d+' días</span>':i.st==='30'?'<span class="pill s-warn">'+i.d+' días</span>':'<span class="pill s-ok">Vigente</span>'):(i.ok?'<span class="pill s-ok">✔ Realizado</span>':'<span class="pill s-bad">✘ No realizado</span>');
   $('app').innerHTML=`<div class="card"><div class="st s-${cls}">${esc(st)}<small>${esc(sub)}</small></div>
    <div class="name">${esc(d.n)}</div><div class="rut">${esc(d.r)}</div>
-   <div class="grid"><div><span>Empresa</span><b>${esc(d.e)}</b></div><div><span>Vigencia licencia</span><b>${fd(lv&&lv.f)}</b></div>
+   <div class="grid"><div><span>Empresa</span><b>${esc(d.e)}</b></div><div><span>Vigencia licencia</span><b>${lv&&lv.f?fd(lv.f):items.some(i=>i.t==='vig')?'Pendiente':'Sin vencimiento'}</b></div>
    <div><span>Cargo</span><b>${esc(d.c||'—')}</b></div><div><span>Grupo</span><b>${esc(d.g||'—')}</b></div>
    <div class="full"><span>Gerencia / Superintendencia</span><b>${esc(d.ger||'—')}</b></div>
    <div><span>N° licencia</span><b>${esc(d.id)}</b></div><div><span>Emisión</span><b>${fd(pd(d.emi))}</b></div></div></div>
