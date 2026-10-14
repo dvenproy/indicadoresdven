@@ -572,10 +572,10 @@ function hhRange(s,e,f){ // s,e: day numbers inclusive
   return{hh,est,missing};
 }
 /* HH por sexo en un rango de días, solo con meses cargados (sin estimaciones) */
-function hhSex(s,e,f){let H=0,Mu=0,meses=0;if(e<s)return{h:0,m:0,t:0,meses};
+function hhSex(s,e,f,inclEst){let H=0,Mu=0,meses=0;if(e<s)return{h:0,m:0,t:0,meses};
   let d=fromDn(s),y=d.getFullYear(),m=d.getMonth()+1;const tipos=f&&f.tipo?[f.tipo]:['Propio','EECC'];
   while(true){const ms=dn(mkD(y,m,1)),me=dn(mkD(y,m,dim(y,m)));if(ms>e)break;const a=Math.max(s,ms),b=Math.min(e,me);
-    if(b>=a){const fr=(b-a+1)/dim(y,m);let any=false;for(const t of tipos){const mf=monthFull(t,y,m);if(mf.src!=='det'||mf.est)continue;any=true;for(const r of mf.rows)if(rowOk(r,f)){H+=r.hhH*fr;Mu+=r.hhM*fr}}if(any)meses++}
+    if(b>=a){const fr=(b-a+1)/dim(y,m);let any=false;for(const t of tipos){const mf=monthFull(t,y,m);if(mf.src!=='det'||(mf.est&&!inclEst))continue;any=true;for(const r of mf.rows)if(rowOk(r,f)){H+=r.hhH*fr;Mu+=r.hhM*fr}}if(any)meses++}
     m++;if(m>12){m=1;y++}}
   return{h:H,m:Mu,t:H+Mu,meses}}
 function dotMonth(y,m,f){
@@ -917,16 +917,18 @@ function renderEecc(){
     const groups=EECC_TAB==='tc'?['Inversión','Operación']:[...new Set(DB.ceco.map(c=>c.area).concat(...[...M.EM.values()].map(rs=>rs.map(r=>r.a))))].sort();
     const rows=groups.map(gv=>{const ff={tipo:'EECC',[key]:gv};const d=dotK?dotMonth(Math.floor(dotK/100),dotK%100,ff):{t:0};const i=indic(rng[0],rng[1],ff);
       const emps=new Set();const mf=dotK?monthFull('EECC',Math.floor(dotK/100),dotK%100):null;if(mf&&mf.src==='det')mf.rows.forEach(r=>{if(r[key]===gv&&r.hhH+r.hhM>0)emps.add(r.contrato||r.emp)});
-      return{gv,d,i,n:emps.size}}).filter(r=>r.i.hh>0||r.d.t>0||r.i.ctp+r.i.stp>0);
-    const T=indic(rng[0],rng[1],f);const dT=dotK?dotMonth(Math.floor(dotK/100),dotK%100,f):{t:0};
+      return{gv,d,i,n:emps.size,sx:hhSex(rng[0],rng[1],ff,true)}}).filter(r=>r.i.hh>0||r.d.t>0||r.i.ctp+r.i.stp>0);
+    const T=indic(rng[0],rng[1],f);const dT=dotK?dotMonth(Math.floor(dotK/100),dotK%100,f):{t:0,h:0,m:0};const sxT=hhSex(rng[0],rng[1],f,true);
     const cName=EECC_TAB==='tc'?'Tipo de contrato':'Área de instalación';
     B.innerHTML=`<div class="grid g2"><div class="card"><h3>HH por ${cName.toLowerCase()}</h3><p class="sub">${rlabel}</p><div class="chart ${EECC_TAB==='area'?'tall':''}"><canvas id="chEG"></canvas></div></div>
      <div class="card"><h3>${EECC_TAB==='tc'?'Tasas por tipo de contrato':'Accidentes por área'}</h3><p class="sub">${rlabel}</p><div class="chart ${EECC_TAB==='area'?'tall':''}"><canvas id="chEG2"></canvas></div></div></div>
      <div class="card mt"><h3>${cName} · ${rlabel}</h3><p class="sub">Dotación del mes ${keyLabel(dotK)}${EECC_TAB==='area'?' · Área según hoja Instalaciones (cruce por CECO), editable en Base y configuración':''}</p>
-     <div class="tw"><table><thead><tr><th class="l">${cName}</th><th>Contratos activos</th><th>Dotación</th><th>HH</th><th>% HH</th><th>CTP+F</th><th>STP</th><th>DP</th><th>TF</th><th>TG</th><th>TFT</th></tr></thead><tbody>
-     ${rows.map(r=>`<tr><td>${esc(r.gv)}</td><td>${N0(r.n)}</td><td>${N0(r.d.t)}</td><td>${N0(r.i.hh)}</td><td>${T.hh?N1(r.i.hh*100/T.hh)+'%':'—'}</td><td>${N0(r.i.ctp+r.i.fat)}</td><td>${N0(r.i.stp)}</td><td>${N0(r.i.dp)}</td><td>${N2(r.i.tf)}</td><td>${N1(r.i.tg)}</td><td>${N2(r.i.tft)}</td></tr>`).join('')}
-     <tr class="tot"><td>Total EECC</td><td></td><td>${N0(dT.t)}</td><td>${N0(T.hh)}</td><td>100%</td><td>${N0(T.ctp+T.fat)}</td><td>${N0(T.stp)}</td><td>${N0(T.dp)}</td><td>${N2(T.tf)}</td><td>${N1(T.tg)}</td><td>${N2(T.tft)}</td></tr></tbody></table></div></div>
+     <div class="tw"><table><thead><tr><th class="l">${cName}</th><th>Contratos activos</th><th>Dot. H</th><th>Dot. M</th><th>Dotación</th><th>HH H</th><th>HH M</th><th>HH</th><th>% M (HH)</th><th>% HH</th><th>CTP+F</th><th>STP</th><th>DP</th><th>TF</th><th>TG</th><th>TFT</th></tr></thead><tbody>
+     ${rows.map(r=>`<tr><td>${esc(r.gv)}</td><td>${N0(r.n)}</td><td>${N0(r.d.h||0)}</td><td>${N0(r.d.m||0)}</td><td>${N0(r.d.t)}</td><td>${N0(r.sx.h)}</td><td>${N0(r.sx.m)}</td><td>${N0(r.i.hh)}</td><td>${pctM(r.sx.m,r.sx.t)}</td><td>${T.hh?N1(r.i.hh*100/T.hh)+'%':'—'}</td><td>${N0(r.i.ctp+r.i.fat)}</td><td>${N0(r.i.stp)}</td><td>${N0(r.i.dp)}</td><td>${N2(r.i.tf)}</td><td>${N1(r.i.tg)}</td><td>${N2(r.i.tft)}</td></tr>`).join('')}
+     <tr class="tot"><td>Total EECC</td><td></td><td>${N0(dT.h||0)}</td><td>${N0(dT.m||0)}</td><td>${N0(dT.t)}</td><td>${N0(sxT.h)}</td><td>${N0(sxT.m)}</td><td>${N0(T.hh)}</td><td>${pctM(sxT.m,sxT.t)}</td><td>100%</td><td>${N0(T.ctp+T.fat)}</td><td>${N0(T.stp)}</td><td>${N0(T.dp)}</td><td>${N2(T.tf)}</td><td>${N1(T.tg)}</td><td>${N2(T.tft)}</td></tr></tbody></table></div></div>
+     ${EECC_TAB==='tc'?`<div class="card mt"><h3>HH por mes · hombres y mujeres</h3><p class="sub">Inversión y Operación</p>${sexLegend([['Inversión'],['Operación']])}<div class="chart"><canvas id="chETx"></canvas></div></div>`:''}
      <div class="card mt"><h3>Accidentes EECC · ${rlabel}</h3>${tablaAcc(T.list,false)}</div>`;
+    if(EECC_TAB==='tc')sexChart('chETx',S,[['Inversión',{tipo:'EECC',tc:'Inversión'}],['Operación',{tipo:'EECC',tc:'Operación'}]]);
     const colr=EECC_TAB==='tc'?rows.map(r=>r.gv==='Inversión'?COL.c3:COL.eecc):rows.map(()=>COL.eecc);
     const horiz=EECC_TAB==='area';
     mkChart('chEG',{type:'bar',data:{labels:rows.map(r=>r.gv),datasets:[bar('HH',rows.map(r=>r.i.hh),colr,{borderSkipped:'start'})]},options:{indexAxis:horiz?'y':'x',interaction:{mode:'nearest',intersect:true},scales:{[horiz?'x':'y']:{ticks:{callback:v=>v>=1e6?N1(v/1e6)+' M':v>=1e3?N0(v/1e3)+' mil':N0(v),maxRotation:0},grid:{color:COL.grid}},[horiz?'y':'x']:{grid:{color:'transparent'}}}}});
@@ -939,18 +941,27 @@ function renderEecc(){
     for(const x of S0.months){
       const mf=monthFull('EECC',x.y,x.m);if(mf.src!=='det')continue;
       const fr=(x.e-x.s+1)/dim(x.y,x.m),mk=x.y*100+x.m;
-      mf.rows.forEach(r=>{const k=r.emp+'|'+r.contrato+'|'+r.ceco;if(!agg.has(k))agg.set(k,{emp:r.emp,contrato:r.contrato,nom:r.nomContrato||'',ceco:r.ceco,tc:r.tc,a:r.a,g:r.g,hh:0,dot:0,dk:0});const o=agg.get(k);o.hh+=(r.hhH+r.hhM)*fr;if(mk>=o.dk){o.dk=mk;o.dot=r.dotH+r.dotM}});
+      mf.rows.forEach(r=>{const k=r.emp+'|'+r.contrato+'|'+r.ceco;if(!agg.has(k))agg.set(k,{emp:r.emp,contrato:r.contrato,nom:r.nomContrato||'',ceco:r.ceco,tc:r.tc,a:r.a,g:r.g,hh:0,hhH:0,hhM:0,dot:0,dotH:0,dotM:0,dk:0});const o=agg.get(k);o.hhH+=r.hhH*fr;o.hhM+=r.hhM*fr;o.hh+=(r.hhH+r.hhM)*fr;if(mk>=o.dk){o.dk=mk;o.dot=r.dotH+r.dotM;o.dotH=r.dotH;o.dotM=r.dotM}});
     }
-    const list=[...agg.values()].filter(o=>o.hh>0||o.dot>0).sort((a,b)=>b.hh-a.hh);
+    const cmp=(a,b)=>String(a).localeCompare(String(b),'es',{sensitivity:'base',numeric:true});
+    const list=[...agg.values()].filter(o=>o.hh>0||o.dot>0).sort((a,b)=>cmp(a.emp,b.emp)||cmp(a.contrato,b.contrato)||cmp(a.ceco,b.ceco));
+    const byE=new Map();list.forEach(o=>{if(!byE.has(o.emp))byE.set(o.emp,{emp:o.emp,n:0,dotH:0,dotM:0,dot:0,hhH:0,hhM:0,hh:0,inv:0,op:0,lastK:0});const e=byE.get(o.emp);e.n++;e.hhH+=o.hhH;e.hhM+=o.hhM;e.hh+=o.hh;if(o.tc==='Inversión')e.inv+=o.hh;else e.op+=o.hh});
+    // dotación por empresa = suma de sus contratos en el último mes con datos de esa empresa
+    byE.forEach(e=>{const ls=list.filter(o=>o.emp===e.emp);e.lastK=Math.max(...ls.map(o=>o.dk));ls.filter(o=>o.dk===e.lastK).forEach(o=>{e.dotH+=o.dotH;e.dotM+=o.dotM;e.dot+=o.dot})});
+    const emps=[...byE.values()];const tot=k=>emps.reduce((s,e)=>s+e[k],0);
     const accs=indic(rng[0],rng[1],f).list;
     const accFor=o=>accs.filter(a=>(a.contrato&&o.contrato&&a.contrato===o.contrato)||(!a.contrato&&norm(a.empresa)===norm(o.emp))).length;
-    B.innerHTML=`<div class="card"><div class="row" style="justify-content:space-between"><div><h3>Empresas y contratos · ${rlabel}</h3><p class="sub">${list.length} contratos con HH. Dotación = último mes del periodo. Accidentes cruzados por N° de contrato.${list.some(o=>/sin detalle/i.test(o.emp))?' Los meses cargados desde BD v17 no traen detalle de contrato.':''}</p></div><input id="empQ" placeholder="Buscar empresa, contrato o CECO" style="padding:7px 10px;border:1px solid var(--line);border-radius:8px;min-width:260px" oninput="filterEmp()"></div>
-    <div class="tw"><table id="tEmp"><thead><tr><th class="l">Empresa</th><th class="l">N° Contrato</th><th class="l">Nombre contrato</th><th class="l">CECO</th><th class="l">Tipo</th><th class="l">Área</th><th>Dotación</th><th>HH</th><th>Accidentes</th></tr></thead><tbody>
-    ${list.map(o=>`<tr><td class="l">${esc(o.emp)}</td><td class="l">${esc(o.contrato)}</td><td class="wrap">${esc(o.nom)}</td><td class="l">${esc(o.ceco)}</td><td class="l"><span class="pill ${o.tc==='Inversión'?'ok':'neu'}">${esc(o.tc)}</span></td><td class="l">${esc(o.a)}</td><td>${N0(o.dot)}</td><td>${N0(o.hh)}</td><td>${N0(accFor(o))}</td></tr>`).join('')}
+    B.innerHTML=`<div class="card"><div class="row" style="justify-content:space-between"><div><h3>Por empresa · ${rlabel}</h3><p class="sub">${emps.length} empresas, en orden alfabético · dotación del último mes con datos de cada empresa</p></div><input id="empQ2" placeholder="Buscar empresa" style="padding:7px 10px;border:1px solid var(--line);border-radius:8px;min-width:220px" oninput="filterEmp('empQ2','tEmpE')"></div>
+    <div class="tw"><table id="tEmpE" class="sexT"><thead><tr><th class="l">Empresa</th><th>Contratos</th><th>Dot. H</th><th>Dot. M</th><th>Dotación</th><th>HH H</th><th>HH M</th><th>HH</th><th>% M (HH)</th><th>HH Inversión</th><th>HH Operación</th></tr></thead><tbody>
+    ${emps.map(e=>`<tr><td class="l">${esc(e.emp)}</td><td>${N0(e.n)}</td><td>${N0(e.dotH)}</td><td>${N0(e.dotM)}</td><td>${N0(e.dot)}</td><td>${N0(e.hhH)}</td><td>${N0(e.hhM)}</td><td>${N0(e.hh)}</td><td>${pctM(e.hhM,e.hh)}</td><td>${N0(e.inv)}</td><td>${N0(e.op)}</td></tr>`).join('')}
+    <tr class="tot"><td class="l"><b>Total EECC</b></td><td><b>${N0(tot('n'))}</b></td><td><b>${N0(tot('dotH'))}</b></td><td><b>${N0(tot('dotM'))}</b></td><td><b>${N0(tot('dot'))}</b></td><td><b>${N0(tot('hhH'))}</b></td><td><b>${N0(tot('hhM'))}</b></td><td><b>${N0(tot('hh'))}</b></td><td><b>${pctM(tot('hhM'),tot('hh'))}</b></td><td><b>${N0(tot('inv'))}</b></td><td><b>${N0(tot('op'))}</b></td></tr></tbody></table></div></div>
+    <div class="card mt"><div class="row" style="justify-content:space-between"><div><h3>Por contrato · ${rlabel}</h3><p class="sub">${list.length} contratos con HH. Dotación = último mes del periodo. Accidentes cruzados por N° de contrato.${list.some(o=>/sin detalle/i.test(o.emp))?' Los meses cargados desde BD v17 no traen detalle de contrato.':''}</p></div><input id="empQ" placeholder="Buscar empresa, contrato o CECO" style="padding:7px 10px;border:1px solid var(--line);border-radius:8px;min-width:260px" oninput="filterEmp('empQ','tEmp')"></div>
+    <div class="tw"><table id="tEmp"><thead><tr><th class="l">Empresa</th><th class="l">N° Contrato</th><th class="l">Nombre contrato</th><th class="l">CECO</th><th class="l">Tipo</th><th class="l">Área</th><th>Dot. H</th><th>Dot. M</th><th>Dotación</th><th>HH H</th><th>HH M</th><th>HH</th><th>Accidentes</th></tr></thead><tbody>
+    ${list.map(o=>`<tr><td class="l">${esc(o.emp)}</td><td class="l">${esc(o.contrato)}</td><td class="wrap">${esc(o.nom)}</td><td class="l">${esc(o.ceco)}</td><td class="l"><span class="pill ${o.tc==='Inversión'?'ok':'neu'}">${esc(o.tc)}</span></td><td class="l">${esc(o.a)}</td><td>${N0(o.dotH)}</td><td>${N0(o.dotM)}</td><td>${N0(o.dot)}</td><td>${N0(o.hhH)}</td><td>${N0(o.hhM)}</td><td>${N0(o.hh)}</td><td>${N0(accFor(o))}</td></tr>`).join('')}
     </tbody></table></div></div>`;
   }
 }
-function filterEmp(){const q=norm($('empQ').value);document.querySelectorAll('#tEmp tbody tr').forEach(tr=>tr.classList.toggle('hide',q&&!norm(tr.textContent).includes(q)))}
+function filterEmp(inp,tb){inp=inp||'empQ';tb=tb||'tEmp';const q=norm($(inp).value);document.querySelectorAll('#'+tb+' tbody tr:not(.tot)').forEach(tr=>tr.classList.toggle('hide',q&&!norm(tr.textContent).includes(q)))}
 
 /* ================= ACCIDENTES ================= */
 let ACC_F={y:'actual',tipo:'',cls:'CTPSTP'};
