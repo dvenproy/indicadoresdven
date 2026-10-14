@@ -2246,6 +2246,7 @@ const b64ud=s=>{s=String(s).replace(/-/g,'+').replace(/_/g,'/');while(s.length%4
 async function licEntry(l){const key=await crypto.subtle.importKey('raw',b64ud(l.qk),'AES-GCM',false,['encrypt']);
   const iv=crypto.getRandomValues(new Uint8Array(12));const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify(licPublic(l)))));return{i:u8b64(iv),c:u8b64(ct)}}
 async function publishLic(){
+  const _xp=fhAsk(FHL);
   if(!canLic()){openLogin();return}if(!LDB)return;
   const g=ghConf();if(!g.token){openGhSetup(false);toast('Conecta este equipo con GitHub y vuelve a pulsar Guardar y publicar',7000);return}
   let pw=LIC_PW||(ADMIN&&DB&&DB.params['Clave modificador'])||null;
@@ -2265,7 +2266,7 @@ async function publishLic(){
       const mp=await ghMeta(g,LICPUB_PATH);await ghPut(g,LICPUB_PATH,JSON.stringify(Object.assign({generado:payload.generado},await encryptJSON(JSON.parse(JSON.stringify(pub)),rk))),mp&&mp.sha,'Actualiza licencias (lectura)')}
     else ro=' ⚠ Falta la clave de lectura: la jefatura no verá las licencias hasta que el administrador publique.';
     LIC_PW=pw;LDIRTY=false;store.del('dven_ldraft');let xl='';
-    if(FHL&&canFS()){try{if((await FHL.queryPermission({mode:'readwrite'}))==='granted'){const w=await FHL.createWritable();await w.write(buildLicWb());await w.close();xl=' También se guardó en '+FHL.name+'.'}}catch(e){xl=' ⚠ No se pudo escribir '+FHL.name+' (¿abierto en Excel?).'}}
+    {const pm=await _xp;let ok=false;if(FHL&&pm==='granted'){try{const w=await FHL.createWritable();await w.write(buildLicWb());await w.close();ok=true}catch(e){}}xl=xlNote(FHL,pm,ok,'💾 Excel de licencias')}
     if(PAGE==='licencias')renderLic();
     openModal(`<h3>✓ Licencias publicadas</h3><p>La base de licencias quedó guardada; la jefatura y los códigos QR verán los datos actualizados en 1 a 2 minutos.${ro}${xl}</p><div class="row" style="justify-content:flex-end"><button class="btn pri" onclick="closeModal()">Listo</button></div>`);
   }catch(e){if(e.message==='conflict'){closeModal();toast('Otra persona publicó al mismo tiempo: recarga la base de licencias',8000);return}
@@ -2406,7 +2407,12 @@ async function ghPut(g,path,text,sha,msg){
 }
 function busy(t){openModal(`<div style="text-align:center;padding:18px"><div class="spin"></div><p style="margin:14px 0 0">${esc(t)}</p></div>`)}
 /* ---------- el botón ---------- */
+/* pide el permiso de escritura del Excel al momento del clic (el navegador lo exige así) */
+function fhAsk(h){try{return h&&canFS()?h.requestPermission({mode:'readwrite'}).catch(()=>'denied'):Promise.resolve(null)}catch(e){return Promise.resolve(null)}}
+function xlNote(h,pm,ok,name){if(!canFS())return '';if(!h)return ` ⚠ No hay un Excel conectado en este equipo: pulsa <b>${name}</b> una vez y guárdalo en tu carpeta de SharePoint para que se actualice en cada publicación.`;
+  if(ok)return ' También se guardó en <b>'+esc(h.name)+'</b> (SharePoint).';return pm==='granted'?' ⚠ No se pudo escribir <b>'+esc(h.name)+'</b>: ciérralo si está abierto en Excel y vuelve a publicar.':' ⚠ El Excel <b>'+esc(h.name)+'</b> no se actualizó porque no se dio permiso de escritura.'}
 async function publishAll(){
+  const _xp=fhAsk(FH);
   if(!ADMIN){openLogin();return}
   if(SRC.kind==='pub'){needWorkBase();return}
   if(SBC)return sbPublish();
@@ -2427,7 +2433,7 @@ async function publishAll(){
     const pub=buildPublic(inclE,inclA);const pubTxt=JSON.stringify(Object.assign({generado:pub.generado},await encryptJSON(pub,DB.params['Clave lectura'])));
     const mp=await ghMeta(g,PUB_PATH);await ghPut(g,PUB_PATH,pubTxt,mp&&mp.sha,'Actualiza indicadores publicados '+fdate(today()));
     let xl='';
-    if(FH&&canFS()){try{if((await FH.queryPermission({mode:'readwrite'}))==='granted'){const w=await FH.createWritable();await w.write(buildWorkbook());await w.close();xl=' También se guardó en '+FH.name+'.'}}catch(e){}}
+    {const pm=await _xp;let ok=false;if(FH&&pm==='granted'){try{const w=await FH.createWritable();await w.write(buildWorkbook());await w.close();ok=true}catch(e){}}xl=xlNote(FH,pm,ok,'💾 Guardar base')}
     DIRTY=false;store.del('dven_draft');SRC={kind:'cloud',label:'Base en la nube · '+fdate(today())+' '+pad(new Date().getHours())+':'+pad(new Date().getMinutes())};
     updateStatus();render();
     openModal(`<h3>✓ Guardado y publicado</h3><p>La base de trabajo y los indicadores quedaron actualizados. Quienes entren al sitio verán los cambios en 1 a 2 minutos.${xl}</p><div class="row" style="justify-content:flex-end"><button class="btn pri" onclick="closeModal()">Listo</button></div>`);
@@ -3066,6 +3072,7 @@ async function boot(){
     if(!ADMIN){await sbViewer();return}
   }
   if(canFS()){try{const h=await idb.get('fh');if(h)FH=h}catch(e){}}
+  if(canFS()){try{const h=await idb.get('fhl');if(h)FHL=h}catch(e){}}
   const pub=async()=>{try{const r=await fetch(BASE_PATH+'?t='+Date.now(),{cache:'no-store'});if(r.ok){setDB(readBase(await r.arrayBuffer()),{kind:'web',label:'Base publicada'},false);if(ADMIN)saveCache();return true}}catch(e){}return false};
   if(!ADMIN){ // visitantes: solo el archivo público (sin datos sensibles)
     const mpw=ss.get('dven_mpw');
