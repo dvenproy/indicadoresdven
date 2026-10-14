@@ -100,6 +100,7 @@ tr.open .caret{transform:rotate(90deg)}
 body:not(.admin) .admin-only{display:none!important}
 body:not(.mod) .mod-only{display:none!important}
 body:not(.admin):not(.mod) .lic-only{display:none!important}
+body:not(.admin):not(.mod) .lic-ed{display:none!important}
 body.mod .viewer-only{display:none!important}
 .pill.lp-ok{background:#E3F4EA;color:#17733F}.pill.lp-warn{background:#FFF1CC;color:#8A5A00}.pill.lp-w15{background:#FFDDBF;color:#A33F00}.pill.lp-bad{background:#FBE0DE;color:#B42318}
 .lic-k .lk-ok .val{color:#17733F}.lic-k .lk-warn .val{color:#B07800}.lic-k .lk-w15 .val{color:#D35400}.lic-k .lk-bad .val{color:#B42318}
@@ -365,7 +366,7 @@ body.gated .app{filter:blur(3px);pointer-events:none}
       <a data-p="proyecciones"><svg viewBox="0 0 24 24"><path d="M3 20l6-7 4 4 8-10"/><path d="M15 7h6v6"/></svg>Proyecciones</a>
       <a data-p="corporativo"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Indicadores corporativos</a>
       <a data-p="informe"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg>Informe semanal</a>
-      <a data-p="licencias" class="lic-only"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16.5c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h5M14 13.5h4"/></svg>Licencias internas</a>
+      <a data-p="licencias"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16.5c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h5M14 13.5h4"/></svg>Licencias internas</a>
       <div class="sec admin-only">Datos · administrador</div>
       <a data-p="carga-propios" class="admin-only"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/></svg>Carga Propios</a>
       <a data-p="carga-eecc" class="admin-only"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/></svg>Carga EECC</a>
@@ -1954,7 +1955,9 @@ const lEmpty=()=>({trab:[],lic:[],docs:[],meta:{}});
 const trabBy=r=>(LDB.trab||[]).find(t=>rutKey(t.rut)===rutKey(r));
 const licsOf=r=>(LDB.lic||[]).filter(l=>rutKey(l.rut)===rutKey(r));
 const docsOf=r=>(LDB.docs||[]).filter(d=>rutKey(d.rut)===rutKey(r));
-const canLic=()=>ADMIN||MOD;
+const canLic=()=>ADMIN||MOD; // puede editar
+let LIC_RO=false; // vista de solo lectura (clave de lectura)
+const LICPUB_PATH='data/licencias_pub.json';
 /* ---------- estado de una licencia ---------- */
 function licStatus(l,t){
   t=t||trabBy(l.rut)||{};const T=LT[l.tipo];const items=[];
@@ -2009,14 +2012,13 @@ function licSugg(){const dl=$('dlTrab');if(!dl)return;const tk=qTokens(($('licQ'
   const L=(LDB.trab||[]).filter(t=>{const h=norm(t.nombre+' '+rutKey(t.rut));return tk.every(w=>h.includes(w))}).slice(0,12);dl.innerHTML=L.map(t=>`<option value="${esc(t.nombre)}">${esc(rutFmt(t.rut))}</option>`).join('')}
 function renderLic(){
   const P=$('p-licencias');
-  if(!canLic()){P.innerHTML='<div class="card"><p>Este módulo es solo para administrador y modificador.</p></div>';return}
-  if(!LDB){P.innerHTML=`<div class="card" style="max-width:680px"><h3>Licencias internas</h3><p class="sub">${LIC_LOADED?'Aún no hay base de licencias.':'Cargando la base de licencias…'}</p>${ADMIN&&LIC_LOADED?`<div class="row"><button class="btn pri" onclick="LDB=lEmpty();renderLic()">Crear base de licencias</button><button class="btn" onclick="openLicExcel()">📂 Abrir Excel de licencias</button></div>`:''}</div>`;return}
+  if(!LDB){P.innerHTML=`<div class="card" style="max-width:680px"><h3>Licencias internas</h3><p class="sub">${LIC_LOADED?(canLic()?'Aún no hay base de licencias.':'Aún no hay licencias publicadas.'):'Cargando la base de licencias…'}</p>${ADMIN&&LIC_LOADED?`<div class="row"><button class="btn pri" onclick="LDB=lEmpty();renderLic()">Crear base de licencias</button><button class="btn" onclick="openLicExcel()">📂 Abrir Excel de licencias</button></div>`:''}</div>`;return}
   const act=(LDB.lic||[]).filter(l=>l.estado==='Activa');const SS=act.map(l=>licStatus(l));
   const c=k=>SS.filter(s=>s.cls===k).length;
   const al=licAlerts();
   const gers=[...new Set((LDB.trab||[]).map(t=>t.ger).filter(Boolean))].sort();
   P.innerHTML=`
-  ${LDIRTY?`<div class="msg warn" style="margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">⚠ Hay cambios en licencias sin publicar.<button class="btn sm pri" onclick="publishLic()">☁ Guardar y publicar licencias</button></div>`:''}
+  ${LDIRTY&&canLic()?`<div class="msg warn" style="margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">⚠ Hay cambios en licencias sin publicar.<button class="btn sm pri" onclick="publishLic()">☁ Guardar y publicar licencias</button></div>`:''}
   <div class="grid g5 lic-k">
    ${kpi('Licencias activas',N0(act.length),`${(LDB.trab||[]).filter(t=>licsOf(t.rut).length).length} trabajadores con licencia`)}
    ${kpi('Vigentes',N0(c('ok')),'Todo al día','lk-ok')}
@@ -2029,7 +2031,7 @@ function renderLic(){
    ${al.slice(0,300).map(a=>`<tr class="acc-row" onclick="showTrab('${esc(rutKey(a.t.rut))}')"><td class="l"><b>${esc(a.t.nombre)}</b><br><span class="small">${esc(rutFmt(a.t.rut))}</span></td><td class="l">${esc(a.t.tipo==='Codelco'?'Codelco':a.t.empresa||'EECC')}</td><td class="l">${a.lics.map(l=>licPill(l)).join(' ')||'—'}</td><td class="l"><div class="alits">${a.items.map(alItem).join('')}</div></td></tr>`).join('')}
    </tbody></table></div>`:'<p class="small">Sin vencimientos en los próximos 30 días ni requisitos pendientes. ✓</p>'}</div>
   <div class="card mt"><div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px"><div><h3>Trabajadores</h3><p class="sub">Orgánica Codelco y contratistas · ${N0((LDB.trab||[]).length)} registrados</p></div>
-    <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn" onclick="editTrab(null)">＋ Trabajador</button><label class="btn" style="cursor:pointer">📥 Importar orgánica<input type="file" accept=".xlsx,.xls" class="hidden" onchange="importOrg(this)"></label><button class="btn" onclick="licCardsBatch()">🪪 Tarjetas PNG</button><button class="btn" onclick="saveLicExcel()">💾 Excel de licencias</button><button class="btn pri" onclick="publishLic()">☁ Guardar y publicar</button></div></div>
+    <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn lic-ed" onclick="editTrab(null)">＋ Trabajador</button><label class="btn lic-ed" style="cursor:pointer">📥 Importar orgánica<input type="file" accept=".xlsx,.xls" class="hidden" onchange="importOrg(this)"></label><button class="btn lic-ed" onclick="licCardsBatch()">🪪 Tarjetas PNG</button><button class="btn lic-ed" onclick="saveLicExcel()">💾 Excel de licencias</button><button class="btn pri lic-ed" onclick="publishLic()">☁ Guardar y publicar</button></div></div>
    <div class="row" style="gap:10px;flex-wrap:wrap;margin:6px 0 10px">
     <div class="row" style="gap:6px;align-items:center"><input id="licQ" list="dlTrab" autocomplete="off" placeholder="Buscar por nombre, apellido o RUT" value="${esc(LF.q)}" oninput="licSugg();clearTimeout(window._lq);window._lq=setTimeout(()=>licSearch(false),300)" onkeydown="if(event.key==='Enter'){event.preventDefault();clearTimeout(window._lq);licSearch(true)}" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;min-width:300px"><datalist id="dlTrab"></datalist><button class="btn pri" onclick="clearTimeout(window._lq);licSearch(true)">🔍 Buscar</button><button class="btn" id="licQClr" style="${LF.q?'':'display:none'}" onclick="$('licQ').value='';licSearch(false)">Limpiar</button></div>
     <label class="fld">Personal<select onchange="LF.tipo=this.value;renderLic()"><option value="">Todos</option><option ${LF.tipo==='Codelco'?'selected':''}>Codelco</option><option ${LF.tipo==='EECC'?'selected':''}>EECC</option></select></label>
@@ -2048,19 +2050,19 @@ function reqRow(t,k){const R=LREQ[k];
 function showTrab(rk){
   const t=trabBy(rk);if(!t)return;const ls=licsOf(t.rut),ds=docsOf(t.rut);
   const reqs=[...new Set(ls.flatMap(l=>LT[l.tipo]?LT[l.tipo].req:[]))];const allReq=Object.keys(LREQ);
-  openModal(`<div class="ad-head"><div><div class="ad-id">${esc(rutFmt(t.rut))}</div><h3 style="margin:0">${esc(t.nombre)}</h3><div class="small">${esc(t.tipo==='Codelco'?'Codelco':t.empresa||'Contratista')} · ${esc(t.cargo||'')}</div></div><button class="btn" onclick="editTrab('${esc(rutKey(t.rut))}')">Editar datos y requisitos</button></div>
+  openModal(`<div class="ad-head"><div><div class="ad-id">${esc(rutFmt(t.rut))}</div><h3 style="margin:0">${esc(t.nombre)}</h3><div class="small">${esc(t.tipo==='Codelco'?'Codelco':t.empresa||'Contratista')} · ${esc(t.cargo||'')}</div></div><button class="btn lic-ed" onclick="editTrab('${esc(rutKey(t.rut))}')">Editar datos y requisitos</button></div>
   <div class="ad-sec">Datos</div><div class="ad-grid">${[['Cargo',t.cargo],['Grupo',t.grupo],['Turno',t.turno],['Rol',t.rol],['Gerencia / Superint.',t.ger],['Empresa',t.tipo==='Codelco'?'Codelco':t.empresa]].map(([a,b])=>`<div class="af"><span>${a}</span><b>${esc(b||'—')}</b></div>`).join('')}</div>
   <div class="ad-sec">Licencias</div>
   ${ls.length?ls.map(l=>{const s=licStatus(l,t);return `<div class="licrow"><div style="border-left:6px solid ${LT[l.tipo]?LT[l.tipo].color:'#999'};padding-left:10px"><b>${esc(LT[l.tipo]?LT[l.tipo].nombre:l.tipo)}</b> <span class="pill lp-${LCLS[s.cls]}">${esc(s.st)}</span><br><span class="small">${esc(l.id)} · Emisión ${l.emision?fdate(l.emision):'—'} · Vigencia ${s.vigEf?fdate(s.vigEf)+' (por '+esc(s.prox.n)+')':(s.items.some(i=>i.t==='vig')?'pendiente (faltan fechas de requisitos)':'sin vencimiento')}${s.falta.length?' · falta: '+esc(s.falta.map(i=>i.n).join(', ')):''}</span></div>
-     <div class="row" style="gap:6px"><button class="btn sm" onclick="licCardDl('${esc(l.id)}')">🪪 Tarjeta PNG</button><button class="btn sm" onclick="licQrOpen('${esc(l.id)}')">🔗 Ver QR</button><button class="btn sm" onclick="editLicencia('${esc(l.id)}')">Editar</button></div></div>`}).join(''):'<p class="small">Sin licencias.</p>'}
-  <button class="btn sm" onclick="editLicencia(null,'${esc(rutKey(t.rut))}')">＋ Agregar licencia</button>
+     <div class="row" style="gap:6px"><button class="btn sm lic-ed" onclick="licCardDl('${esc(l.id)}')">🪪 Tarjeta PNG</button><button class="btn sm" onclick="licQrOpen('${esc(l.id)}')">🔗 Ver QR</button><button class="btn sm lic-ed" onclick="editLicencia('${esc(l.id)}')">Editar</button></div></div>`}).join(''):'<p class="small">Sin licencias.</p>'}
+  <button class="btn sm lic-ed" onclick="editLicencia(null,'${esc(rutKey(t.rut))}')">＋ Agregar licencia</button>
   <div class="ad-sec">Requisitos</div><div class="tw"><table><tbody>${(reqs.length?reqs:allReq).map(k=>reqRow(t,k)).join('')}</tbody></table></div>
   <div class="ad-sec">Documentación</div>
-  ${ds.length?`<div class="tw"><table><thead><tr><th class="l">Documento</th><th class="l">Vigencia</th><th class="l">Cargado</th><th></th></tr></thead><tbody>${ds.map(d=>{const i=LDB.docs.indexOf(d);const dd=dDays(d.vig);return `<tr><td class="l"><b>${esc(d.doc)}</b>${d.nombre?'<br><span class="small">'+esc(d.nombre)+'</span>':''}</td><td class="l">${d.vig?fdate(d.vig)+` <span class="pill ${dd<0?'bad':dd<=15?'lp-w15':dd<=30?'warn':'ok'}">${dd<0?'vencido':dd<=30?dd+' días':'vigente'}</span>`:'<span class="small">No vence</span>'}</td><td class="l">${d.fecha?fdate(d.fecha):''}</td><td class="acts">${d.file?`<button class="btn sm" onclick="licDocOpen(${i})">Abrir</button>`:''}${d.link?`<a class="btn sm" href="${esc(d.link)}" target="_blank" rel="noopener">Enlace</a>`:''}<button class="btn sm" style="color:var(--bad)" onclick="licDocDel(${i})">✕</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="small">Sin documentos cargados.</p>'}
-  <button class="btn sm" onclick="licDocAdd('${esc(rutKey(t.rut))}')">＋ Agregar documento</button>
+  ${ds.length?`<div class="tw"><table><thead><tr><th class="l">Documento</th><th class="l">Vigencia</th><th class="l">Cargado</th><th></th></tr></thead><tbody>${ds.map(d=>{const i=LDB.docs.indexOf(d);const dd=dDays(d.vig);return `<tr><td class="l"><b>${esc(d.doc)}</b>${d.nombre?'<br><span class="small">'+esc(d.nombre)+'</span>':''}</td><td class="l">${d.vig?fdate(d.vig)+` <span class="pill ${dd<0?'bad':dd<=15?'lp-w15':dd<=30?'warn':'ok'}">${dd<0?'vencido':dd<=30?dd+' días':'vigente'}</span>`:'<span class="small">No vence</span>'}</td><td class="l">${d.fecha?fdate(d.fecha):''}</td><td class="acts">${d.file&&d.file.key?`<button class="btn sm" onclick="licDocOpen(${i})">Abrir</button>`:''}${d.link?`<a class="btn sm" href="${esc(d.link)}" target="_blank" rel="noopener">Enlace</a>`:''}<button class="btn sm lic-ed" style="color:var(--bad)" onclick="licDocDel(${i})">✕</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="small">Sin documentos cargados.</p>'}
+  <button class="btn sm lic-ed" onclick="licDocAdd('${esc(rutKey(t.rut))}')">＋ Agregar documento</button>
   <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn pri" onclick="closeModal()">Cerrar</button></div>`);
 }
-function editTrab(rk){
+function editTrab(rk){if(!canLic()){toast('Solo administrador o modificador pueden editar licencias');return}
   const t=rk?trabBy(rk):{tipo:'EECC',activo:'SI'};if(!t)return;
   const d=v=>v?iso(v):'';const yn=(k)=>`<select name="${k}"><option value="">—</option><option ${t[k]==='SI'?'selected':''}>SI</option><option ${t[k]==='NO'?'selected':''}>NO</option></select>`;
   openModal(`<h3>${rk?'Editar trabajador':'Nuevo trabajador'}</h3><form id="trabF"><div class="fgrid">
@@ -2093,8 +2095,8 @@ function editTrab(rk){
       munVig:pDate(g('munVig')),pstVig:pDate(g('pstVig')),alturaVig:pDate(g('alturaVig')),cursoPG:g('cursoPG'),rf03:g('rf03'),cursoAltura:g('cursoAltura'),procAltura:g('procAltura'),cursoTecle:g('cursoTecle'),cursoTecleF:pDate(g('cursoTecleF'))});
     if(!rk)LDB.trab.push(o);licDirty('Trabajador guardado');showTrab(rutKey(o.rut))};
 }
-function delTrab(rk){if(!confirm('¿Eliminar este trabajador y su documentación?'))return;LDB.trab=LDB.trab.filter(t=>rutKey(t.rut)!==rk);LDB.docs=LDB.docs.filter(d=>rutKey(d.rut)!==rk);closeModal();licDirty('Trabajador eliminado')}
-function editLicencia(id,rk){
+function delTrab(rk){if(!canLic()){toast('Solo administrador o modificador pueden editar licencias');return}if(!confirm('¿Eliminar este trabajador y su documentación?'))return;LDB.trab=LDB.trab.filter(t=>rutKey(t.rut)!==rk);LDB.docs=LDB.docs.filter(d=>rutKey(d.rut)!==rk);closeModal();licDirty('Trabajador eliminado')}
+function editLicencia(id,rk){if(!canLic()){toast('Solo administrador o modificador pueden editar licencias');return}
   const l=id?LDB.lic.find(x=>x.id===id):{rut:trabBy(rk).rut,tipo:'PG',estado:'Activa',emision:today()};if(!l)return;const t=trabBy(l.rut);
   openModal(`<h3>${id?'Editar licencia '+esc(id):'Nueva licencia'}</h3><p class="sub">${esc(t?t.nombre:'')} · ${esc(rutFmt(l.rut))}</p><form id="licF"><div class="fgrid">
    <label class="fld">Tipo de licencia<select name="tipo" ${id?'disabled':''}>${Object.entries(LT).map(([k,v])=>`<option value="${k}" ${l.tipo===k?'selected':''}>${v.nombre}</option>`).join('')}</select></label>
@@ -2109,9 +2111,9 @@ function editLicencia(id,rk){
     Object.assign(l,{emision:pDate(f.get('emision')),vig:null,estado:f.get('estado'),obs:String(f.get('obs')||'').trim()});
     licDirty('Licencia guardada');showTrab(rutKey(l.rut))};
 }
-function delLicencia(id){if(!confirm('¿Eliminar la licencia? Su código QR dejará de funcionar. (Para dejar constancia, mejor márcala como "Revocada".)'))return;const l=LDB.lic.find(x=>x.id===id);LDB.lic=LDB.lic.filter(x=>x.id!==id);licDirty('Licencia eliminada');showTrab(rutKey(l.rut))}
+function delLicencia(id){if(!canLic()){toast('Solo administrador o modificador pueden editar licencias');return}if(!confirm('¿Eliminar la licencia? Su código QR dejará de funcionar. (Para dejar constancia, mejor márcala como "Revocada".)'))return;const l=LDB.lic.find(x=>x.id===id);LDB.lic=LDB.lic.filter(x=>x.id!==id);licDirty('Licencia eliminada');showTrab(rutKey(l.rut))}
 /* ---------- documentos ---------- */
-function licDocAdd(rk){
+function licDocAdd(rk){if(!canLic()){toast('Solo administrador o modificador pueden editar licencias');return}
   openModal(`<h3>Agregar documento</h3><form id="docF"><div class="fgrid">
    <label class="fld">Tipo de documento<select name="doc" onchange="docVigToggle()">${DOC_TIPOS.map(x=>`<option>${x}</option>`).join('')}</select></label>
    <label class="fld" id="docVigF">Vigencia<input type="date" name="vig"></label>
@@ -2161,7 +2163,7 @@ function readOrgSheet(ws,tipo){
   const pick=(r,ks)=>{for(const k of ks){for(const h of Object.keys(r)){if(norm(h)===norm(k)&&r[h]!=null&&String(r[h]).trim()!=='')return String(r[h]).trim()}}return ''};
   return rows.map(r=>({tipo,nombre:pick(r,ORG_COLS.nombre).toUpperCase(),rut:pick(r,ORG_COLS.rut),cargo:pick(r,ORG_COLS.cargo),turno:pick(r,ORG_COLS.turno),grupo:pick(r,ORG_COLS.grupo),rol:pick(r,ORG_COLS.rol),ger:pick(r,ORG_COLS.ger),empresa:tipo==='Codelco'?'':pick(r,ORG_COLS.empresa)})).filter(o=>o.nombre&&rutKey(o.rut).length>=7).map(o=>(o.rut=rutFmt(o.rut),o));
 }
-async function importOrg(inp){
+async function importOrg(inp){if(!canLic()){toast('Solo administrador o modificador pueden editar licencias');inp.value='';return}
   const f=inp.files[0];inp.value='';if(!f)return;if(!LDB)LDB=lEmpty();
   let wb;try{wb=XLSX.read(new Uint8Array(await f.arrayBuffer()),{type:'array'})}catch(e){toast('No pude leer el Excel: '+e.message,6000);return}
   const shC=wb.SheetNames.find(n=>/codelco|propio/i.test(n))||(!wb.SheetNames.some(n=>/eecc|contrat/i.test(n))?wb.SheetNames[0]:null),shE=wb.SheetNames.find(n=>/eecc|contrat/i.test(n));
@@ -2232,7 +2234,7 @@ async function loadLicCloud(pw){
     else{const r=await fetch(LIC_PATH+'?t='+Date.now(),{cache:'no-store'});if(r.ok)o=await r.json()}}catch(e){}
   if(!o)return 'none';
   let d;try{const pt=new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:b64d(o.iv)},await aesKey(pw,b64d(o.salt),o.it),b64d(o.ct)));d=JSON.parse(await gunzipU8(pt))}catch(e){return 'bad'}
-  LDB=reviveL(d.db);LIC_SHA=sha;LIC_PW=pw;LDB.meta=Object.assign({},d.meta||{});LDIRTY=false;
+  LDB=reviveL(d.db);LIC_RO=false;LIC_SHA=sha;LIC_PW=pw;LDB.meta=Object.assign({},d.meta||{});LDIRTY=false;
   const dr=store.get('dven_ldraft');if(dr){try{const x=JSON.parse(dr);if(new Date(x.when)>new Date(d.generado||0)&&confirm('Hay cambios de licencias sin publicar en este navegador. ¿Recuperarlos?')){LDB=reviveL(x.db);LDB.meta=Object.assign({},d.meta||{});LDIRTY=true}else store.del('dven_ldraft')}catch(e){}}
   return {ok:true,rk:d.rk||null};
 }
@@ -2259,14 +2261,24 @@ async function publishLic(){
     LIC_SHA=await ghPut(g,LIC_PATH,JSON.stringify({v:1,kind:'licencias',it,salt:u8b64(salt),iv:u8b64(iv),ct:u8b64(ct),generado:payload.generado}),m&&m.sha,'Actualiza base de licencias');
     const E={};for(const l of LDB.lic){if(!l.qid||!l.qk)continue;E[l.qid]=await licEntry(l)}
     const mq=await ghMeta(g,Q_PATH);await ghPut(g,Q_PATH,JSON.stringify({v:1,g:payload.generado,e:E}),mq&&mq.sha,'Actualiza licencias publicadas');
+    let ro='';if(rk){const pub={v:1,generado:payload.generado,db:{trab:LDB.trab,lic:LDB.lic.map(l=>Object.assign({},l)),docs:LDB.docs.map(d=>({rut:d.rut,doc:d.doc,nombre:d.nombre,vig:d.vig,fecha:d.fecha,link:d.link,file:d.file?{name:d.file.name}:null}))}};
+      const mp=await ghMeta(g,LICPUB_PATH);await ghPut(g,LICPUB_PATH,JSON.stringify(Object.assign({generado:payload.generado},await encryptJSON(JSON.parse(JSON.stringify(pub)),rk))),mp&&mp.sha,'Actualiza licencias (lectura)')}
+    else ro=' ⚠ Falta la clave de lectura: la jefatura no verá las licencias hasta que el administrador publique.';
     LIC_PW=pw;LDIRTY=false;store.del('dven_ldraft');let xl='';
     if(FHL&&canFS()){try{if((await FHL.queryPermission({mode:'readwrite'}))==='granted'){const w=await FHL.createWritable();await w.write(buildLicWb());await w.close();xl=' También se guardó en '+FHL.name+'.'}}catch(e){xl=' ⚠ No se pudo escribir '+FHL.name+' (¿abierto en Excel?).'}}
     if(PAGE==='licencias')renderLic();
-    openModal(`<h3>✓ Licencias publicadas</h3><p>La base de licencias quedó guardada y los códigos QR muestran los datos actualizados en 1 a 2 minutos.${xl}</p><div class="row" style="justify-content:flex-end"><button class="btn pri" onclick="closeModal()">Listo</button></div>`);
+    openModal(`<h3>✓ Licencias publicadas</h3><p>La base de licencias quedó guardada; la jefatura y los códigos QR verán los datos actualizados en 1 a 2 minutos.${ro}${xl}</p><div class="row" style="justify-content:flex-end"><button class="btn pri" onclick="closeModal()">Listo</button></div>`);
   }catch(e){if(e.message==='conflict'){closeModal();toast('Otra persona publicó al mismo tiempo: recarga la base de licencias',8000);return}
     openModal(`<h3>No se pudo publicar</h3><div class="msg bad">${esc(e.message)}</div><p class="small">Tus cambios siguen en esta pantalla.</p><div class="row" style="justify-content:flex-end"><button class="btn" onclick="closeModal()">Cerrar</button><button class="btn pri" onclick="closeModal();publishLic()">Reintentar</button></div>`)}
 }
 async function reloadLic(){const pw=LIC_PW||(DB&&DB.params['Clave modificador']);if(!pw)return;LDIRTY=false;store.del('dven_ldraft');const r=await loadLicCloud(pw);if(r==='bad')toast('La clave no abre la base de licencias',6000);LIC_LOADED=true;if(PAGE==='licencias')renderLic()}
+/* jefatura (clave de lectura): copia de solo lectura */
+async function loadLicPub(pw){
+  if(ADMIN||MOD||(LDB&&!LIC_RO)||!pw)return;
+  try{const r=await fetch(LICPUB_PATH+'?t='+Date.now(),{cache:'no-store'});if(!r.ok){LIC_LOADED=true;if(PAGE==='licencias')renderLic();return}
+    const o=await r.json();const d=await decryptJSON(o,pw);LDB=reviveL(d.db);LDB.meta={generado:d.generado||o.generado};LIC_RO=true}catch(e){}
+  LIC_LOADED=true;if(PAGE==='licencias')renderLic();
+}
 /* clave de modificador (la define el administrador) */
 function askModKey(thenPublish){openModal(`<h3>Clave de modificador</h3><p class="sub">Con esta clave el perfil <b>modificador</b> entra a la plataforma y edita solo Licencias internas. También protege la base de licencias publicada. Compártela solo por un canal privado.</p><form id="mkF"><div class="fgrid" style="grid-template-columns:1fr 1fr"><label class="fld">Clave de modificador<input type="password" id="mk1" autocomplete="new-password"></label><label class="fld">Repetir<input type="password" id="mk2" autocomplete="new-password"></label></div><div id="mkM"></div><div class="row" style="justify-content:flex-end;margin-top:12px"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button class="btn pri">Guardar</button></div></form>`);
   setTimeout(()=>$('mk1').focus(),50);$('mkF').onsubmit=e=>{e.preventDefault();const a=$('mk1').value,b=$('mk2').value;if(a.length<10){$('mkM').innerHTML='<div class="msg bad">Mínimo 10 caracteres</div>';return}if(a!==b){$('mkM').innerHTML='<div class="msg bad">Las claves no coinciden</div>';return}
@@ -2331,12 +2343,12 @@ async function licCanvas(l){
   return cv;
 }
 const cardName=l=>{const t=trabBy(l.rut)||{};return `Licencia_${LT[l.tipo]?LT[l.tipo].corto.replace(/\s+/g,''):l.tipo}_${String(t.nombre||l.rut).replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9]+/g,'_')}.png`};
-async function licCardDl(id){const l=LDB.lic.find(x=>x.id===id);if(!l)return;
+async function licCardDl(id){if(!canLic())return;const l=LDB.lic.find(x=>x.id===id);if(!l)return;
   if(LDIRTY)toast('Recuerda publicar las licencias para que el QR muestre los datos de esta tarjeta',6000);
   try{const cv=await licCanvas(l);const b=await new Promise(ok=>cv.toBlob(ok,'image/png'));const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=cardName(l);document.body.appendChild(a);a.click();a.remove()}catch(e){toast('No se pudo generar la tarjeta: '+e.message,7000)}}
 function licQrOpen(id){const l=LDB.lic.find(x=>x.id===id);if(!l)return;const u=licUrl(l);
   openModal(`<h3>Código QR de la licencia</h3><p class="sub">${esc(l.id)} · ${esc(LT[l.tipo].nombre)}</p><p class="small" style="word-break:break-all;background:#FAFAFA;padding:8px 10px;border-radius:8px">${esc(u)}</p><p class="small">Este enlace muestra solo los datos de esta licencia. ${LDIRTY?'<b>Publica las licencias para que refleje los últimos cambios.</b>':''}</p><div class="row" style="justify-content:flex-end"><button class="btn" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(u)}');toast('Enlace copiado')">Copiar enlace</button><a class="btn pri" href="${esc(u)}" target="_blank" rel="noopener">Abrir</a><button class="btn" onclick="showTrab('${esc(rutKey(l.rut))}')">Volver</button></div>`)}
-function licCardsBatch(){
+function licCardsBatch(){if(!canLic()){toast('Solo administrador o modificador pueden editar licencias');return}
   const act=LDB.lic.filter(l=>l.estado==='Activa');
   openModal(`<h3>Generar tarjetas PNG</h3><p class="sub">Se descarga un PNG de 1080×1920 por licencia. El navegador puede pedir permiso para descargar varios archivos.</p><form id="cbF"><div class="fgrid">
    <label class="fld">Tipo<select name="tipo"><option value="">Todas</option>${Object.entries(LT).map(([k,v])=>`<option value="${k}">${v.nombre}</option>`).join('')}</select></label>
@@ -2984,7 +2996,7 @@ async function loadPublic(){
   applyPublic(j);return true;
 }
 function applyPublic(j){const g=j.generado?new Date(j.generado):null;setDB(reviveDB(JSON.stringify(j.db)),{kind:'pub',label:'Indicadores publicados'+(g?' el '+fdate(g):'')},false)}
-async function openPublic(pw){try{const j=await decryptJSON(PUB_RAW,pw);ss.set('dven_vpw',pw);applyPublic(Object.assign({generado:PUB_RAW.generado},j));return true}catch(e){return false}}
+async function openPublic(pw){try{const j=await decryptJSON(PUB_RAW,pw);ss.set('dven_vpw',pw);applyPublic(Object.assign({generado:PUB_RAW.generado},j));setTimeout(()=>loadLicPub(pw),0);return true}catch(e){return false}}
 function askViewerPw(){
   const g=$('gate');g.classList.remove('hidden');document.body.classList.add('gated');setTimeout(()=>$('gatePw').focus(),50);
   $('gateForm').onsubmit=async ev=>{ev.preventDefault();$('gateMsg').innerHTML='<p class="small" style="text-align:center">Verificando…</p>';
@@ -3024,10 +3036,9 @@ function updateStatus(){
 const TITLES={licencias:'Licencias internas',resumen:'Consolidado divisional',propios:'Personal propio',eecc:'Empresas contratistas',accidentes:'Accidentes',eventos:'Eventos significativos',mapa:'Mapa de accidentes',proyecciones:'Proyecciones',corporativo:'Indicadores corporativos','carga-corp':'Carga de datos · Corporativo','informe':'Informe semanal','carga-propios':'Carga de datos · Propios','carga-eecc':'Carga de datos · EECC',base:'Base y configuración'};
 const RENDER={licencias:renderLic,resumen:renderResumen,propios:renderPropios,eecc:renderEecc,accidentes:renderAcc,eventos:renderEv,mapa:renderMapa,proyecciones:renderProy,corporativo:renderCorp,'carga-corp':renderCargaC,informe:renderInforme,'carga-propios':renderCargaP,'carga-eecc':renderCargaE,base:renderBase};
 const ADMIN_PAGES=['carga-propios','carga-eecc','carga-corp','base'];
-function go(p){if(!RENDER[p])p='resumen';if(ADMIN_PAGES.includes(p)&&!ADMIN){openLogin(p);return}if(p==='licencias'&&!canLic()){openLogin(p);return}PAGE=p;try{history.replaceState(null,'','#'+p)}catch(e){}render();$('side').classList.remove('open');window.scrollTo(0,0)}
+function go(p){if(!RENDER[p])p='resumen';if(ADMIN_PAGES.includes(p)&&!ADMIN){openLogin(p);return}PAGE=p;try{history.replaceState(null,'','#'+p)}catch(e){}render();$('side').classList.remove('open');window.scrollTo(0,0)}
 function render(){
   if(ADMIN_PAGES.includes(PAGE)&&!ADMIN)PAGE='resumen';
-  if(PAGE==='licencias'&&!canLic())PAGE='resumen';
   if(ADMIN&&DB&&SRC.kind==='pub'&&ADMIN_PAGES.includes(PAGE)){
     document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.p===PAGE));$('pageTitle').textContent=TITLES[PAGE];
     document.querySelectorAll('.page').forEach(s=>s.classList.toggle('hidden',s.id!=='p-'+PAGE));$('perSel').classList.add('hidden');
