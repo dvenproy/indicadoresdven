@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estadísticas SSO · Ventanas</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <style>
 :root{
   --brand:#E75300; --brand-d:#B84200; --brand-l:#FDEEE5;
@@ -96,6 +97,13 @@ tr.open .caret{transform:rotate(90deg)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 .hidden{display:none!important}
 body:not(.admin) .admin-only{display:none!important}
+body:not(.mod) .mod-only{display:none!important}
+body:not(.admin):not(.mod) .lic-only{display:none!important}
+body.mod .viewer-only{display:none!important}
+.pill.lp-ok{background:#E3F4EA;color:#17733F}.pill.lp-warn{background:#FFF1CC;color:#8A5A00}.pill.lp-w15{background:#FFDDBF;color:#A33F00}.pill.lp-bad{background:#FBE0DE;color:#B42318}
+.lic-k .lk-ok .val{color:#17733F}.lic-k .lk-warn .val{color:#B07800}.lic-k .lk-w15 .val{color:#D35400}.lic-k .lk-bad .val{color:#B42318}
+.licrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.msg.warn{background:#FFF6E0;color:#7A5200;padding:10px 12px;border-radius:8px}
 body.admin .viewer-only{display:none!important}
 .side .nav a#navLogin,.side .nav a#navLogout{margin-top:8px;color:#9AA1AC;font-size:13px}
 .modal-bg{position:fixed;inset:0;background:rgba(15,20,25,.45);display:none;align-items:flex-start;justify-content:center;z-index:50;overflow:auto;padding:30px 16px}
@@ -340,7 +348,7 @@ body.gated .app{filter:blur(3px);pointer-events:none}
   <form id="gateForm"><label for="gatePw">Ingrese contraseña para acceder</label>
   <input type="password" id="gatePw" autocomplete="current-password" required>
   <button class="btn pri" type="submit">Ingresar</button><div id="gateMsg"></div></form>
-  <a class="gate-adm" onclick="gateAdmin()">Soy administrador</a>
+  <a class="gate-adm" onclick="gateAdmin()">Soy administrador o modificador</a>
 </div><div class="gate-foot">Dirección de Seguridad y Salud Ocupacional</div></div>
 <div class="app">
   <aside class="side" id="side">
@@ -356,12 +364,14 @@ body.gated .app{filter:blur(3px);pointer-events:none}
       <a data-p="proyecciones"><svg viewBox="0 0 24 24"><path d="M3 20l6-7 4 4 8-10"/><path d="M15 7h6v6"/></svg>Proyecciones</a>
       <a data-p="corporativo"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Indicadores corporativos</a>
       <a data-p="informe"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg>Informe semanal</a>
+      <a data-p="licencias" class="lic-only"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16.5c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14 10h5M14 13.5h4"/></svg>Licencias internas</a>
       <div class="sec admin-only">Datos · administrador</div>
       <a data-p="carga-propios" class="admin-only"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/></svg>Carga Propios</a>
       <a data-p="carga-eecc" class="admin-only"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/></svg>Carga EECC</a>
       <a data-p="carga-corp" class="admin-only"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v4h16v-4"/></svg>Carga corporativa</a>
       <a data-p="base" class="admin-only"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>Base y configuración</a>
       <a id="navLogin" class="viewer-only" onclick="openLogin()"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Acceso administrador</a>
+      <a class="mod-only" onclick="modLogout()"><svg viewBox="0 0 24 24"><path d="M15 12H3M7 8l-4 4 4 4"/><path d="M13 4h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/></svg>Cerrar sesión modificador</a>
       <a id="navLogout" class="admin-only" onclick="logout()"><svg viewBox="0 0 24 24"><path d="M15 12H3M7 8l-4 4 4 4"/><path d="M13 4h6a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/></svg>Cerrar sesión admin</a>
     </nav>
     <div class="foot admin-only" id="dbStatus"><span class="dot"></span>Sin base cargada</div>
@@ -392,6 +402,7 @@ body.gated .app{filter:blur(3px);pointer-events:none}
       <section id="p-eecc" class="page"></section>
       <section id="p-accidentes" class="page"></section>
       <section id="p-eventos" class="page"></section>
+      <section id="p-licencias" class="page"></section>
       <section id="p-mapa" class="page"></section>
       <section id="p-proyecciones" class="page"></section>
       <section id="p-corporativo" class="page"></section>
@@ -1906,6 +1917,418 @@ function linkAccEv(o){
 function evYear(y,cd){return evs().filter(e=>e.fecha&&e.fecha.getFullYear()===y&&dn(e.fecha)<=cd).sort((a,b)=>b.fecha-a.fecha)}
 function evRepTable(y,cd,n){n=n||5;const l=evYear(y,cd);if(!l.length)return '';return `<div class="st">Eventos significativos ${y}${l.length>n?' (últimos '+n+' de '+l.length+')':''}</div><table class="rtab"><thead><tr><th>Fecha</th><th>Tipo</th><th>Instalación</th><th>Evento</th></tr></thead><tbody>${l.slice(0,n).map(e=>`<tr><td>${fdate(e.fecha)}</td><td><span class="rp" style="background:${ES_COL[e.tipo]};color:#fff">${esShort(e.tipo)}</span></td><td>${esc(e.zona||'—')}</td><td class="w">${esc(String(e.titulo||'—').slice(0,55))}</td></tr>`).join('')}</tbody></table>`}
 
+/* ================= LICENCIAS INTERNAS =================
+   Base propia (LDB), separada de la base de accidentes:
+   - Excel BD_Licencias_DVEN.xlsx (hojas Codelco, EECC, Licencias, Documentos) — respaldo en SharePoint.
+   - data/licencias.json: base completa cifrada con la clave de modificador (la conoce el administrador).
+   - data/q.json: una entrada cifrada por licencia; la llave va solo en el QR → licencia.html muestra esa licencia y nada más. */
+let LDB=null,LDIRTY=false,LIC_SHA=null,LIC_PW=null,MOD=false,FHL=null,LIC_LOADED=false;
+const LIC_PATH='data/licencias.json',Q_PATH='data/q.json',LIC_SITE='https://dvenproy.github.io/indicadoresdven/';
+const LT={
+  PG:{nombre:'Operador Puente Grúa',corto:'Puente Grúa',img:'img/lic_pg.png',color:'#0E7F7D',box:[219,455,635,634],txt:[1205,1695],req:['mun','cursoPG','rf03','pst','altura']},
+  ALT:{nombre:'Trabajo en Altura Física',corto:'Altura Física',img:'img/lic_altura.png',color:'#5F8F57',box:[239,465,603,604],txt:[1200,1695],req:['altura','cursoAltura','procAltura']},
+  TEC:{nombre:'Operación Tecle',corto:'Tecle',img:'img/lic_tecle.png',color:'#3F8A42',box:[223,503,634,641],txt:[1250,1652],req:['cursoTecle','rf03']}
+};
+const LREQ={
+  mun:{n:'Licencia municipal',t:'vig',k:'munVig'},
+  cursoPG:{n:'Curso operación puente grúa',t:'bool',k:'cursoPG'},
+  rf03:{n:'Riesgo de fatalidad izaje (RF 03)',t:'bool',k:'rf03'},
+  pst:{n:'Examen PST',t:'vig',k:'pstVig'},
+  altura:{n:'Examen altura física',t:'vig',k:'alturaVig'},
+  cursoAltura:{n:'Curso trabajo en altura',t:'bool',k:'cursoAltura'},
+  procAltura:{n:'Procedimiento trabajo en altura física',t:'bool',k:'procAltura'},
+  cursoTecle:{n:'Curso específico tecle',t:'bool',k:'cursoTecle',kf:'cursoTecleF'}
+};
+const LIC_EST=['Activa','Suspendida','Revocada'];
+const DOC_TIPOS=['Examen PST','Examen altura física','Licencia municipal','Curso operación puente grúa','Curso trabajo en altura','Curso específico tecle','RF 03 Izaje','Procedimiento trabajo en altura física','Otro'];
+const DOC_REQ={'Examen PST':'pstVig','Examen altura física':'alturaVig','Licencia municipal':'munVig'};
+/* ---------- utilidades ---------- */
+const rutKey=r=>String(r??'').replace(/[^0-9kK]/g,'').toUpperCase();
+function rutFmt(r){const k=rutKey(r);if(k.length<2)return String(r||'');const b=k.slice(0,-1),d=k.slice(-1);return b.replace(/\B(?=(\d{3})+(?!\d))/g,'.')+'-'+d}
+const siNo=v=>/^(s|si|sí|x|1|true|ok|realizado)/i.test(String(v??'').trim())?'SI':(String(v??'').trim()?'NO':'');
+const rnd62=n=>{const a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';const u=crypto.getRandomValues(new Uint8Array(n));return [...u].map(x=>a[x%a.length]).join('')};
+const b64u=u=>u8b64(u).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const dDays=d=>d?dn(d)-dn(today()):null;
+const lEmpty=()=>({trab:[],lic:[],docs:[],meta:{}});
+const trabBy=r=>(LDB.trab||[]).find(t=>rutKey(t.rut)===rutKey(r));
+const licsOf=r=>(LDB.lic||[]).filter(l=>rutKey(l.rut)===rutKey(r));
+const docsOf=r=>(LDB.docs||[]).filter(d=>rutKey(d.rut)===rutKey(r));
+const canLic=()=>ADMIN||MOD;
+/* ---------- estado de una licencia ---------- */
+function licStatus(l,t){
+  t=t||trabBy(l.rut)||{};const T=LT[l.tipo];const items=[];
+  items.push({n:'Vigencia de la licencia',t:'vig',f:l.vig||null});
+  (T?T.req:[]).forEach(k=>{const R=LREQ[k];items.push(R.t==='vig'?{n:R.n,t:'vig',f:t[R.k]||null}:{n:R.n,t:'bool',ok:t[R.k]==='SI',f:R.kf?t[R.kf]||null:null})});
+  items.forEach(i=>{if(i.t==='vig'){i.d=dDays(i.f);i.st=i.f==null?'falta':i.d<0?'vencido':i.d<=15?'15':i.d<=30?'30':'ok'}else i.st=i.ok?'ok':'falta'});
+  const vigs=items.filter(i=>i.t==='vig'&&i.f);const prox=vigs.slice().sort((a,b)=>a.f-b.f)[0]||null;
+  const venc=items.filter(i=>i.st==='vencido'),falta=items.filter(i=>i.st==='falta');
+  let st,cls;
+  if(l.estado==='Revocada'){st='REVOCADA';cls='bad'}else if(l.estado==='Suspendida'){st='SUSPENDIDA';cls='bad'}
+  else if(venc.length){st='VENCIDA';cls='bad'}else if(falta.length){st='INCOMPLETA';cls='bad'}
+  else if(prox&&prox.d<=15){st='VENCE ≤15 DÍAS';cls='warn15'}else if(prox&&prox.d<=30){st='VENCE ≤30 DÍAS';cls='warn'}else{st='VIGENTE';cls='ok'}
+  return{st,cls,items,prox,venc,falta,vigEf:prox?prox.f:null};
+}
+const LCLS={ok:'ok',warn:'warn',warn15:'w15',bad:'bad'};
+const licPill=(l,s)=>{s=s||licStatus(l);return `<span class="pill lp-${LCLS[s.cls]}" title="${esc(s.st)}">${esc(LT[l.tipo]?LT[l.tipo].corto:l.tipo)}</span>`};
+/* ---------- alertas ---------- */
+function licAlerts(){
+  const out=[];
+  (LDB.lic||[]).filter(l=>l.estado==='Activa').forEach(l=>{const t=trabBy(l.rut);if(!t)return;const s=licStatus(l,t);
+    s.items.forEach(i=>{if(i.t==='vig'&&i.f&&i.d<=30)out.push({t,l,n:i.n,f:i.f,d:i.d});if(i.st==='falta')out.push({t,l,n:i.n,f:null,d:null,falta:true})})});
+  (LDB.docs||[]).forEach(d=>{if(!d.vig)return;const dd=dDays(d.vig);if(dd>30)return;const t=trabBy(d.rut);if(!t)return;
+    if(DOC_REQ[d.doc]&&licsOf(d.rut).some(l=>l.estado==='Activa'))return; // ya contado como requisito
+    out.push({t,l:null,n:d.doc+(d.nombre&&d.nombre!==d.doc?' · '+d.nombre:''),f:d.vig,d:dd,doc:true})});
+  return out.sort((a,b)=>(a.d==null?-1e9:a.d)-(b.d==null?-1e9:b.d));
+}
+/* ---------- página ---------- */
+let LF={q:'',tipo:'',lic:'con',ger:'',est:''},LPAGE=100;
+function renderLic(){
+  const P=$('p-licencias');
+  if(!canLic()){P.innerHTML='<div class="card"><p>Este módulo es solo para administrador y modificador.</p></div>';return}
+  if(!LDB){P.innerHTML=`<div class="card" style="max-width:680px"><h3>Licencias internas</h3><p class="sub">${LIC_LOADED?'Aún no hay base de licencias.':'Cargando la base de licencias…'}</p>${ADMIN&&LIC_LOADED?`<div class="row"><button class="btn pri" onclick="LDB=lEmpty();renderLic()">Crear base de licencias</button><button class="btn" onclick="openLicExcel()">📂 Abrir Excel de licencias</button></div>`:''}</div>`;return}
+  const act=(LDB.lic||[]).filter(l=>l.estado==='Activa');const SS=act.map(l=>licStatus(l));
+  const c=k=>SS.filter(s=>s.cls===k).length;
+  const al=licAlerts();
+  const ql=norm(LF.q);
+  let list=(LDB.trab||[]).filter(t=>t.activo!=='NO'||licsOf(t.rut).length);
+  if(LF.tipo)list=list.filter(t=>t.tipo===LF.tipo);
+  if(LF.lic==='con')list=list.filter(t=>licsOf(t.rut).length);else if(LF.lic&&LT[LF.lic])list=list.filter(t=>licsOf(t.rut).some(l=>l.tipo===LF.lic));
+  if(LF.ger)list=list.filter(t=>t.ger===LF.ger);
+  if(LF.est)list=list.filter(t=>licsOf(t.rut).some(l=>{const s=licStatus(l,t);return LF.est==='alerta'?s.cls!=='ok':s.st===LF.est}));
+  if(ql)list=list.filter(t=>norm(t.nombre+' '+t.rut+' '+rutKey(t.rut)+' '+(t.empresa||'')+' '+(t.cargo||'')).includes(ql));
+  list.sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre)));
+  const gers=[...new Set((LDB.trab||[]).map(t=>t.ger).filter(Boolean))].sort();
+  P.innerHTML=`
+  ${LDIRTY?`<div class="msg warn" style="margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">⚠ Hay cambios en licencias sin publicar.<button class="btn sm pri" onclick="publishLic()">☁ Guardar y publicar licencias</button></div>`:''}
+  <div class="grid g5 lic-k">
+   ${kpi('Licencias activas',N0(act.length),`${(LDB.trab||[]).filter(t=>licsOf(t.rut).length).length} trabajadores con licencia`)}
+   ${kpi('Vigentes',N0(c('ok')),'Todo al día','lk-ok')}
+   ${kpi('Vencen en 30 días',N0(c('warn')),'Entre 16 y 30 días','lk-warn')}
+   ${kpi('Vencen en 15 días',N0(c('warn15')),'15 días o menos','lk-w15')}
+   ${kpi('Vencidas o incompletas',N0(c('bad')),'Requieren acción','lk-bad')}
+  </div>
+  <div class="card mt"><div class="row" style="justify-content:space-between"><div><h3>Próximos vencimientos y pendientes</h3><p class="sub">Requisitos y documentos que vencen en 30 días o menos, ya vencidos o sin registrar</p></div><button class="btn" onclick="licAlertXlsx()">⬇ Descargar Excel</button></div>
+   ${al.length?`<div class="tw" style="max-height:340px"><table class="tacc"><thead><tr><th class="l">Trabajador</th><th class="l">Empresa</th><th class="l">Licencia</th><th class="l">Requisito / documento</th><th class="l">Vence</th><th>Días</th></tr></thead><tbody>
+   ${al.slice(0,200).map(a=>`<tr class="acc-row" onclick="showTrab('${esc(rutKey(a.t.rut))}')"><td class="l"><b>${esc(a.t.nombre)}</b><br><span class="small">${esc(rutFmt(a.t.rut))}</span></td><td class="l">${esc(a.t.tipo==='Codelco'?'Codelco':a.t.empresa||'EECC')}</td><td class="l">${a.l?licPill(a.l):'—'}</td><td class="l">${esc(a.n)}</td><td class="l">${a.f?fdate(a.f):'<span class="pill bad">Falta</span>'}</td><td><span class="pill ${a.d==null||a.d<0?'bad':a.d<=15?'lp-w15':'warn'}">${a.d==null?'—':a.d<0?'Vencido':a.d}</span></td></tr>`).join('')}
+   </tbody></table></div>`:'<p class="small">Sin vencimientos en los próximos 30 días. ✓</p>'}</div>
+  <div class="card mt"><div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px"><div><h3>Trabajadores</h3><p class="sub">Orgánica Codelco y contratistas · ${N0((LDB.trab||[]).length)} registrados</p></div>
+    <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn" onclick="editTrab(null)">＋ Trabajador</button><label class="btn" style="cursor:pointer">📥 Importar orgánica<input type="file" accept=".xlsx,.xls" class="hidden" onchange="importOrg(this)"></label><button class="btn" onclick="licCardsBatch()">🪪 Tarjetas PNG</button><button class="btn" onclick="saveLicExcel()">💾 Excel de licencias</button><button class="btn pri" onclick="publishLic()">☁ Guardar y publicar</button></div></div>
+   <div class="row" style="gap:10px;flex-wrap:wrap;margin:6px 0 10px">
+    <input placeholder="Buscar nombre, RUT, empresa o cargo" value="${esc(LF.q)}" oninput="LF.q=this.value;clearTimeout(window._lq);window._lq=setTimeout(renderLic,250)" style="padding:8px 10px;border:1px solid var(--line);border-radius:8px;min-width:260px" id="licQ">
+    <label class="fld">Personal<select onchange="LF.tipo=this.value;renderLic()"><option value="">Todos</option><option ${LF.tipo==='Codelco'?'selected':''}>Codelco</option><option ${LF.tipo==='EECC'?'selected':''}>EECC</option></select></label>
+    <label class="fld">Licencia<select onchange="LF.lic=this.value;renderLic()"><option value="">Todos (con y sin licencia)</option><option value="con" ${LF.lic==='con'?'selected':''}>Con alguna licencia</option>${Object.entries(LT).map(([k,v])=>`<option value="${k}" ${LF.lic===k?'selected':''}>${v.corto}</option>`).join('')}</select></label>
+    <label class="fld">Estado<select onchange="LF.est=this.value;renderLic()"><option value="">Todos</option><option value="alerta" ${LF.est==='alerta'?'selected':''}>Con alerta</option>${['VIGENTE','VENCE ≤30 DÍAS','VENCE ≤15 DÍAS','VENCIDA','INCOMPLETA','SUSPENDIDA'].map(s=>`<option ${LF.est===s?'selected':''}>${s}</option>`).join('')}</select></label>
+    <label class="fld">Gerencia / Superint.<select onchange="LF.ger=this.value;renderLic()"><option value="">Todas</option>${gers.map(g=>`<option ${LF.ger===g?'selected':''}>${esc(g)}</option>`).join('')}</select></label>
+   </div>
+   ${list.length?`<div class="tw"><table class="tacc"><thead><tr><th class="l">Nombre</th><th class="l">RUT</th><th class="l">Empresa</th><th class="l">Cargo</th><th class="l">Gerencia / Superint.</th><th class="l">Licencias</th><th></th></tr></thead><tbody>
+   ${list.slice(0,LPAGE).map(t=>{const ls=licsOf(t.rut);return `<tr class="acc-row" onclick="showTrab('${esc(rutKey(t.rut))}')"><td class="l"><b>${esc(t.nombre)}</b>${t.activo==='NO'?' <span class="pill neu">fuera de orgánica</span>':''}</td><td class="l">${esc(rutFmt(t.rut))}</td><td class="l">${esc(t.tipo==='Codelco'?'Codelco':t.empresa||'EECC')}</td><td class="l w">${esc(t.cargo||'')}</td><td class="l w">${esc(t.ger||'')}</td><td class="l">${ls.map(l=>licPill(l)).join(' ')||'<span class="small">—</span>'}</td><td class="acts"><button class="btn sm" onclick="event.stopPropagation();showTrab('${esc(rutKey(t.rut))}')">Ver</button></td></tr>`}).join('')}
+   </tbody></table></div>${list.length>LPAGE?`<div class="row mt"><button class="btn" onclick="LPAGE+=200;renderLic()">Ver más (${N0(list.length-LPAGE)} restantes)</button></div>`:''}`:'<p class="small">Sin trabajadores para este filtro.</p>'}
+   <div class="row mt small" style="gap:14px"><span><span class="pill lp-ok">Vigente</span></span><span><span class="pill lp-warn">Vence ≤30 días</span></span><span><span class="pill lp-w15">Vence ≤15 días</span></span><span><span class="pill lp-bad">Vencida / incompleta / suspendida</span></span></div>
+  </div>`;
+  const q=$('licQ');if(q&&document.activeElement!==q&&LF.q&&window._lqf){q.focus();q.setSelectionRange(q.value.length,q.value.length)}
+}
+/* ---------- ficha del trabajador ---------- */
+function reqRow(t,k){const R=LREQ[k];
+  if(R.t==='vig'){const d=dDays(t[R.k]);return `<tr><td class="l">${R.n}</td><td class="l">${t[R.k]?fdate(t[R.k]):'—'}</td><td class="l">${t[R.k]?`<span class="pill ${d<0?'bad':d<=15?'lp-w15':d<=30?'warn':'ok'}">${d<0?'Vencido':d<=30?'Vence en '+d+' días':'Vigente'}</span>`:'<span class="pill bad">Sin registro</span>'}</td></tr>`}
+  return `<tr><td class="l">${R.n}</td><td class="l">${t[R.k]==='SI'?'Realizado'+(R.kf&&t[R.kf]?' · '+fdate(t[R.kf]):''):'No realizado'}</td><td class="l"><span class="pill ${t[R.k]==='SI'?'ok':'bad'}">${t[R.k]==='SI'?'✔':'✘'}</span></td></tr>`}
+function showTrab(rk){
+  const t=trabBy(rk);if(!t)return;const ls=licsOf(t.rut),ds=docsOf(t.rut);
+  const reqs=[...new Set(ls.flatMap(l=>LT[l.tipo]?LT[l.tipo].req:[]))];const allReq=Object.keys(LREQ);
+  openModal(`<div class="ad-head"><div><div class="ad-id">${esc(rutFmt(t.rut))}</div><h3 style="margin:0">${esc(t.nombre)}</h3><div class="small">${esc(t.tipo==='Codelco'?'Codelco':t.empresa||'Contratista')} · ${esc(t.cargo||'')}</div></div><button class="btn" onclick="editTrab('${esc(rutKey(t.rut))}')">Editar datos y requisitos</button></div>
+  <div class="ad-sec">Datos</div><div class="ad-grid">${[['Cargo',t.cargo],['Grupo',t.grupo],['Turno',t.turno],['Rol',t.rol],['Gerencia / Superint.',t.ger],['Empresa',t.tipo==='Codelco'?'Codelco':t.empresa]].map(([a,b])=>`<div class="af"><span>${a}</span><b>${esc(b||'—')}</b></div>`).join('')}</div>
+  <div class="ad-sec">Licencias</div>
+  ${ls.length?ls.map(l=>{const s=licStatus(l,t);return `<div class="licrow"><div style="border-left:6px solid ${LT[l.tipo]?LT[l.tipo].color:'#999'};padding-left:10px"><b>${esc(LT[l.tipo]?LT[l.tipo].nombre:l.tipo)}</b> <span class="pill lp-${LCLS[s.cls]}">${esc(s.st)}</span><br><span class="small">${esc(l.id)} · Emisión ${l.emision?fdate(l.emision):'—'} · Vigencia ${l.vig?fdate(l.vig):'—'}${s.prox&&s.prox.n!=='Vigencia de la licencia'?' · próximo vencimiento: '+esc(s.prox.n)+' '+fdate(s.prox.f):''}${s.falta.length?' · falta: '+esc(s.falta.map(i=>i.n).join(', ')):''}</span></div>
+     <div class="row" style="gap:6px"><button class="btn sm" onclick="licCardDl('${esc(l.id)}')">🪪 Tarjeta PNG</button><button class="btn sm" onclick="licQrOpen('${esc(l.id)}')">🔗 Ver QR</button><button class="btn sm" onclick="editLicencia('${esc(l.id)}')">Editar</button></div></div>`}).join(''):'<p class="small">Sin licencias.</p>'}
+  <button class="btn sm" onclick="editLicencia(null,'${esc(rutKey(t.rut))}')">＋ Agregar licencia</button>
+  <div class="ad-sec">Requisitos</div><div class="tw"><table><tbody>${(reqs.length?reqs:allReq).map(k=>reqRow(t,k)).join('')}</tbody></table></div>
+  <div class="ad-sec">Documentación</div>
+  ${ds.length?`<div class="tw"><table><thead><tr><th class="l">Documento</th><th class="l">Vigencia</th><th class="l">Cargado</th><th></th></tr></thead><tbody>${ds.map(d=>{const i=LDB.docs.indexOf(d);const dd=dDays(d.vig);return `<tr><td class="l"><b>${esc(d.doc)}</b>${d.nombre?'<br><span class="small">'+esc(d.nombre)+'</span>':''}</td><td class="l">${d.vig?fdate(d.vig)+` <span class="pill ${dd<0?'bad':dd<=15?'lp-w15':dd<=30?'warn':'ok'}">${dd<0?'vencido':dd<=30?dd+' días':'vigente'}</span>`:'—'}</td><td class="l">${d.fecha?fdate(d.fecha):''}</td><td class="acts">${d.file?`<button class="btn sm" onclick="licDocOpen(${i})">Abrir</button>`:''}${d.link?`<a class="btn sm" href="${esc(d.link)}" target="_blank" rel="noopener">Enlace</a>`:''}<button class="btn sm" style="color:var(--bad)" onclick="licDocDel(${i})">✕</button></td></tr>`}).join('')}</tbody></table></div>`:'<p class="small">Sin documentos cargados.</p>'}
+  <button class="btn sm" onclick="licDocAdd('${esc(rutKey(t.rut))}')">＋ Agregar documento</button>
+  <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn pri" onclick="closeModal()">Cerrar</button></div>`);
+}
+function editTrab(rk){
+  const t=rk?trabBy(rk):{tipo:'EECC',activo:'SI'};if(!t)return;
+  const d=v=>v?iso(v):'';const yn=(k)=>`<select name="${k}"><option value="">—</option><option ${t[k]==='SI'?'selected':''}>SI</option><option ${t[k]==='NO'?'selected':''}>NO</option></select>`;
+  openModal(`<h3>${rk?'Editar trabajador':'Nuevo trabajador'}</h3><form id="trabF"><div class="fgrid">
+   <label class="fld full">Nombre completo<input name="nombre" value="${esc(t.nombre||'')}" required></label>
+   <label class="fld">RUT<input name="rut" value="${esc(t.rut?rutFmt(t.rut):'')}" ${rk?'readonly':''} required placeholder="12.345.678-9"></label>
+   <label class="fld">Personal<select name="tipo"><option ${t.tipo==='Codelco'?'selected':''}>Codelco</option><option ${t.tipo!=='Codelco'?'selected':''}>EECC</option></select></label>
+   <label class="fld">Empresa (contratistas)<input name="empresa" value="${esc(t.empresa||'')}"></label>
+   <label class="fld">Cargo<input name="cargo" value="${esc(t.cargo||'')}"></label>
+   <label class="fld">Grupo<input name="grupo" value="${esc(t.grupo??'')}"></label>
+   <label class="fld">Turno<input name="turno" value="${esc(t.turno||'')}"></label>
+   <label class="fld">Rol<input name="rol" value="${esc(t.rol||'')}"></label>
+   <label class="fld full">Gerencia / Superintendencia<input name="ger" list="dlGerL" value="${esc(t.ger||'')}"></label>
+  </div><datalist id="dlGerL">${[...new Set((LDB.trab||[]).map(x=>x.ger).filter(Boolean))].map(g=>`<option value="${esc(g)}">`).join('')}</datalist>
+  <div class="ad-sec">Requisitos</div><div class="fgrid">
+   <label class="fld">Licencia municipal · vigencia<input type="date" name="munVig" value="${d(t.munVig)}"></label>
+   <label class="fld">Examen PST · vigencia<input type="date" name="pstVig" value="${d(t.pstVig)}"></label>
+   <label class="fld">Examen altura física · vigencia<input type="date" name="alturaVig" value="${d(t.alturaVig)}"></label>
+   <label class="fld">Curso operación puente grúa${yn('cursoPG')}</label>
+   <label class="fld">RF 03 Izaje${yn('rf03')}</label>
+   <label class="fld">Curso trabajo en altura${yn('cursoAltura')}</label>
+   <label class="fld">Procedimiento trabajo en altura física${yn('procAltura')}</label>
+   <label class="fld">Curso específico tecle${yn('cursoTecle')}</label>
+   <label class="fld">Curso tecle · fecha de realización<input type="date" name="cursoTecleF" value="${d(t.cursoTecleF)}"></label>
+   <label class="fld full">Observación<input name="obs" value="${esc(t.obs||'')}"></label>
+  </div>
+  <div class="row" style="justify-content:flex-end;margin-top:14px">${rk&&!licsOf(t.rut).length?`<button type="button" class="btn" style="margin-right:auto;color:var(--bad)" onclick="delTrab('${esc(rk)}')">Eliminar</button>`:''}<button type="button" class="btn" onclick="${rk?`showTrab('${esc(rk)}')`:'closeModal()'}">Cancelar</button><button class="btn pri">Guardar</button></div></form>`);
+  $('trabF').onsubmit=e=>{e.preventDefault();const f=new FormData($('trabF'));const g=k=>String(f.get(k)??'').trim();
+    const rut=rk?t.rut:rutFmt(g('rut'));if(!rk){if(rutKey(rut).length<7){toast('RUT no válido');return}if(trabBy(rut)){toast('Ya existe un trabajador con ese RUT');return}}
+    const o=rk?t:{rut,activo:'SI'};Object.assign(o,{nombre:g('nombre').toUpperCase(),tipo:g('tipo'),empresa:g('tipo')==='Codelco'?'':g('empresa'),cargo:g('cargo'),grupo:g('grupo'),turno:g('turno'),rol:g('rol'),ger:g('ger'),obs:g('obs'),
+      munVig:pDate(g('munVig')),pstVig:pDate(g('pstVig')),alturaVig:pDate(g('alturaVig')),cursoPG:g('cursoPG'),rf03:g('rf03'),cursoAltura:g('cursoAltura'),procAltura:g('procAltura'),cursoTecle:g('cursoTecle'),cursoTecleF:pDate(g('cursoTecleF'))});
+    if(!rk)LDB.trab.push(o);licDirty('Trabajador guardado');showTrab(rutKey(o.rut))};
+}
+function delTrab(rk){if(!confirm('¿Eliminar este trabajador y su documentación?'))return;LDB.trab=LDB.trab.filter(t=>rutKey(t.rut)!==rk);LDB.docs=LDB.docs.filter(d=>rutKey(d.rut)!==rk);closeModal();licDirty('Trabajador eliminado')}
+function editLicencia(id,rk){
+  const l=id?LDB.lic.find(x=>x.id===id):{rut:trabBy(rk).rut,tipo:'PG',estado:'Activa',emision:today()};if(!l)return;const t=trabBy(l.rut);
+  openModal(`<h3>${id?'Editar licencia '+esc(id):'Nueva licencia'}</h3><p class="sub">${esc(t?t.nombre:'')} · ${esc(rutFmt(l.rut))}</p><form id="licF"><div class="fgrid">
+   <label class="fld">Tipo de licencia<select name="tipo" ${id?'disabled':''}>${Object.entries(LT).map(([k,v])=>`<option value="${k}" ${l.tipo===k?'selected':''}>${v.nombre}</option>`).join('')}</select></label>
+   <label class="fld">Fecha de emisión<input type="date" name="emision" value="${l.emision?iso(l.emision):''}"></label>
+   <label class="fld">Vigencia de la licencia<input type="date" name="vig" value="${l.vig?iso(l.vig):''}" required></label>
+   <label class="fld">Estado<select name="estado">${LIC_EST.map(s=>`<option ${l.estado===s?'selected':''}>${s}</option>`).join('')}</select></label>
+   <label class="fld full">Observación<input name="obs" value="${esc(l.obs||'')}"></label></div>
+   <p class="small">El código QR de la licencia no cambia aunque edites los datos o renueves la vigencia. Si la revocas, el QR mostrará "REVOCADA".</p>
+   <div class="row" style="justify-content:flex-end;margin-top:14px">${id?`<button type="button" class="btn" style="margin-right:auto;color:var(--bad)" onclick="delLicencia('${esc(id)}')">Eliminar</button>`:''}<button type="button" class="btn" onclick="showTrab('${esc(rutKey(l.rut))}')">Cancelar</button><button class="btn pri">Guardar</button></div></form>`);
+  $('licF').onsubmit=e=>{e.preventDefault();const f=new FormData($('licF'));
+    if(!id){const tp=f.get('tipo');if(licsOf(l.rut).some(x=>x.tipo===tp&&x.estado!=='Revocada')){toast('Este trabajador ya tiene esa licencia: edítala en vez de crear otra',6000);return}
+      const n=Math.max(0,...LDB.lic.map(x=>parseInt(String(x.id).replace(/\D/g,''))||0))+1;Object.assign(l,{id:'LI-'+String(n).padStart(4,'0'),tipo:tp,qid:rnd62(10),qk:b64u(crypto.getRandomValues(new Uint8Array(16)))});LDB.lic.push(l)}
+    Object.assign(l,{emision:pDate(f.get('emision')),vig:pDate(f.get('vig')),estado:f.get('estado'),obs:String(f.get('obs')||'').trim()});
+    licDirty('Licencia guardada');showTrab(rutKey(l.rut))};
+}
+function delLicencia(id){if(!confirm('¿Eliminar la licencia? Su código QR dejará de funcionar. (Para dejar constancia, mejor márcala como "Revocada".)'))return;const l=LDB.lic.find(x=>x.id===id);LDB.lic=LDB.lic.filter(x=>x.id!==id);licDirty('Licencia eliminada');showTrab(rutKey(l.rut))}
+/* ---------- documentos ---------- */
+function licDocAdd(rk){
+  openModal(`<h3>Agregar documento</h3><form id="docF"><div class="fgrid">
+   <label class="fld">Tipo de documento<select name="doc">${DOC_TIPOS.map(x=>`<option>${x}</option>`).join('')}</select></label>
+   <label class="fld">Vigencia (si aplica)<input type="date" name="vig"></label>
+   <label class="fld full">Descripción<input name="nombre" placeholder="Ej. Examen ocupacional Mutual 2026"></label>
+   <label class="fld full">Archivo (PDF o imagen)<input type="file" name="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"></label>
+   <label class="fld full">o enlace (SharePoint)<input name="link" placeholder="https://…"></label></div>
+   <p class="small">Si el documento es un examen PST, examen de altura física o licencia municipal, su vigencia actualiza el requisito del trabajador.</p>
+   <div id="docM"></div><div class="row" style="justify-content:flex-end;margin-top:12px"><button type="button" class="btn" onclick="showTrab('${esc(rk)}')">Cancelar</button><button class="btn pri">Guardar</button></div></form>`);
+  $('docF').onsubmit=async e=>{e.preventDefault();const f=new FormData($('docF'));const file=f.get('file');const t=trabBy(rk);
+    const d={rut:t.rut,doc:f.get('doc'),nombre:String(f.get('nombre')||'').trim(),vig:pDate(f.get('vig')),fecha:today(),link:String(f.get('link')||'').trim(),file:null};
+    if(file&&file.size){$('docM').innerHTML='<p class="small">Subiendo y cifrando…</p>';try{d.file=await encUpload(file,'data/doc/'+rutKey(t.rut))}catch(err){$('docM').innerHTML=`<div class="msg bad">${esc(err.message)}</div>`;return}}
+    if(!d.file&&!d.link&&!d.vig){$('docM').innerHTML='<div class="msg bad">Adjunta un archivo, un enlace o al menos la vigencia</div>';return}
+    LDB.docs.push(d);if(DOC_REQ[d.doc]&&d.vig&&(!t[DOC_REQ[d.doc]]||d.vig>t[DOC_REQ[d.doc]]))t[DOC_REQ[d.doc]]=d.vig;
+    licDirty('Documento agregado');showTrab(rk)};
+}
+function licDocDel(i){const d=LDB.docs[i];if(!d||!confirm('¿Quitar este documento?'))return;LDB.docs.splice(i,1);if(d.file)invRemote(d.file,'delete');licDirty('Documento quitado');showTrab(rutKey(d.rut))}
+async function licDocOpen(i){const d=LDB.docs[i];if(!d||!d.file)return;const isPdf=/pdf/i.test(d.file.type||'')||/\.pdf$/i.test(d.file.name||'');let w=null;if(isPdf){try{w=window.open('about:blank','_blank')}catch(e){}}
+  try{toast('Abriendo '+d.file.name+'…');const pt=await encDownload(d.file);const url=URL.createObjectURL(new Blob([pt],{type:d.file.type||'application/octet-stream'}));
+    if(isPdf){if(w&&!w.closed)w.location.href=url;else window.open(url,'_blank')}else{const a=document.createElement('a');a.href=url;a.download=d.file.name;document.body.appendChild(a);a.click();a.remove()}}
+  catch(e){if(w)try{w.close()}catch(_){}toast('No se pudo abrir: '+e.message,6000)}}
+/* archivos cifrados en el repositorio (la llave queda solo en la base cifrada) */
+async function encUpload(f,prefix){
+  const g=ghConf();if(!g.token)throw new Error('Primero conecta este equipo con GitHub (botón ☁ Guardar y publicar) para subir archivos');
+  if(f.size>25*1024*1024)throw new Error('El archivo pesa más de 25 MB');
+  const raw=new Uint8Array(await f.arrayBuffer());const key=crypto.getRandomValues(new Uint8Array(32)),iv=crypto.getRandomValues(new Uint8Array(12));
+  const k=await crypto.subtle.importKey('raw',key,'AES-GCM',false,['encrypt']);const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},k,raw));
+  const out=new Uint8Array(16+ct.length);out.set(new TextEncoder().encode('DVE1'),0);out.set(iv,4);out.set(ct,16);
+  const path=`${prefix}_${Date.now()}_${rnd62(6)}.bin`;
+  const r=await fetch(ghApi(g,path),{method:'PUT',headers:{Authorization:'Bearer '+g.token,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({message:'Documento cifrado',content:u8b64(out),branch:g.branch||'main'})});
+  if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error('GitHub '+r.status+': '+(j.message||''))}
+  return{name:f.name,type:f.type||'',size:f.size,path,key:u8b64(key),fecha:iso(today())};
+}
+async function encDownload(f){const g=ghConf();let buf;
+  if(g.token){const r=await fetch(ghApi(g,f.path)+'?ref='+encodeURIComponent(g.branch||'main'),{headers:{Authorization:'Bearer '+g.token,Accept:'application/vnd.github.raw'},cache:'no-store'});if(!r.ok)throw new Error('GitHub '+r.status);buf=new Uint8Array(await r.arrayBuffer())}
+  else{const r=await fetch(f.path,{cache:'no-store'});if(!r.ok)throw new Error('Archivo no disponible ('+r.status+')');buf=new Uint8Array(await r.arrayBuffer())}
+  const k=await crypto.subtle.importKey('raw',b64d(f.key),'AES-GCM',false,['decrypt']);return crypto.subtle.decrypt({name:'AES-GCM',iv:buf.slice(4,16)},k,buf.slice(16))}
+/* ---------- importar orgánica ---------- */
+const ORG_COLS={nombre:['Nombre','Nombre completo'],rut:['Rut','RUT'],cargo:['Cargo'],turno:['Turno'],grupo:['Grupo'],rol:['Rol'],ger:['Gerencia / Superintendencia','Gerencia/Superintendencia','Gerencia','Superintendencia'],empresa:['Empresa','Razón social','Razon Social']};
+function readOrgSheet(ws,tipo){
+  const rows=XLSX.utils.sheet_to_json(ws,{defval:null,raw:false});
+  const pick=(r,ks)=>{for(const k of ks){for(const h of Object.keys(r)){if(norm(h)===norm(k)&&r[h]!=null&&String(r[h]).trim()!=='')return String(r[h]).trim()}}return ''};
+  return rows.map(r=>({tipo,nombre:pick(r,ORG_COLS.nombre).toUpperCase(),rut:pick(r,ORG_COLS.rut),cargo:pick(r,ORG_COLS.cargo),turno:pick(r,ORG_COLS.turno),grupo:pick(r,ORG_COLS.grupo),rol:pick(r,ORG_COLS.rol),ger:pick(r,ORG_COLS.ger),empresa:tipo==='Codelco'?'':pick(r,ORG_COLS.empresa)})).filter(o=>o.nombre&&rutKey(o.rut).length>=7).map(o=>(o.rut=rutFmt(o.rut),o));
+}
+async function importOrg(inp){
+  const f=inp.files[0];inp.value='';if(!f)return;if(!LDB)LDB=lEmpty();
+  let wb;try{wb=XLSX.read(new Uint8Array(await f.arrayBuffer()),{type:'array'})}catch(e){toast('No pude leer el Excel: '+e.message,6000);return}
+  const shC=wb.SheetNames.find(n=>/codelco|propio/i.test(n))||(!wb.SheetNames.some(n=>/eecc|contrat/i.test(n))?wb.SheetNames[0]:null),shE=wb.SheetNames.find(n=>/eecc|contrat/i.test(n));
+  const C=shC?readOrgSheet(wb.Sheets[shC],'Codelco'):[],E=shE?readOrgSheet(wb.Sheets[shE],'EECC'):[];
+  const inc=[...C,...E];if(!inc.length){toast('No encontré trabajadores (columnas Nombre y Rut) en las hojas Codelco / EECC',7000);return}
+  const seen=new Set(inc.map(o=>rutKey(o.rut)));let nu=0,up=0;
+  const tiposIn=new Set([C.length?'Codelco':null,E.length?'EECC':null].filter(Boolean));
+  const gone=(LDB.trab||[]).filter(t=>tiposIn.has(t.tipo)&&t.activo!=='NO'&&!seen.has(rutKey(t.rut)));
+  openModal(`<h3>Importar orgánica</h3><p>${esc(f.name)}</p><ul><li><b>${N0(C.length)}</b> trabajadores Codelco${shC?' (hoja '+esc(shC)+')':''}</li><li><b>${N0(E.length)}</b> trabajadores contratistas${shE?' (hoja '+esc(shE)+')':''}</li>
+   <li><b>${N0(inc.filter(o=>!trabBy(o.rut)).length)}</b> nuevos · <b>${N0(inc.filter(o=>trabBy(o.rut)).length)}</b> se actualizan (nombre, cargo, grupo, turno, rol, gerencia)</li>
+   <li><b>${N0(gone.length)}</b> ya no aparecen: quedan marcados "fuera de orgánica" (no se borran sus licencias ni documentos)</li></ul>
+   <p class="small">Los requisitos, licencias y documentos de cada trabajador se mantienen.</p>
+   <div class="row" style="justify-content:flex-end"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn pri" id="orgOk">Importar</button></div>`);
+  $('orgOk').onclick=()=>{inc.forEach(o=>{const t=trabBy(o.rut);if(t){Object.assign(t,{nombre:o.nombre,cargo:o.cargo,turno:o.turno,grupo:o.grupo,rol:o.rol,ger:o.ger,tipo:o.tipo,activo:'SI'});if(o.empresa)t.empresa=o.empresa;up++}else{LDB.trab.push(Object.assign({activo:'SI'},o));nu++}});
+    gone.forEach(t=>t.activo='NO');closeModal();licDirty(`Orgánica importada: ${nu} nuevos, ${up} actualizados, ${gone.length} fuera de orgánica`)};
+}
+/* ---------- Excel de licencias ---------- */
+const TR_H=['Nombre','Rut','Cargo','Turno','Grupo','Rol','Gerencia / Superintendencia','Empresa','Activo','Licencia municipal (vigencia)','Curso operación puente grúa','RF 03 Izaje','Examen PST (vigencia)','Examen altura física (vigencia)','Curso trabajo en altura','Procedimiento trabajo altura física','Curso específico tecle','Curso tecle (fecha)','Observación'];
+const trRow=t=>[t.nombre,rutFmt(t.rut),t.cargo,t.turno,t.grupo,t.rol,t.ger,t.empresa,t.activo||'SI',t.munVig,t.cursoPG,t.rf03,t.pstVig,t.alturaVig,t.cursoAltura,t.procAltura,t.cursoTecle,t.cursoTecleF,t.obs];
+function buildLicWb(){
+  const wb=XLSX.utils.book_new();const HS={font:{name:'Arial',bold:true,color:{rgb:'FFFFFF'}},fill:{patternType:'solid',fgColor:{rgb:'E75300'}},alignment:{wrapText:true,vertical:'center'}};
+  const sh=(name,H,rows,w)=>{const ws={};H.forEach((h,c)=>ws[XLSX.utils.encode_cell({r:0,c})]={t:'s',v:h,s:HS});
+    rows.forEach((row,r)=>row.forEach((v,c)=>{if(v==null||v==='')return;const a=XLSX.utils.encode_cell({r:r+1,c});ws[a]=v instanceof Date?{t:'n',v:toSerial(v),z:'dd-mm-yyyy',s:{font:{name:'Arial',sz:10},numFmt:'dd-mm-yyyy'}}:typeof v==='number'?{t:'n',v}:{t:'s',v:String(v)}}));
+    ws['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:Math.max(rows.length,1),c:H.length-1}});ws['!cols']=w.map(x=>({wch:x}));ws['!autofilter']={ref:ws['!ref']};XLSX.utils.book_append_sheet(wb,ws,name)};
+  const W=[34,13,30,6,6,9,34,26,7,12,10,9,12,12,10,12,10,12,30];
+  sh('Codelco',TR_H,LDB.trab.filter(t=>t.tipo==='Codelco').map(trRow),W);
+  sh('EECC',TR_H,LDB.trab.filter(t=>t.tipo!=='Codelco').map(trRow),W);
+  sh('Licencias',['ID','Rut','Nombre','Tipo','Licencia','Fecha emisión','Vigencia','Estado registrado','Estado calculado','Próximo vencimiento','Fecha próximo vencimiento','Código QR','Llave QR','Observación'],LDB.lic.map(l=>{const t=trabBy(l.rut)||{};const s=licStatus(l,t);return[l.id,rutFmt(l.rut),t.nombre||'',l.tipo,LT[l.tipo]?LT[l.tipo].nombre:'',l.emision,l.vig,l.estado,s.st,s.prox?s.prox.n:'',s.prox?s.prox.f:null,l.qid,l.qk,l.obs]}),[9,13,32,6,24,11,11,11,16,30,11,13,24,30]);
+  sh('Documentos',['Rut','Nombre','Documento','Descripción','Vigencia','Fecha carga','Enlace','Archivo'],LDB.docs.map(d=>{const t=trabBy(d.rut)||{};return[rutFmt(d.rut),t.nombre||'',d.doc,d.nombre,d.vig,d.fecha,d.link,d.file?JSON.stringify(d.file):'']}),[13,32,26,30,11,11,40,40]);
+  return XLSX.write(wb,{bookType:'xlsx',type:'array'});
+}
+function readLicWb(buf){
+  const wb=XLSX.read(buf,{type:'array'});if(!wb.Sheets['Licencias'])throw new Error('El archivo no tiene la hoja "Licencias". ¿Es BD_Licencias_DVEN.xlsx? (Para cargar la orgánica usa "Importar orgánica")');
+  const rows=n=>wb.Sheets[n]?XLSX.utils.sheet_to_json(wb.Sheets[n],{defval:null,raw:true}):[];
+  const g=(r,k)=>r[k]==null?'':r[k];const D=v=>v==null||v===''?null:pDate(v);
+  const db=lEmpty();
+  [['Codelco','Codelco'],['EECC','EECC']].forEach(([n,tipo])=>rows(n).forEach(r=>{if(!g(r,'Nombre')||rutKey(g(r,'Rut')).length<7)return;db.trab.push({tipo,nombre:String(g(r,'Nombre')).trim().toUpperCase(),rut:rutFmt(g(r,'Rut')),cargo:String(g(r,'Cargo')),turno:String(g(r,'Turno')),grupo:String(g(r,'Grupo')),rol:String(g(r,'Rol')),ger:String(g(r,'Gerencia / Superintendencia')),empresa:String(g(r,'Empresa')),activo:String(g(r,'Activo')||'SI'),
+    munVig:D(r['Licencia municipal (vigencia)']),cursoPG:siNo(r['Curso operación puente grúa']),rf03:siNo(r['RF 03 Izaje']),pstVig:D(r['Examen PST (vigencia)']),alturaVig:D(r['Examen altura física (vigencia)']),cursoAltura:siNo(r['Curso trabajo en altura']),procAltura:siNo(r['Procedimiento trabajo altura física']),cursoTecle:siNo(r['Curso específico tecle']),cursoTecleF:D(r['Curso tecle (fecha)']),obs:String(g(r,'Observación'))})}));
+  rows('Licencias').forEach(r=>{if(!g(r,'ID')||!g(r,'Rut'))return;const tp=String(g(r,'Tipo')).trim().toUpperCase();db.lic.push({id:String(g(r,'ID')),rut:rutFmt(g(r,'Rut')),tipo:LT[tp]?tp:(Object.keys(LT).find(k=>norm(LT[k].nombre)===norm(g(r,'Licencia')))||tp),emision:D(r['Fecha emisión']),vig:D(r['Vigencia']),estado:String(g(r,'Estado registrado')||'Activa'),qid:String(g(r,'Código QR'))||rnd62(10),qk:String(g(r,'Llave QR'))||b64u(crypto.getRandomValues(new Uint8Array(16))),obs:String(g(r,'Observación'))})});
+  rows('Documentos').forEach(r=>{if(!g(r,'Rut'))return;let file=null;try{file=g(r,'Archivo')?JSON.parse(g(r,'Archivo')):null}catch(e){}db.docs.push({rut:rutFmt(g(r,'Rut')),doc:String(g(r,'Documento')),nombre:String(g(r,'Descripción')),vig:D(r['Vigencia']),fecha:D(r['Fecha carga']),link:String(g(r,'Enlace')),file})});
+  return db;
+}
+async function saveLicExcel(){
+  if(!LDB)return;const buf=buildLicWb();
+  if(FHL&&canFS()){try{let pm=await FHL.queryPermission({mode:'readwrite'});if(pm!=='granted')pm=await FHL.requestPermission({mode:'readwrite'});if(pm==='granted'){const w=await FHL.createWritable();await w.write(buf);await w.close();toast('Guardado en '+FHL.name,4000);return true}}catch(e){toast(/state/i.test(e.message+e.name)?'El archivo '+FHL.name+' está abierto en Excel o cambió fuera de la app: ciérralo y vuelve a intentar':'No pude escribir '+FHL.name+': '+e.message,8000);return false}}
+  if(canFS()){try{const h=await showSaveFilePicker({suggestedName:'BD_Licencias_DVEN.xlsx',types:XT});const w=await h.createWritable();await w.write(buf);await w.close();FHL=h;idb.set('fhl',h);toast('Guardado en '+h.name,4000);return true}catch(e){if(e.name==='AbortError')return false}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));a.download='BD_Licencias_DVEN.xlsx';document.body.appendChild(a);a.click();a.remove();return true;
+}
+async function openLicExcel(){
+  try{let f,h=null;if(canFS()){[h]=await showOpenFilePicker({types:XT});f=await h.getFile()}else{f=await new Promise(ok=>{const i=document.createElement('input');i.type='file';i.accept='.xlsx';i.onchange=()=>ok(i.files[0]);i.click()})}
+    if(!f)return;const db=readLicWb(new Uint8Array(await f.arrayBuffer()));if(LDB&&LDIRTY&&!confirm('Tienes cambios de licencias sin publicar. ¿Reemplazarlos por el Excel?'))return;
+    LDB=db;if(h){FHL=h;idb.set('fhl',h)}licDirty('Excel de licencias cargado: '+db.trab.length+' trabajadores, '+db.lic.length+' licencias')}
+  catch(e){if(e.name!=='AbortError')toast('No pude abrir el archivo: '+e.message,7000)}
+}
+function licAlertXlsx(){
+  const al=licAlerts();const ws=XLSX.utils.aoa_to_sheet([['Trabajador','RUT','Empresa','Gerencia / Superintendencia','Licencia','Requisito / documento','Vence','Días','Situación'],...al.map(a=>[a.t.nombre,rutFmt(a.t.rut),a.t.tipo==='Codelco'?'Codelco':a.t.empresa,a.t.ger,a.l?LT[a.l.tipo].nombre:'',a.n,a.f?fdate(a.f):'',a.d==null?'':a.d,a.falta?'Falta registro':a.d<0?'Vencido':a.d<=15?'Vence ≤15 días':'Vence ≤30 días'])]);
+  ws['!cols']=[34,13,24,32,24,34,11,6,16].map(w=>({wch:w}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Vencimientos');XLSX.writeFile(wb,'Vencimientos_licencias_'+iso(today())+'.xlsx')}
+/* ---------- borrador local ---------- */
+const serL=()=>JSON.stringify(LDB);
+function reviveL(s){const o=typeof s==='string'?JSON.parse(s):s;const D=v=>v?pDate(String(v).slice(0,10)):null;const db=Object.assign(lEmpty(),o);
+  db.trab.forEach(t=>['munVig','pstVig','alturaVig','cursoTecleF'].forEach(k=>t[k]=D(t[k])));db.lic.forEach(l=>{l.emision=D(l.emision);l.vig=D(l.vig)});db.docs.forEach(d=>{d.vig=D(d.vig);d.fecha=D(d.fecha)});return db}
+function licDirty(t){LDIRTY=true;store.set('dven_ldraft',JSON.stringify({when:new Date().toISOString(),db:serL()}));if(PAGE==='licencias')renderLic();if(t)toast(t+' · recuerda ☁ Guardar y publicar',4500)}
+/* ---------- nube: base cifrada + entradas públicas por QR ---------- */
+async function loadLicCloud(pw){
+  let o=null,sha=null;const g=ghConf();
+  try{if(g.token){const m=await ghMeta(g,LIC_PATH);if(m){sha=m.sha;const r=await fetch(ghApi(g,LIC_PATH)+'?ref='+encodeURIComponent(g.branch||'main')+'&t='+Date.now(),{headers:{Authorization:'Bearer '+g.token,Accept:'application/vnd.github.raw'},cache:'no-store'});if(r.ok)o=await r.json()}}
+    else{const r=await fetch(LIC_PATH+'?t='+Date.now(),{cache:'no-store'});if(r.ok)o=await r.json()}}catch(e){}
+  if(!o)return 'none';
+  let d;try{const pt=new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:b64d(o.iv)},await aesKey(pw,b64d(o.salt),o.it),b64d(o.ct)));d=JSON.parse(await gunzipU8(pt))}catch(e){return 'bad'}
+  LDB=reviveL(d.db);LIC_SHA=sha;LIC_PW=pw;LDB.meta=Object.assign({},d.meta||{});LDIRTY=false;
+  const dr=store.get('dven_ldraft');if(dr){try{const x=JSON.parse(dr);if(new Date(x.when)>new Date(d.generado||0)&&confirm('Hay cambios de licencias sin publicar en este navegador. ¿Recuperarlos?')){LDB=reviveL(x.db);LDB.meta=Object.assign({},d.meta||{});LDIRTY=true}else store.del('dven_ldraft')}catch(e){}}
+  return {ok:true,rk:d.rk||null};
+}
+/* datos públicos de una licencia (lo que muestra el QR) */
+function licPublic(l){const t=trabBy(l.rut)||{};const s=licStatus(l,t);
+  return{tp:l.tipo,tn:LT[l.tipo]?LT[l.tipo].nombre:l.tipo,id:l.id,est:l.estado,n:t.nombre||'',r:rutFmt(l.rut),e:t.tipo==='Codelco'?'Codelco':(t.empresa||'Contratista'),c:t.cargo||'',g:t.grupo||'',ger:t.ger||'',emi:l.emision?iso(l.emision):null,
+    it:s.items.map(i=>({n:i.n,t:i.t,f:i.f?iso(i.f):null,ok:i.t==='bool'?!!i.ok:undefined}))}}
+const b64ud=s=>{s=String(s).replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return b64d(s)};
+async function licEntry(l){const key=await crypto.subtle.importKey('raw',b64ud(l.qk),'AES-GCM',false,['encrypt']);
+  const iv=crypto.getRandomValues(new Uint8Array(12));const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(JSON.stringify(licPublic(l)))));return{i:u8b64(iv),c:u8b64(ct)}}
+async function publishLic(){
+  if(!canLic()){openLogin();return}if(!LDB)return;
+  const g=ghConf();if(!g.token){openGhSetup(false);toast('Conecta este equipo con GitHub y vuelve a pulsar Guardar y publicar',7000);return}
+  let pw=LIC_PW||(ADMIN&&DB&&DB.params['Clave modificador'])||null;
+  if(!pw){if(ADMIN){askModKey(true);return}toast('Falta la clave de modificador',5000);return}
+  busy('Guardando y publicando licencias…');
+  try{
+    const m=await ghMeta(g,LIC_PATH);if(m&&LIC_SHA&&m.sha!==LIC_SHA){closeModal();openModal(`<h3>Otra persona publicó cambios de licencias</h3><p>La base de licencias cambió después de que la abriste. Para no borrar su trabajo no se publicó nada. Descarga tu Excel como respaldo, recarga y vuelve a ingresar tus cambios.</p><div class="row" style="justify-content:flex-end"><button class="btn" onclick="saveLicExcel()">⬇ Excel con mis cambios</button><button class="btn pri" onclick="closeModal();reloadLic()">Cargar la versión actual</button></div>`);return}
+    if(m&&!LIC_SHA&&!confirm('Ya existe una base de licencias publicada y vas a reemplazarla. ¿Continuar?')){closeModal();return}
+    const rk=(ADMIN&&DB&&DB.params['Clave lectura'])||(LDB.meta&&LDB.meta.rk)||null;
+    const payload={v:1,generado:new Date().toISOString(),rk,meta:{},db:JSON.parse(serL())};
+    const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),it=300000;
+    const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},await aesKey(pw,salt,it),await gzipStr(JSON.stringify(payload))));
+    LIC_SHA=await ghPut(g,LIC_PATH,JSON.stringify({v:1,kind:'licencias',it,salt:u8b64(salt),iv:u8b64(iv),ct:u8b64(ct),generado:payload.generado}),m&&m.sha,'Actualiza base de licencias');
+    const E={};for(const l of LDB.lic){if(!l.qid||!l.qk)continue;E[l.qid]=await licEntry(l)}
+    const mq=await ghMeta(g,Q_PATH);await ghPut(g,Q_PATH,JSON.stringify({v:1,g:payload.generado,e:E}),mq&&mq.sha,'Actualiza licencias publicadas');
+    LIC_PW=pw;LDIRTY=false;store.del('dven_ldraft');let xl='';
+    if(FHL&&canFS()){try{if((await FHL.queryPermission({mode:'readwrite'}))==='granted'){const w=await FHL.createWritable();await w.write(buildLicWb());await w.close();xl=' También se guardó en '+FHL.name+'.'}}catch(e){xl=' ⚠ No se pudo escribir '+FHL.name+' (¿abierto en Excel?).'}}
+    if(PAGE==='licencias')renderLic();
+    openModal(`<h3>✓ Licencias publicadas</h3><p>La base de licencias quedó guardada y los códigos QR muestran los datos actualizados en 1 a 2 minutos.${xl}</p><div class="row" style="justify-content:flex-end"><button class="btn pri" onclick="closeModal()">Listo</button></div>`);
+  }catch(e){if(e.message==='conflict'){closeModal();toast('Otra persona publicó al mismo tiempo: recarga la base de licencias',8000);return}
+    openModal(`<h3>No se pudo publicar</h3><div class="msg bad">${esc(e.message)}</div><p class="small">Tus cambios siguen en esta pantalla.</p><div class="row" style="justify-content:flex-end"><button class="btn" onclick="closeModal()">Cerrar</button><button class="btn pri" onclick="closeModal();publishLic()">Reintentar</button></div>`)}
+}
+async function reloadLic(){const pw=LIC_PW||(DB&&DB.params['Clave modificador']);if(!pw)return;LDIRTY=false;store.del('dven_ldraft');const r=await loadLicCloud(pw);if(r==='bad')toast('La clave no abre la base de licencias',6000);LIC_LOADED=true;if(PAGE==='licencias')renderLic()}
+/* clave de modificador (la define el administrador) */
+function askModKey(thenPublish){openModal(`<h3>Clave de modificador</h3><p class="sub">Con esta clave el perfil <b>modificador</b> entra a la plataforma y edita solo Licencias internas. También protege la base de licencias publicada. Compártela solo por un canal privado.</p><form id="mkF"><div class="fgrid" style="grid-template-columns:1fr 1fr"><label class="fld">Clave de modificador<input type="password" id="mk1" autocomplete="new-password"></label><label class="fld">Repetir<input type="password" id="mk2" autocomplete="new-password"></label></div><div id="mkM"></div><div class="row" style="justify-content:flex-end;margin-top:12px"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button class="btn pri">Guardar</button></div></form>`);
+  setTimeout(()=>$('mk1').focus(),50);$('mkF').onsubmit=e=>{e.preventDefault();const a=$('mk1').value,b=$('mk2').value;if(a.length<10){$('mkM').innerHTML='<div class="msg bad">Mínimo 10 caracteres</div>';return}if(a!==b){$('mkM').innerHTML='<div class="msg bad">Las claves no coinciden</div>';return}
+    if(a===DB.params['Clave lectura']){$('mkM').innerHTML='<div class="msg bad">Debe ser distinta de la clave de lectura</div>';return}
+    DB.params['Clave modificador']=a;LIC_PW=a;closeModal();markDirty('Clave de modificador guardada · se aplica al publicar');if(LDB)LDIRTY=true;if(thenPublish)publishLic()}}
+function showModKey(){const k=DB.params['Clave modificador'];openModal(`<h3>Clave de modificador</h3>${k?`<p style="font-size:20px;font-weight:700;background:#FAFAFA;padding:10px 14px;border-radius:8px;word-break:break-all">${esc(k)}</p><p class="small">Compártela solo por un canal privado.</p>`:'<p>Aún no se ha definido.</p>'}<div class="row" style="justify-content:flex-end"><button class="btn pri" onclick="closeModal()">Cerrar</button></div>`)}
+/* sesión de modificador */
+function setMod(v){MOD=!!v;document.body.classList.toggle('mod',MOD);if(MOD)ss.set('dven_mpw',LIC_PW||'');else ss.del('dven_mpw')}
+async function modLogin(pw){
+  const r=await loadLicCloud(pw);if(!r||r==='none'||r==='bad')return false;
+  LIC_LOADED=true;setMod(true);
+  if(r.rk&&(!DB||SRC.kind==='pub')){PUB_RAW=PUB_RAW||await fetch(PUB_PATH+'?t='+Date.now(),{cache:'no-store'}).then(x=>x.ok?x.json():null).catch(()=>null);if(PUB_RAW)await openPublic(r.rk)}
+  $('gate').classList.add('hidden');document.body.classList.remove('gated');return true;
+}
+function modLogout(){if(LDIRTY&&!confirm('Hay cambios de licencias sin publicar. ¿Cerrar sesión?'))return;setMod(false);LDB=null;LIC_PW=null;ss.del('dven_vpw');location.reload()}
+/* tras iniciar sesión de administrador: abre la base de licencias */
+async function licAfterAdmin(){
+  if(LDB&&LDIRTY)return;const pw=DB&&DB.params['Clave modificador'];
+  if(pw){const r=await loadLicCloud(pw);if(r==='bad')toast('La clave de modificador guardada no abre la base de licencias publicada',7000)}
+  if(!LDB){const dr=store.get('dven_ldraft');if(dr){try{LDB=reviveL(JSON.parse(dr).db);LDIRTY=true}catch(e){}}}
+  LIC_LOADED=true;if(PAGE==='licencias')renderLic();
+}
+/* ---------- tarjeta PNG ---------- */
+const licUrl=l=>{const base=/^(localhost|127\.0\.0\.1)$/.test(location.hostname)||/github\.io$/.test(location.hostname)?new URL('licencia.html',location.href).href:LIC_SITE+'licencia.html';return base+'#'+l.qid+'.'+l.qk};
+const _imgC={};
+function loadImg(src){if(_imgC[src])return _imgC[src];return _imgC[src]=new Promise((ok,ko)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>{delete _imgC[src];ko(new Error('No encontré la plantilla '+src+' en el sitio'))};i.src=src+'?v=1'})}
+function wrapLines(ctx,text,maxW,maxLines){const words=String(text).split(/\s+/).filter(Boolean);const lines=[];let cur='';
+  for(const w of words){const t=cur?cur+' '+w:w;if(ctx.measureText(t).width<=maxW||!cur)cur=t;else{lines.push(cur);cur=w}}if(cur)lines.push(cur);
+  if(lines.length>maxLines){const head=lines.slice(0,maxLines-1);head.push(lines.slice(maxLines-1).join(' '));return head}return lines}
+async function licCanvas(l){
+  const T=LT[l.tipo];if(!T)throw new Error('Tipo de licencia desconocido');const t=trabBy(l.rut)||{};
+  const [img]=await Promise.all([loadImg(T.img),document.fonts&&document.fonts.load?Promise.all(['800 60px Montserrat','700 60px Montserrat','600 40px Montserrat'].map(f=>document.fonts.load(f))).catch(()=>{}):null]);
+  const cv=document.createElement('canvas');cv.width=1080;cv.height=1920;const x=cv.getContext('2d');x.drawImage(img,0,0,1080,1920);
+  // QR
+  if(typeof qrcode!=='function')throw new Error('No se cargó el generador de QR (revisa la conexión)');
+  const q=qrcode(0,'M');q.addData(licUrl(l));q.make();const n=q.getModuleCount();const[bx,by,bw,bh]=T.box;const S=Math.min(bw,bh);
+  x.fillStyle='#fff';x.fillRect(bx,by,bw,bh);const cell=Math.floor(S/(n+4));const off=Math.round((S-cell*n)/2);x.fillStyle='#000';
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))x.fillRect(bx+off+c*cell+Math.round((bw-S)/2),by+off+r*cell+Math.round((bh-S)/2),cell,cell);
+  // textos
+  const[y0,y1]=T.txt;const F='Montserrat, Poppins, Arial, sans-serif';x.textAlign='center';x.textBaseline='alphabetic';
+  const rr=(X,Y,W,H,R)=>{x.beginPath();x.moveTo(X+R,Y);x.arcTo(X+W,Y,X+W,Y+H,R);x.arcTo(X+W,Y+H,X,Y+H,R);x.arcTo(X,Y+H,X,Y,R);x.arcTo(X,Y,X+W,Y,R);x.closePath()};
+  const PW=920,PX=(1080-PW)/2,MAXW=PW-90;
+  const rs=50,ids=26;let fs=62,lines,lh,PH;
+  const fit=()=>{do{x.font=`800 ${fs}px ${F}`;lines=wrapLines(x,String(t.nombre||'').toUpperCase(),MAXW,2);fs-=2}while(fs>38&&lines.some(s=>x.measureText(s).width>MAXW));fs+=2;lh=Math.round(fs*1.12);
+    PH=64+lines.length*lh+8+8+24+(rs+24)+40};
+  fit();while(PH>(y1-y0)-16&&fs>40){fs-=2;fit()}
+  const PY=Math.round(y0+((y1-y0)-PH)/2);
+  // panel translúcido con borde (mismo lenguaje que el marco del QR)
+  x.save();x.shadowColor='rgba(0,0,0,.18)';x.shadowBlur=24;x.shadowOffsetY=6;rr(PX,PY,PW,PH,44);x.fillStyle='rgba(255,255,255,.16)';x.fill();x.restore();
+  rr(PX,PY,PW,PH,44);x.lineWidth=3;x.strokeStyle='rgba(255,255,255,.42)';x.stroke();
+  // etiqueta naranja "TITULAR" sobre el borde superior
+  x.font=`800 28px ${F}`;try{x.letterSpacing='4px'}catch(e){}const tw=x.measureText('TITULAR').width+60;
+  rr(540-tw/2,PY-28,tw,54,27);x.fillStyle='#E75300';x.fill();x.fillStyle='#fff';x.fillText('TITULAR',540+2,PY+9);try{x.letterSpacing='0px'}catch(e){}
+  // nombre
+  let y=PY+64;x.save();x.shadowColor='rgba(0,0,0,.35)';x.shadowBlur=8;x.shadowOffsetY=3;x.fillStyle='#fff';x.font=`800 ${fs}px ${F}`;
+  lines.forEach((s,i)=>x.fillText(s,540,y+i*lh+fs*.78));x.restore();y+=lines.length*lh+8;
+  // separador naranja
+  rr(540-80,y,160,8,4);x.fillStyle='#E75300';x.fill();y+=8+24;
+  // RUT en franja clara
+  x.font=`700 ${rs}px ${F}`;const rw=Math.max(400,x.measureText(rutFmt(l.rut)).width+80);rr(540-rw/2,y,rw,rs+24,(rs+24)/2);x.fillStyle='rgba(255,255,255,.92)';x.fill();
+  x.fillStyle='#1F3A44';x.fillText(rutFmt(l.rut),540,y+12+rs*.8);y+=rs+24+16;
+  return cv;
+}
+const cardName=l=>{const t=trabBy(l.rut)||{};return `Licencia_${LT[l.tipo]?LT[l.tipo].corto.replace(/\s+/g,''):l.tipo}_${String(t.nombre||l.rut).replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9]+/g,'_')}.png`};
+async function licCardDl(id){const l=LDB.lic.find(x=>x.id===id);if(!l)return;
+  if(LDIRTY)toast('Recuerda publicar las licencias para que el QR muestre los datos de esta tarjeta',6000);
+  try{const cv=await licCanvas(l);const b=await new Promise(ok=>cv.toBlob(ok,'image/png'));const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=cardName(l);document.body.appendChild(a);a.click();a.remove()}catch(e){toast('No se pudo generar la tarjeta: '+e.message,7000)}}
+function licQrOpen(id){const l=LDB.lic.find(x=>x.id===id);if(!l)return;const u=licUrl(l);
+  openModal(`<h3>Código QR de la licencia</h3><p class="sub">${esc(l.id)} · ${esc(LT[l.tipo].nombre)}</p><p class="small" style="word-break:break-all;background:#FAFAFA;padding:8px 10px;border-radius:8px">${esc(u)}</p><p class="small">Este enlace muestra solo los datos de esta licencia. ${LDIRTY?'<b>Publica las licencias para que refleje los últimos cambios.</b>':''}</p><div class="row" style="justify-content:flex-end"><button class="btn" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(u)}');toast('Enlace copiado')">Copiar enlace</button><a class="btn pri" href="${esc(u)}" target="_blank" rel="noopener">Abrir</a><button class="btn" onclick="showTrab('${esc(rutKey(l.rut))}')">Volver</button></div>`)}
+function licCardsBatch(){
+  const act=LDB.lic.filter(l=>l.estado==='Activa');
+  openModal(`<h3>Generar tarjetas PNG</h3><p class="sub">Se descarga un PNG de 1080×1920 por licencia. El navegador puede pedir permiso para descargar varios archivos.</p><form id="cbF"><div class="fgrid">
+   <label class="fld">Tipo<select name="tipo"><option value="">Todas</option>${Object.entries(LT).map(([k,v])=>`<option value="${k}">${v.nombre}</option>`).join('')}</select></label>
+   <label class="fld">Emitidas desde<input type="date" name="desde"></label></div><p class="small">${act.length} licencias activas.</p><div id="cbM"></div>
+   <div class="row" style="justify-content:flex-end;margin-top:12px"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button class="btn pri">Descargar</button></div></form>`);
+  $('cbF').onsubmit=async e=>{e.preventDefault();const f=new FormData($('cbF'));const tp=f.get('tipo'),de=pDate(f.get('desde'));
+    const L=act.filter(l=>(!tp||l.tipo===tp)&&(!de||(l.emision&&l.emision>=de)));if(!L.length){$('cbM').innerHTML='<div class="msg bad">No hay licencias con ese filtro</div>';return}
+    if(L.length>40&&!confirm(`Se descargarán ${L.length} archivos. ¿Continuar?`))return;
+    for(let i=0;i<L.length;i++){$('cbM').innerHTML=`<p class="small">Generando ${i+1} de ${L.length}…</p>`;await licCardDl(L[i].id);await new Promise(r=>setTimeout(r,350))}
+    closeModal();toast(L.length+' tarjetas descargadas',5000)};
+}
+
 /* ================= BASE DE TRABAJO EN LA NUBE + "GUARDAR Y PUBLICAR" =================
    data/base.json   : base completa, comprimida y cifrada (AES-256-GCM) con la contraseña de administrador.
    data/publico.json: indicadores sin datos sensibles, cifrados con la clave de lectura.
@@ -1940,6 +2363,7 @@ async function loadCloud(pw,quiet){
   ADMIN_PW=pw;ss.set('dven_apw',pw);CLOUD_SHA=c.sha;
   const g=c.obj.generado?new Date(c.obj.generado):null;
   setDB(db,{kind:'cloud',label:'Base en la nube'+(g?' · '+fdate(g)+' '+pad(g.getHours())+':'+pad(g.getMinutes()):'')},false);
+  setTimeout(()=>{if(ADMIN)licAfterAdmin()},0);
   return 'ok';
 }
 async function ghPut(g,path,text,sha,msg){
@@ -2341,6 +2765,8 @@ function renderBase(){
    <details class="mt ${SBC?'hidden':''}"><summary class="small" style="cursor:pointer">Publicación manual (generar publico.json y subirlo a mano)</summary><div class="fgrid mt"><label class="fld">Clave de lectura<input type="password" id="pubPw" autocomplete="new-password"></label><label class="fld">Repetir clave<input type="password" id="pubPw2" autocomplete="new-password"></label></div>
    <input type="checkbox" id="pubEmp" class="hidden" ${DB.params['Publicar EECC']!=='NO'?'checked':''}><input type="checkbox" id="pubAcc" class="hidden" ${DB.params['Publicar ficha accidentes']!=='NO'?'checked':''}>
    <div class="row mt"><button class="btn" onclick="downloadPublic()">⬇ Generar publico.json</button></div><div id="pubMsg"></div></details></div>
+  <div class="card mt"><h3>Licencias internas · perfil modificador</h3><p class="sub">La clave de modificador permite entrar a la plataforma y editar solo el módulo de Licencias internas (ve todo lo demás como la jefatura). También protege la base de licencias publicada.</p>
+   <div class="row">${DB.params['Clave modificador']?'<button class="btn sm" onclick="showModKey()">👁 Ver clave de modificador</button>':''}<button class="btn sm" onclick="askModKey(false)">${DB.params['Clave modificador']?'Cambiar clave de modificador':'Definir clave de modificador'}</button><span class="small">${DB.params['Clave modificador']?'Al cambiarla, la nueva clave rige desde la próxima publicación de licencias.':'Aún no definida: se pedirá al publicar licencias.'}</span></div></div>
   <div class="card mt"><h3>Contraseña de administrador</h3><p class="sub">${SBC?'Es la contraseña de la cuenta de administrador en Supabase. El cambio rige de inmediato.':'Se guarda cifrada (hash PBKDF2) en la hoja Parametros de la base. Después de cambiarla, guarda la base.'}</p>
    <div class="fgrid"><label class="fld">Contraseña actual<input type="password" id="pw0" autocomplete="current-password"></label><label class="fld">Nueva contraseña<input type="password" id="pw1" autocomplete="new-password"></label><label class="fld">Repetir nueva<input type="password" id="pw2" autocomplete="new-password"></label></div>
    <div class="row mt"><button class="btn pri" onclick="changePw()">Cambiar contraseña</button>${SBC||DB.params['Clave administrador']?'':'<span class="pill warn">Usando la contraseña inicial: cámbiala</span>'}</div></div>
@@ -2448,7 +2874,7 @@ function buildWorkbook(){
   }
   // LEEME
   const le=XLSX.utils.aoa_to_sheet(DB.leeme&&DB.leeme.length?DB.leeme:[['BASE DE DATOS DIVISIONAL – ESTADÍSTICAS DE SEGURIDAD']]);le['!cols']=[{wch:28},{wch:110}];XLSX.utils.book_append_sheet(wb,le,'LEEME');
-  sheet('Parametros',['Parámetro','Valor','Descripción'],[30,22,70],Object.entries(DB.params).filter(([k])=>k!=='Clave lectura').map(([k,v])=>[k,k==='Versión base'?today():(typeof v==='number'&&k.startsWith('Fecha')?fromSerial(v):v),'']));
+  sheet('Parametros',['Parámetro','Valor','Descripción'],[30,22,70],Object.entries(DB.params).filter(([k])=>k!=='Clave lectura'&&k!=='Clave modificador').map(([k,v])=>[k,k==='Versión base'?today():(typeof v==='number'&&k.startsWith('Fecha')?fromSerial(v):v),'']));
   sheet('CECO',['CECO','Nombre CECO','Gerencia','Orden Gerencia','Área Instalación','Activo','Observación'],[10,42,44,10,30,8,50],DB.ceco.map(c=>[c.ceco,c.nombre,c.gerencia,c.orden,c.area,c.activo,c.obs]));
   const pr=DB.prop.slice().sort((a,b)=>a.y-b.y||a.m-b.m||a.ceco.localeCompare(b.ceco));
   sheet('HH_Propios',['Año','Mes','CECO','Dot H','Dot M','HH H','HH M','Dot Total','HH Total','Fuente'],[7,6,9,8,8,12,12,10,12,32],pr.map((r,i)=>[r.y,r.m,r.ceco,r.dotH,r.dotM,r.hhH,r.hhM,{f:`D${i+2}+E${i+2}`,v:r.dotH+r.dotM},{f:`F${i+2}+G${i+2}`,v:r.hhH+r.hhM},r.fuente]));
@@ -2492,8 +2918,10 @@ function buildWorkbook(){
 }
 
 /* ================= ACCESO ADMINISTRADOR ================= */
+async function modTry(pw,next){try{if(!(await modLogin(pw)))return false}catch(e){return false}
+  closeModal();toast('Sesión de modificador iniciada · puedes editar Licencias internas',5000);if(DB)updateStatus();PAGE='licencias';go('licencias');return true}
 function openLogin(next){
-  openModal(`<h3>Acceso administrador</h3><form id="lgForm"><label class="fld">Contraseña<input type="password" id="lgPw" autocomplete="current-password" autofocus></label>
+  openModal(`<h3>Ingresar</h3><p class="sub">Administrador o modificador de licencias</p><form id="lgForm"><label class="fld">Contraseña<input type="password" id="lgPw" autocomplete="current-password" autofocus></label>
   <div id="lgMsg"></div><div class="row" style="justify-content:flex-end;margin-top:14px"><button type="button" class="btn" onclick="closeModal()">Cancelar</button><button class="btn pri" type="submit">Ingresar</button></div></form>`);
   setTimeout(()=>{const i=$('lgPw');if(i)i.focus()},50);
   $('lgForm').onsubmit=async ev=>{ev.preventDefault();const pw=$('lgPw').value;
@@ -2510,11 +2938,11 @@ function openLogin(next){
     if(!IS_LOCAL||!DB||SRC.kind==='pub'){$('lgMsg').innerHTML='<p class="small">Verificando…</p>';
       const r=await loadCloud(pw,true);
       if(r==='ok'){setAdmin(true);closeModal();toast('Sesión iniciada · base de trabajo cargada');updateStatus();go(typeof next==='string'?next:PAGE);return}
-      if(r==='bad'){$('lgMsg').innerHTML='<div class="msg bad">Contraseña incorrecta</div>';return}}
+      if(r==='bad'){if(await modTry(pw,next))return;$('lgMsg').innerHTML='<div class="msg bad">Contraseña incorrecta</div>';return}}
     const ok=await checkPw(pw,adminHash());
-    if(!ok){$('lgMsg').innerHTML='<div class="msg bad">Contraseña incorrecta</div>';return}
+    if(!ok){if(await modTry(pw,next))return;$('lgMsg').innerHTML='<div class="msg bad">Contraseña incorrecta</div>';return}
     ADMIN_PW=pw;ss.set('dven_apw',pw);
-    setAdmin(true);closeModal();toast('Sesión de administrador iniciada');
+    setAdmin(true);closeModal();toast('Sesión de administrador iniciada');setTimeout(licAfterAdmin,0);
     const d=store.get('dven_draft');if(d&&confirm('Hay cambios sin guardar de una sesión anterior en este navegador. ¿Recuperarlos?')){try{const o=JSON.parse(d);setDB(reviveDB(o.db),Object.assign({},o.src,{label:(o.src&&o.src.label||'Base')+' + cambios locales'}),true)}catch(e){}}
     updateStatus();if(!DB){$('welcome').classList.remove('hidden')}go(typeof next==='string'?next:PAGE)};
 }
@@ -2573,12 +3001,13 @@ function updateStatus(){
   bn.innerHTML=SRC.kind==='cloud'?'⚠ Hay cambios que aún no están publicados. <button class="btn sm pri" onclick="publishAll()">☁ Guardar y publicar</button>'
     :'⚠ Hay cambios que aún no están guardados en tu archivo de base. <button class="btn sm" onclick="saveBase()">💾 Guardar base</button><button class="btn sm pri" onclick="publishAll()">☁ Guardar y publicar</button>';
 }
-const TITLES={resumen:'Consolidado divisional',propios:'Personal propio',eecc:'Empresas contratistas',accidentes:'Accidentes',eventos:'Eventos significativos',mapa:'Mapa de accidentes',proyecciones:'Proyecciones',corporativo:'Indicadores corporativos','carga-corp':'Carga de datos · Corporativo','informe':'Informe semanal','carga-propios':'Carga de datos · Propios','carga-eecc':'Carga de datos · EECC',base:'Base y configuración'};
-const RENDER={resumen:renderResumen,propios:renderPropios,eecc:renderEecc,accidentes:renderAcc,eventos:renderEv,mapa:renderMapa,proyecciones:renderProy,corporativo:renderCorp,'carga-corp':renderCargaC,informe:renderInforme,'carga-propios':renderCargaP,'carga-eecc':renderCargaE,base:renderBase};
+const TITLES={licencias:'Licencias internas',resumen:'Consolidado divisional',propios:'Personal propio',eecc:'Empresas contratistas',accidentes:'Accidentes',eventos:'Eventos significativos',mapa:'Mapa de accidentes',proyecciones:'Proyecciones',corporativo:'Indicadores corporativos','carga-corp':'Carga de datos · Corporativo','informe':'Informe semanal','carga-propios':'Carga de datos · Propios','carga-eecc':'Carga de datos · EECC',base:'Base y configuración'};
+const RENDER={licencias:renderLic,resumen:renderResumen,propios:renderPropios,eecc:renderEecc,accidentes:renderAcc,eventos:renderEv,mapa:renderMapa,proyecciones:renderProy,corporativo:renderCorp,'carga-corp':renderCargaC,informe:renderInforme,'carga-propios':renderCargaP,'carga-eecc':renderCargaE,base:renderBase};
 const ADMIN_PAGES=['carga-propios','carga-eecc','carga-corp','base'];
-function go(p){if(!RENDER[p])p='resumen';if(ADMIN_PAGES.includes(p)&&!ADMIN){openLogin(p);return}PAGE=p;try{history.replaceState(null,'','#'+p)}catch(e){}render();$('side').classList.remove('open');window.scrollTo(0,0)}
+function go(p){if(!RENDER[p])p='resumen';if(ADMIN_PAGES.includes(p)&&!ADMIN){openLogin(p);return}if(p==='licencias'&&!canLic()){openLogin(p);return}PAGE=p;try{history.replaceState(null,'','#'+p)}catch(e){}render();$('side').classList.remove('open');window.scrollTo(0,0)}
 function render(){
   if(ADMIN_PAGES.includes(PAGE)&&!ADMIN)PAGE='resumen';
+  if(PAGE==='licencias'&&!canLic())PAGE='resumen';
   if(ADMIN&&DB&&SRC.kind==='pub'&&ADMIN_PAGES.includes(PAGE)){
     document.querySelectorAll('.nav a').forEach(a=>a.classList.toggle('on',a.dataset.p===PAGE));$('pageTitle').textContent=TITLES[PAGE];
     document.querySelectorAll('.page').forEach(s=>s.classList.toggle('hidden',s.id!=='p-'+PAGE));$('perSel').classList.add('hidden');
@@ -2608,7 +3037,8 @@ async function boot(){
   if(canFS()){try{const h=await idb.get('fh');if(h)FH=h}catch(e){}}
   const pub=async()=>{try{const r=await fetch(BASE_PATH+'?t='+Date.now(),{cache:'no-store'});if(r.ok){setDB(readBase(await r.arrayBuffer()),{kind:'web',label:'Base publicada'},false);if(ADMIN)saveCache();return true}}catch(e){}return false};
   if(!ADMIN){ // visitantes: solo el archivo público (sin datos sensibles)
-    if(await loadPublic())return;
+    const mpw=ss.get('dven_mpw');
+    if(await loadPublic()){if(mpw){try{if(!(await modLogin(mpw)))setMod(false);else render()}catch(e){}}return}
     if(await pub())return;
     const c=store.get('dven_cache');if(c){try{const o=JSON.parse(c);setDB(reviveDB(o.db),{kind:'cache',label:'Última base vista'},false);return}catch(e){}}
     $('welcomeMsg').textContent='No se pudo cargar la base de datos publicada.';$('welcome').classList.remove('hidden');render();return;
