@@ -1983,7 +1983,7 @@ const LT={
 };
 const LREQ={
   mun:{n:'Licencia municipal',t:'vig',k:'munVig'},
-  cursoPG:{n:'Curso operación puente grúa',t:'bool',k:'cursoPG'},
+  cursoPG:{n:'Curso operación puente grúa',t:'bool',k:'cursoPG',kf:'cursoPGF'},
   rf03:{n:'Riesgo de fatalidad izaje (RF 03)',t:'bool',k:'rf03'},
   pst:{n:'Examen PST',t:'vig',k:'pstVig'},
   altura:{n:'Examen altura física',t:'vig',k:'alturaVig'},
@@ -2131,6 +2131,7 @@ function editTrab(rk){if(!canLic()){toast('Solo administrador o modificador pued
    <label class="fld">Examen PST · vigencia<input type="date" name="pstVig" value="${d(t.pstVig)}"></label>
    <label class="fld">Examen altura física · vigencia<input type="date" name="alturaVig" value="${d(t.alturaVig)}"></label>
    <label class="fld">Curso operación puente grúa${yn('cursoPG')}</label>
+   <label class="fld">Curso puente grúa · fecha de realización<input type="date" name="cursoPGF" value="${d(t.cursoPGF)}"></label>
    <label class="fld">RF 03 Izaje${yn('rf03')}</label>
    <label class="fld">Curso trabajo en altura${yn('cursoAltura')}</label>
    <label class="fld">Procedimiento trabajo en altura física${yn('procAltura')}</label>
@@ -2142,7 +2143,7 @@ function editTrab(rk){if(!canLic()){toast('Solo administrador o modificador pued
   $('trabF').onsubmit=e=>{e.preventDefault();const f=new FormData($('trabF'));const g=k=>String(f.get(k)??'').trim();
     const rut=rk?t.rut:rutFmt(g('rut'));if(!rk){if(rutKey(rut).length<7){toast('RUT no válido');return}if(trabBy(rut)){toast('Ya existe un trabajador con ese RUT');return}}
     const o=rk?t:{rut,activo:'SI'};Object.assign(o,{nombre:g('nombre').toUpperCase(),tipo:g('tipo'),empresa:g('tipo')==='Codelco'?'':g('empresa'),cargo:g('cargo'),grupo:g('grupo'),turno:g('turno'),rol:g('rol'),ger:g('ger'),obs:g('obs'),
-      munVig:pDate(g('munVig')),pstVig:pDate(g('pstVig')),alturaVig:pDate(g('alturaVig')),cursoPG:g('cursoPG'),rf03:g('rf03'),cursoAltura:g('cursoAltura'),procAltura:g('procAltura'),cursoTecle:g('cursoTecle'),cursoTecleF:pDate(g('cursoTecleF'))});
+      munVig:pDate(g('munVig')),pstVig:pDate(g('pstVig')),alturaVig:pDate(g('alturaVig')),cursoPG:g('cursoPG'),cursoPGF:pDate(g('cursoPGF')),rf03:g('rf03'),cursoAltura:g('cursoAltura'),procAltura:g('procAltura'),cursoTecle:g('cursoTecle'),cursoTecleF:pDate(g('cursoTecleF'))});
     if(!rk)LDB.trab.push(o);licDirty('Trabajador guardado');showTrab(rutKey(o.rut))};
 }
 function delTrab(rk){if(!canLic()){toast('Solo administrador o modificador pueden editar licencias');return}if(!confirm('¿Eliminar este trabajador y su documentación?'))return;LDB.trab=LDB.trab.filter(t=>rutKey(t.rut)!==rk);LDB.docs=LDB.docs.filter(d=>rutKey(d.rut)!==rk);closeModal();licDirty('Trabajador eliminado')}
@@ -2159,7 +2160,7 @@ function editLicencia(id,rk){if(!canLic()){toast('Solo administrador o modificad
     if(!id){const tp=f.get('tipo');if(licsOf(l.rut).some(x=>x.tipo===tp&&x.estado!=='Revocada')){toast('Este trabajador ya tiene esa licencia: edítala en vez de crear otra',6000);return}
       const n=Math.max(0,...LDB.lic.map(x=>parseInt(String(x.id).replace(/\D/g,''))||0))+1;Object.assign(l,{id:'LI-'+String(n).padStart(4,'0'),tipo:tp,qid:rnd62(10),qk:b64u(crypto.getRandomValues(new Uint8Array(16)))});LDB.lic.push(l)}
     Object.assign(l,{emision:pDate(f.get('emision')),vig:null,estado:f.get('estado'),obs:String(f.get('obs')||'').trim()});
-    licDirty('Licencia guardada');showTrab(rutKey(l.rut))};
+    licDirty(id?'Licencia guardada':'Licencia creada · completa los datos y requisitos del trabajador');if(id)showTrab(rutKey(l.rut));else editTrab(rutKey(l.rut))};
 }
 function delLicencia(id){if(!canLic()){toast('Solo administrador o modificador pueden editar licencias');return}if(!confirm('¿Eliminar la licencia? Su código QR dejará de funcionar. (Para dejar constancia, mejor márcala como "Revocada".)'))return;const l=LDB.lic.find(x=>x.id===id);LDB.lic=LDB.lic.filter(x=>x.id!==id);licDirty('Licencia eliminada');showTrab(rutKey(l.rut))}
 /* ---------- documentos ---------- */
@@ -2231,14 +2232,14 @@ async function importOrg(inp){if(!canLic()){toast('Solo administrador o modifica
     gone.forEach(t=>t.activo='NO');closeModal();licDirty(`Orgánica importada: ${nu} nuevos, ${up} actualizados, ${gone.length} fuera de orgánica`)};
 }
 /* ---------- Excel de licencias ---------- */
-const TR_H=['Nombre','Rut','Cargo','Turno','Grupo','Rol','Gerencia / Superintendencia','Empresa','Activo','Licencia municipal (vigencia)','Curso operación puente grúa','RF 03 Izaje','Examen PST (vigencia)','Examen altura física (vigencia)','Curso trabajo en altura','Procedimiento trabajo altura física','Curso específico tecle','Curso tecle (fecha)','Observación'];
-const trRow=t=>[t.nombre,rutFmt(t.rut),t.cargo,t.turno,t.grupo,t.rol,t.ger,t.empresa,t.activo||'SI',t.munVig,t.cursoPG,t.rf03,t.pstVig,t.alturaVig,t.cursoAltura,t.procAltura,t.cursoTecle,t.cursoTecleF,t.obs];
+const TR_H=['Nombre','Rut','Cargo','Turno','Grupo','Rol','Gerencia / Superintendencia','Empresa','Activo','Licencia municipal (vigencia)','Curso operación puente grúa','Curso puente grúa (fecha)','RF 03 Izaje','Examen PST (vigencia)','Examen altura física (vigencia)','Curso trabajo en altura','Procedimiento trabajo altura física','Curso específico tecle','Curso tecle (fecha)','Observación'];
+const trRow=t=>[t.nombre,rutFmt(t.rut),t.cargo,t.turno,t.grupo,t.rol,t.ger,t.empresa,t.activo||'SI',t.munVig,t.cursoPG,t.cursoPGF,t.rf03,t.pstVig,t.alturaVig,t.cursoAltura,t.procAltura,t.cursoTecle,t.cursoTecleF,t.obs];
 function buildLicWb(){
   const wb=XLSX.utils.book_new();const HS={font:{name:'Arial',bold:true,color:{rgb:'FFFFFF'}},fill:{patternType:'solid',fgColor:{rgb:'E75300'}},alignment:{wrapText:true,vertical:'center'}};
   const sh=(name,H,rows,w)=>{const ws={};H.forEach((h,c)=>ws[XLSX.utils.encode_cell({r:0,c})]={t:'s',v:h,s:HS});
     rows.forEach((row,r)=>row.forEach((v,c)=>{if(v==null||v==='')return;const a=XLSX.utils.encode_cell({r:r+1,c});ws[a]=v instanceof Date?{t:'n',v:toSerial(v),z:'dd-mm-yyyy',s:{font:{name:'Arial',sz:10},numFmt:'dd-mm-yyyy'}}:typeof v==='number'?{t:'n',v}:{t:'s',v:String(v)}}));
     ws['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:Math.max(rows.length,1),c:H.length-1}});ws['!cols']=w.map(x=>({wch:x}));ws['!autofilter']={ref:ws['!ref']};XLSX.utils.book_append_sheet(wb,ws,name)};
-  const W=[34,13,30,6,6,9,34,26,7,12,10,9,12,12,10,12,10,12,30];
+  const W=[34,13,30,6,6,9,34,26,7,12,10,12,9,12,12,10,12,10,12,30];
   sh('Codelco',TR_H,LDB.trab.filter(t=>t.tipo==='Codelco').map(trRow),W);
   sh('EECC',TR_H,LDB.trab.filter(t=>t.tipo!=='Codelco').map(trRow),W);
   sh('Licencias',['ID','Rut','Nombre','Tipo','Licencia','Fecha emisión','Vigencia (calculada)','Estado registrado','Estado calculado','Próximo vencimiento','Fecha próximo vencimiento','Código QR','Llave QR','Observación'],LDB.lic.map(l=>{const t=trabBy(l.rut)||{};const s=licStatus(l,t);return[l.id,rutFmt(l.rut),t.nombre||'',l.tipo,LT[l.tipo]?LT[l.tipo].nombre:'',l.emision,s.vigEf,l.estado,s.st,s.prox?s.prox.n:'',s.prox?s.prox.f:null,l.qid,l.qk,l.obs]}),[9,13,32,6,24,11,11,11,16,30,11,13,24,30]);
@@ -2251,7 +2252,7 @@ function readLicWb(buf){
   const g=(r,k)=>r[k]==null?'':r[k];const D=v=>v==null||v===''?null:pDate(v);
   const db=lEmpty();
   [['Codelco','Codelco'],['EECC','EECC']].forEach(([n,tipo])=>rows(n).forEach(r=>{if(!g(r,'Nombre')||rutKey(g(r,'Rut')).length<7)return;db.trab.push({tipo,nombre:String(g(r,'Nombre')).trim().toUpperCase(),rut:rutFmt(g(r,'Rut')),cargo:String(g(r,'Cargo')),turno:String(g(r,'Turno')),grupo:String(g(r,'Grupo')),rol:String(g(r,'Rol')),ger:String(g(r,'Gerencia / Superintendencia')),empresa:String(g(r,'Empresa')),activo:String(g(r,'Activo')||'SI'),
-    munVig:D(r['Licencia municipal (vigencia)']),cursoPG:siNo(r['Curso operación puente grúa']),rf03:siNo(r['RF 03 Izaje']),pstVig:D(r['Examen PST (vigencia)']),alturaVig:D(r['Examen altura física (vigencia)']),cursoAltura:siNo(r['Curso trabajo en altura']),procAltura:siNo(r['Procedimiento trabajo altura física']),cursoTecle:siNo(r['Curso específico tecle']),cursoTecleF:D(r['Curso tecle (fecha)']),obs:String(g(r,'Observación'))})}));
+    munVig:D(r['Licencia municipal (vigencia)']),cursoPG:siNo(r['Curso operación puente grúa']),cursoPGF:D(r['Curso puente grúa (fecha)']),rf03:siNo(r['RF 03 Izaje']),pstVig:D(r['Examen PST (vigencia)']),alturaVig:D(r['Examen altura física (vigencia)']),cursoAltura:siNo(r['Curso trabajo en altura']),procAltura:siNo(r['Procedimiento trabajo altura física']),cursoTecle:siNo(r['Curso específico tecle']),cursoTecleF:D(r['Curso tecle (fecha)']),obs:String(g(r,'Observación'))})}));
   rows('Licencias').forEach(r=>{if(!g(r,'ID')||!g(r,'Rut'))return;const tp=String(g(r,'Tipo')).trim().toUpperCase();db.lic.push({id:String(g(r,'ID')),rut:rutFmt(g(r,'Rut')),tipo:LT[tp]?tp:(Object.keys(LT).find(k=>norm(LT[k].nombre)===norm(g(r,'Licencia')))||tp),emision:D(r['Fecha emisión']),vig:D(r['Vigencia']),estado:String(g(r,'Estado registrado')||'Activa'),qid:String(g(r,'Código QR'))||rnd62(10),qk:String(g(r,'Llave QR'))||b64u(crypto.getRandomValues(new Uint8Array(16))),obs:String(g(r,'Observación'))})});
   rows('Documentos').forEach(r=>{if(!g(r,'Rut'))return;let file=null;try{file=g(r,'Archivo')?JSON.parse(g(r,'Archivo')):null}catch(e){}db.docs.push({rut:rutFmt(g(r,'Rut')),doc:String(g(r,'Documento')),nombre:String(g(r,'Descripción')),vig:D(r['Vigencia']),fecha:D(r['Fecha carga']),link:String(g(r,'Enlace')),file})});
   return db;
@@ -2275,7 +2276,7 @@ function licAlertXlsx(){
 /* ---------- borrador local ---------- */
 const serL=()=>JSON.stringify(LDB);
 function reviveL(s){const o=typeof s==='string'?JSON.parse(s):s;const D=v=>v?pDate(String(v).slice(0,10)):null;const db=Object.assign(lEmpty(),o);
-  db.trab.forEach(t=>['munVig','pstVig','alturaVig','cursoTecleF'].forEach(k=>t[k]=D(t[k])));db.lic.forEach(l=>{l.emision=D(l.emision);l.vig=D(l.vig)});db.docs.forEach(d=>{d.vig=D(d.vig);d.fecha=D(d.fecha)});return db}
+  db.trab.forEach(t=>['munVig','pstVig','alturaVig','cursoTecleF','cursoPGF'].forEach(k=>t[k]=D(t[k])));db.lic.forEach(l=>{l.emision=D(l.emision);l.vig=D(l.vig)});db.docs.forEach(d=>{d.vig=D(d.vig);d.fecha=D(d.fecha)});return db}
 function licDirty(t){LDIRTY=true;store.set('dven_ldraft',JSON.stringify({when:new Date().toISOString(),db:serL()}));if(PAGE==='licencias')renderLic();if(t)toast(t+' · recuerda ☁ Guardar y publicar',4500)}
 /* ---------- nube: base cifrada + entradas públicas por QR ---------- */
 async function loadLicCloud(pw){
