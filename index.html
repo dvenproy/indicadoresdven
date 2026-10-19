@@ -2424,10 +2424,10 @@ async function trabCanvas(t){
   const cell=Math.floor(QB/(n+6)),off=Math.round((QB-cell*n)/2);x.fillStyle='#000000';
   for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))x.fillRect(qx+off+c*cell,qy+off+r*cell,cell,cell);
   // panel del titular
-  const ls=licsOf(t.rut).filter(l=>l.estado!=='Revocada').sort((a,b)=>Object.keys(LT).indexOf(a.tipo)-Object.keys(LT).indexOf(b.tipo));
+  const ls=[]; // la credencial no imprime las licencias: así no se reimprime al agregar una nueva
   const PX=56,PW=W-112,MAXW=PW-100;let fs=66,lines;
   do{x.font=`800 ${fs}px ${F}`;lines=wrapLines(x,String(t.nombre||'').toUpperCase(),MAXW,2);fs-=2}while(fs>40&&lines.some(l=>x.measureText(l).width>MAXW));fs+=2;
-  const lh=Math.round(fs*1.12),rs=56,chipH=66,PH=78+lines.length*lh+10+8+30+(rs+26)+(ls.length?34+chipH:0)+44,PY=1205;
+  const lh=Math.round(fs*1.12),rs=56,chipH=66,PH=78+lines.length*lh+10+8+30+(rs+26)+(ls.length?34+chipH:0)+44,PY=1250;
   x.fillStyle='rgba(255,255,255,.12)';rr(PX,PY,PW,PH,60);x.fill();x.lineWidth=5;x.strokeStyle='rgba(255,255,255,.42)';rr(PX,PY,PW,PH,60);x.stroke();
   x.font=`800 32px ${F}`;try{x.letterSpacing='5px'}catch(e){}const tw=x.measureText('TITULAR').width+76;x.fillStyle='#E75300';rr(540-tw/2,PY-32,tw,64,32);x.fill();x.fillStyle='#FFFFFF';x.textAlign='center';x.fillText('TITULAR',543,PY+11);try{x.letterSpacing='0px'}catch(e){}
   let y=PY+78;x.save();x.shadowColor='rgba(0,0,0,.35)';x.shadowBlur=8;x.shadowOffsetY=3;x.fillStyle='#FFFFFF';x.font=`800 ${fs}px ${F}`;lines.forEach((l,i)=>x.fillText(l,540,y+i*lh+fs*.8));x.restore();
